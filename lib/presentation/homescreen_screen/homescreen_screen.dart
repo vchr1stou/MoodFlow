@@ -76,18 +76,18 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                         ),
                       ),
                       _buildQuoteCard(),
-                      SizedBox(height: 16),
+                      SizedBox(height: 13),
                       _buildFeelingCard(),
-                      SizedBox(height: 16),
+                      SizedBox(height: 13),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildStatisticsCard(),
-                            SizedBox(height: 16),
+                            SizedBox(height: 13),
                             _buildActionButtons(),
-                            SizedBox(height: 20),
+                            SizedBox(height: 23),
                           ],
                         ),
                       ),
@@ -245,7 +245,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
               Positioned(
                 left: sideSpace + 85,
                 right: sideSpace + 40,
-                top: 30,
+                top: 31,
                 child: Text(
                   'Every step toward healing lights the path for someone else',
                   style: GoogleFonts.roboto(
