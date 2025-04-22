@@ -1,5 +1,8 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -10,6 +13,14 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
+import '../breathingmain_screen/breathingmain_screen.dart';
+import '../streak_screen/streak_screen.dart';
+import '../profile_screen/profile_screen.dart';
+import '../history_empty_screen/history_empty_screen.dart';
+import '../discover_screen/discover_screen.dart';
+import '../statistics_mood_charts_screen/statistics_mood_charts_screen.dart';
+import '../log_input_screen/log_input_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
@@ -21,10 +32,7 @@ class HomescreenScreen extends StatefulWidget {
   HomescreenScreenState createState() => HomescreenScreenState();
 
   static Widget builder(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => HomescreenProvider(),
-      child: HomescreenScreen(),
-    );
+    return HomescreenScreen();
   }
 }
 
@@ -39,494 +47,622 @@ class HomescreenScreenState extends State<HomescreenScreen> {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppbar(context),
       body: Container(
         width: double.maxFinite,
-        height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
+        height: double.maxFinite,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: SafeArea(
-          child: Container(
-            margin: EdgeInsets.only(top: 56.h),
-            child: SingleChildScrollView(
-              child: Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.only(
-                  left: 30.h,
-                  top: 30.h,
-                  right: 30.h,
-                ),
-                child: Column(
-                  spacing: 12,
-                  children: [
-                    _buildAlert(context),
-                    _buildAlertone(context),
-                    _buildAlerttwo(context),
-                    _buildAlertthree(context),
-                    SizedBox(height: 36.h),
-                  ],
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 20),
+                            _buildHeader(),
+                            SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                      _buildQuoteCard(),
+                      SizedBox(height: 16),
+                      _buildFeelingCard(),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatisticsCard(),
+                            SizedBox(height: 16),
+                            _buildActionButtons(),
+                            SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
-      bottomNavigationBar: _buildColumnblursone(context),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  /// Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      title: Padding(
-        padding: EdgeInsets.only(left: 25.h),
-        child: Column(
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppbarSubtitleTwo(
-              text: "lbl_welcome_back".tr.toUpperCase(),
+            Text(
+              'WELCOME BACK',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            AppbarSubtitle(
-              text: "lbl_vasilis".tr,
-              margin: EdgeInsets.only(
-                left: 3.h,
-                right: 9.h,
+            SizedBox(height: 0.5),
+            Text(
+              'Vasilis',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
-      ),
-      actions: [
-        AppbarTrailingButton(),
-        AppbarTrailingImage(
-          imagePath: ImageConstant.imgSettings,
-          height: 40.h,
-          width: 40.h,
-          margin: EdgeInsets.only(left: 5.h),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StreakScreen(),
+                      ),
+                    );
+                  },
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: SvgPicture.asset(
+                          'assets/images/streak_flame.svg',
+                          width: 66,
+                          height: 34,
+                        ),
+                      ),
+                      Positioned(
+                        top: 9.5,
+                        left: 40,
+                        child: Text(
+                          '7',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 2),
+                GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Press and hold to start SOS'),
+                        duration: Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  onLongPress: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BreathingmainScreen(),
+                      ),
+                    );
+                  },
+                  child: SvgPicture.asset(
+                    'assets/images/sos_button.svg',
+                    width: 40,
+                    height: 40,
+                  ),
+                ),
+                SizedBox(width: 5),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 3),
+                    child: SvgPicture.asset(
+                      'assets/images/person.crop.circle.fill.svg',
+                      width: 37,
+                      height: 37,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        AppbarTrailingImage(
-          imagePath: ImageConstant.imgMusic,
-          height: 36.h,
-          width: 36.h,
-          margin: EdgeInsets.only(
-            left: 4.h,
-            right: 19.h,
+      ],
+    );
+  }
+
+  Widget _buildQuoteCard() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double cardWidth = 340.0;
+        double cardHeight = 69.0;
+        double sideSpace = (constraints.maxWidth - cardWidth) / 2;
+
+        return Container(
+          width: constraints.maxWidth,
+          height: cardHeight,
+          child: Stack(
+            children: [
+              Positioned(
+                left: sideSpace,
+                child: SvgPicture.asset(
+                  'assets/images/quote.svg',
+                  width: cardWidth,
+                  height: cardHeight,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                left: sideSpace + 85,
+                right: sideSpace + 40,
+                top: 30,
+                child: Text(
+                  'Every step toward healing lights the path for someone else',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white,
+                    fontSize: 12,
+                    height: 1.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeelingCard() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double cardWidth = 340.0;
+        double cardHeight = 219.0;
+        double sideSpace = (constraints.maxWidth - cardWidth) / 2;
+
+        return Container(
+          width: constraints.maxWidth,
+          height: cardHeight,
+          child: Stack(
+            children: [
+              Positioned(
+                left: sideSpace,
+                child: SvgPicture.asset(
+                  'assets/images/haf_box.svg',
+                  width: cardWidth,
+                  height: cardHeight,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                left: sideSpace,
+                right: sideSpace,
+                child: SizedBox(
+                  height: cardHeight,
+                  child: Padding(
+                    padding: EdgeInsets.all(33),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          'How are you feeling?',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 27),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LogInputScreen(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 65,
+                            height: 65,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              color: Colors.deepPurple,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatisticsCard() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StatisticsMoodChartsScreen(),
+          ),
+        );
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double cardWidth = 340.0;
+          double cardHeight = 205.0;
+          double sideSpace = (constraints.maxWidth - cardWidth) / 2;
+
+          return Container(
+            width: constraints.maxWidth,
+            height: cardHeight,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: sideSpace,
+                  child: SvgPicture.asset(
+                    'assets/images/statistics_home_box.svg',
+                    width: cardWidth,
+                    height: cardHeight,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  left: sideSpace,
+                  right: sideSpace,
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Statistics',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatBar('Mon', 0.8),
+                            _buildStatBar('Tue', 0.6),
+                            _buildStatBar('Wed', 0.7),
+                            _buildStatBar('Thu', 0.9),
+                            _buildStatBar('Fri', 0.5),
+                            _buildStatBar('Sat', 0.6),
+                            _buildStatBar('Sun', 0.4, isSelected: true),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildStatBar(String day, double height, {bool isSelected = false}) {
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 100,
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                width: 30,
+                height: 100 * height,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                )
+              : null,
+          child: Text(
+            day,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
     );
   }
 
-  /// Section Widget
-  Widget _buildAlert(BuildContext context) {
-    return Container(
-      decoration: AppDecoration.windowsGlassBlur.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      width: double.maxFinite,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 100,
-            sigmaY: 100,
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.h,
-              vertical: 8.h,
-            ),
-            child: Row(
-              children: [
-                CustomImageView(
-                  imagePath: ImageConstant.imgContrast,
-                  height: 32.h,
-                  width: 52.h,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "msg_quote_of_the_day".tr,
-                        style: CustomTextStyles.titleMediumOnPrimaryBold,
-                      ),
-                      Text(
-                        "msg_every_step_toward".tr,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyles.labelMediumRobotoMedium
-                            .copyWith(height: 1.09),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildActionButtons() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double cardWidth = 340.0;
+        double cardHeight = 69.0;
+        double buttonWidth = 150.0;
+        double buttonHeight = 40.0;
+        double sideSpace = (constraints.maxWidth - cardWidth) / 2;
 
-  /// Section Widget
-  Widget _buildAlertone(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 100,
-            sigmaY: 100,
-          ),
-          child: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(vertical: 30.h),
-            decoration: AppDecoration.windowsGlassBlur.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder32,
-            ),
-            child: Column(
-              spacing: 26,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "msg_how_are_you_feeling".tr,
-                  style: CustomTextStyles.titleMediumSFProOnPrimaryBold,
+        return Container(
+          width: constraints.maxWidth,
+          height: cardHeight,
+          child: Stack(
+            children: [
+              Positioned(
+                left: sideSpace,
+                child: SvgPicture.asset(
+                  'assets/images/show_history_discovery_wrapper.svg',
+                  width: cardWidth,
+                  height: cardHeight,
+                  fit: BoxFit.cover,
                 ),
-                CustomIconButton(
-                  height: 72.h,
-                  width: 72.h,
-                  padding: EdgeInsets.all(20.h),
-                  decoration: IconButtonStyleHelper.outlineBlack,
-                  child: CustomImageView(
-                    imagePath: ImageConstant.imgButton,
-                  ),
-                ),
-                SizedBox(height: 30.h),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildAlerttwo(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 100,
-            sigmaY: 100,
-          ),
-          child: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(
-              horizontal: 12.h,
-              vertical: 22.h,
-            ),
-            decoration: AppDecoration.windowsGlassBlur.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder32,
-            ),
-            child: Column(
-              spacing: 22,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: double.maxFinite,
-                  margin: EdgeInsets.symmetric(horizontal: 16.h),
-                  child: Row(
-                    children: [
-                      Text(
-                        "lbl_statistics".tr,
-                        style: CustomTextStyles.titleMediumSFProOnPrimaryBold,
-                      ),
-                      CustomImageView(
-                        imagePath: ImageConstant.imgArrowRight,
-                        height: 12.h,
-                        width: 8.h,
-                        alignment: Alignment.bottomCenter,
-                        margin: EdgeInsets.only(
-                          left: 4.h,
-                          bottom: 4.h,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgThumbsUp,
-                            height: 90.h,
-                            width: 30.h,
+              ),
+              Positioned(
+                left: sideSpace,
+                right: sideSpace,
+                top: (cardHeight - buttonHeight) / 2,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HistoryEmptyScreen(),
                           ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgTelevision,
-                            height: 90.h,
-                            width: 30.h,
-                          ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgSettingsPink800,
-                            height: 90.h,
-                            width: 30.h,
-                          ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgSettingsOrange30001,
-                            height: 90.h,
-                            width: 30.h,
-                          ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgSettingsPink80090x30,
-                            height: 90.h,
-                            width: 30.h,
-                          ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgSettingsPink80090x30,
-                            height: 90.h,
-                            width: 30.h,
-                          ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgInbox,
-                            height: 90.h,
-                            width: 30.h,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "lbl_mon".tr,
-                            style: CustomTextStyles
-                                .titleSmallRobotoOnPrimarySemiBold_1,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 18.h),
-                            child: Text(
-                              "lbl_tue".tr,
-                              style: CustomTextStyles
-                                  .titleSmallRobotoOnPrimarySemiBold_1,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 16.h),
-                            child: Text(
-                              "lbl_wed".tr,
-                              style: CustomTextStyles
-                                  .titleSmallRobotoOnPrimarySemiBold_1,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 16.h),
-                            child: Text(
-                              "lbl_thu".tr,
-                              style: CustomTextStyles
-                                  .titleSmallRobotoOnPrimarySemiBold_1,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 22.h),
-                            child: Text(
-                              "lbl_fri".tr,
-                              style: CustomTextStyles
-                                  .titleSmallRobotoOnPrimarySemiBold_1,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 26.h),
-                            child: Text(
-                              "lbl_sat".tr,
-                              style: CustomTextStyles
-                                  .titleSmallRobotoOnPrimarySemiBold_1,
-                            ),
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(left: 12.h),
-                            padding: EdgeInsets.symmetric(horizontal: 8.h),
-                            decoration: AppDecoration.outline.copyWith(
-                              borderRadius: BorderRadiusStyle.circleBorder8,
-                            ),
-                            child: Text(
-                              "lbl_sun".tr,
-                              textAlign: TextAlign.left,
-                              style: CustomTextStyles
-                                  .titleSmallRobotoOnPrimarySemiBold_1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildShowhistory(BuildContext context) {
-    return Expanded(
-      child: CustomElevatedButton(
-        height: 40.h,
-        text: "lbl_show_history".tr,
-        buttonStyle: CustomButtonStyles.fillPrimary,
-        buttonTextStyle: CustomTextStyles.labelLargeOnPrimary,
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildDiscover(BuildContext context) {
-    return Expanded(
-      child: CustomElevatedButton(
-        height: 40.h,
-        text: "lbl_discover".tr,
-        buttonStyle: CustomButtonStyles.fillPrimary,
-        buttonTextStyle: CustomTextStyles.labelLargeOnPrimary,
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildAlertthree(BuildContext context) {
-    return Container(
-      decoration: AppDecoration.windowsGlassBlur.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      width: double.maxFinite,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 100,
-            sigmaY: 100,
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 14.h,
-              vertical: 12.h,
-            ),
-            child: Row(
-              children: [
-                _buildShowhistory(context),
-                _buildDiscover(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildHome(BuildContext context) {
-    return CustomOutlinedButton(
-      height: 36.h,
-      text: "lbl_home".tr,
-      leftIcon: Container(
-        margin: EdgeInsets.only(right: 2.h),
-        child: CustomImageView(
-          imagePath: ImageConstant.imgHousefill1,
-          height: 14.h,
-          width: 16.h,
-          fit: BoxFit.contain,
-        ),
-      ),
-      buttonStyle: CustomButtonStyles.none,
-      decoration: CustomButtonStyles.outlineTL18Decoration,
-      buttonTextStyle: CustomTextStyles.labelLarge13,
-    );
-  }
-
-  /// Section Widget
-  Widget _buildColumnblursone(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(horizontal: 14.h),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: EdgeInsets.only(bottom: 12.h),
-            padding: EdgeInsets.all(4.h),
-            decoration: AppDecoration.viewsRecessedMaterialView.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder24,
-            ),
-            width: double.maxFinite,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [_buildHome(context)],
-                  ),
-                ),
-                Expanded(
-                  child: Card(
-                    clipBehavior: Clip.antiAlias,
-                    elevation: 0,
-                    margin: EdgeInsets.only(left: 2.h),
-                    color: theme.colorScheme.onPrimary.withValues(
-                      alpha: 0.18,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(width: 0.5.h),
-                      borderRadius: BorderRadiusStyle.circleBorder18,
-                    ),
-                    child: Container(
-                      height: 36.h,
-                      decoration: AppDecoration.outline.copyWith(
-                        borderRadius: BorderRadiusStyle.circleBorder18,
-                      ),
+                        );
+                      },
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgImage3,
-                            height: 36.h,
-                            width: double.maxFinite,
+                          SvgPicture.asset(
+                            'assets/images/show_history_wrapper.svg',
+                            width: buttonWidth,
+                            height: buttonHeight,
                           ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgBlurS,
-                            height: 36.h,
-                            width: double.maxFinite,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Show History',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Padding(
+                                padding: EdgeInsets.only(top: 0.8),
+                                child: SvgPicture.asset(
+                                  'assets/images/chevron_right.svg',
+                                  width: 7,
+                                  height: 11,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DiscoverScreen(),
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/show_history_wrapper.svg',
+                            width: buttonWidth,
+                            height: buttonHeight,
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Discover',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Padding(
+                                padding: EdgeInsets.only(top: 0.8),
+                                child: SvgPicture.asset(
+                                  'assets/images/chevron_right.svg',
+                                  width: 7,
+                                  height: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgThumbsUpPink100,
-                  height: 16.h,
-                  width: 16.h,
-                  margin: EdgeInsets.only(left: 20.h),
-                ),
-                Container(
-                  width: 64.h,
-                  margin: EdgeInsets.only(
-                    left: 2.h,
-                    right: 16.h,
-                  ),
-                  child: Text(
-                    "lbl_little_lifts".tr,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyles.labelLargeOnPrimary13,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomNav() {
+    // Check if running on Android and has system navigation bar
+    final bottomPadding =
+        Platform.isAndroid ? MediaQuery.of(context).padding.bottom : 0.0;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: bottomPadding > 0 ? 20 + bottomPadding : 20),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          SvgPicture.asset(
+            'assets/images/bottom_bar_home_pressed.svg',
+            fit: BoxFit.fitWidth,
+          ),
+          Positioned(
+            bottom: 4,
+            child: Image.asset(
+              'assets/images/ai_button.png',
+              width: 118.667,
+              height: 36,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              isAntiAlias: true,
             ),
-          )
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGlassCard({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassButton({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+            ),
+          ),
+          child: child,
+        ),
       ),
     );
   }

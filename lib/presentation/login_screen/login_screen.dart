@@ -92,6 +92,8 @@ class LoginScreenState extends State<LoginScreen> {
                       _buildKeepMeSignedIn(context),
                       SizedBox(height: 42.h),
                       _buildSignInButton(),
+                      SizedBox(height: 12.h),
+                      _buildDummyLoginButton(),
                       Spacer(),
                     ],
                   ),
@@ -339,6 +341,42 @@ class LoginScreenState extends State<LoginScreen> {
             ),
             child: Text(
               "Sign in",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDummyLoginButton() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24.h),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          height: 56.h,
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(24.h),
+          ),
+          child: TextButton(
+            onPressed: () {
+              Navigator.pushReplacementNamed(
+                  context, AppRoutes.homescreenScreen);
+            },
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.h),
+              ),
+            ),
+            child: Text(
+              "Dummy Login (Skip to Home)",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
