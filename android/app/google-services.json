@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "463986263013",
+    "project_id": "moodflow-1390a",
+    "storage_bucket": "moodflow-1390a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:463986263013:android:273cf61d916ce4b55ba50c",
+        "android_client_info": {
+          "package_name": "com.example.new_flutter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKu2gPXiTPo__N98mveJUzQ5wBAAsRp-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
