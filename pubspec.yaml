@@ -1,5 +1,5 @@
 name: moodflow
-description: A new Flutter project.
+description: Let your feelings flow - A mood tracking and journaling app.
 version: 1.0.0+1
 environment:
   sdk: ^3.6.0
@@ -24,6 +24,7 @@ dependencies:
   fl_chart: ^0.66.2
   google_fonts: ^6.1.0
   sizer: ^2.0.15
+  flutter_launcher_icons: ^0.14.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

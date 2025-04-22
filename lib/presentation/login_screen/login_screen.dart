@@ -260,7 +260,7 @@ class LoginScreenState extends State<LoginScreen> {
   Widget _buildForgotPassword() {
     return GestureDetector(
       onTap: () {
-        // Handle forgot password
+        Navigator.pushNamed(context, AppRoutes.forgotPasswordScreen);
       },
       child: Text(
         "Forgot your Password?",
@@ -275,29 +275,32 @@ class LoginScreenState extends State<LoginScreen> {
       builder: (context, keepMeSignedIn, child) {
         return Row(
           children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: (keepMeSignedIn ?? false)
-                    ? Colors.blue
-                    : Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Checkbox(
-                value: keepMeSignedIn ?? false,
-                onChanged: (value) {
-                  context.read<LoginProvider>().changeCheckBox(value!);
-                },
-                fillColor: MaterialStateProperty.resolveWith<Color>((
-                  Set<MaterialState> states,
-                ) {
-                  return Colors.transparent;
-                }),
-                checkColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+            GestureDetector(
+              onTap: () {
+                context
+                    .read<LoginProvider>()
+                    .changeCheckBox(!(keepMeSignedIn ?? false));
+              },
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 20),
+                curve: Curves.easeOut,
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: (keepMeSignedIn ?? false)
+                      ? Colors.blue
+                      : Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
                 ),
+                child: (keepMeSignedIn ?? false)
+                    ? Center(
+                        child: Icon(
+                          Icons.check,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
               ),
             ),
             SizedBox(width: 8),

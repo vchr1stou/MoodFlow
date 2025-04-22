@@ -22,16 +22,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class WelcomeScreenState extends State<WelcomeScreen> {
   @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      NavigatorService.popAndPushNamed(
-        AppRoutes.loginScreen,
-      );
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
@@ -39,74 +29,126 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
-        child: SafeArea(
-          child: SizedBox(
-            child: Column(
-              children: [
-                Spacer(),
-                SizedBox(
-                  width: double.maxFinite,
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: 4,
-                        sigmaY: 4,
-                      ),
-                      child: Container(
-                        width: double.maxFinite,
-                        padding: EdgeInsets.symmetric(horizontal: 30.h),
-                        decoration: AppDecoration.outline6,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomImageView(
-                              imagePath: ImageConstant.imgImage,
-                              height: 152.h,
-                              width: 154.h,
-                              radius: BorderRadius.circular(76.h),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  color: Color(0xFFBCBCBC).withOpacity(0.04),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    SizedBox(height: 150.h),
+                    Container(
+                      width: double.maxFinite,
+                      padding: EdgeInsets.symmetric(horizontal: 30.h),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomImageView(
+                            imagePath: ImageConstant.imgImage,
+                            height: 220.h,
+                            width: 220.h,
+                            radius: BorderRadius.circular(110.h),
+                            alignment: Alignment.center,
+                          ),
+                          SizedBox(height: 0.h),
+                          Text(
+                            "MoodFlow",
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
-                            SizedBox(height: 18.h),
-                            Text(
-                              "lbl_moodflow".tr,
-                              style: CustomTextStyles.displayMediumWhiteA700,
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            "Let your feelings flow—we've got you covered",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
-                            SizedBox(height: 6.h),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8.h),
-                              child: Text(
-                                "msg_let_your_feelings".tr,
-                                style: CustomTextStyles.titleMediumWhiteA700,
+                          ),
+                          SizedBox(height: 156.h),
+                          _buildLoginButton(context),
+                          SizedBox(height: 12.h),
+                          Text(
+                            "or",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          TextButton(
+                            onPressed: () {
+                              // Handle create account
+                            },
+                            child: Text(
+                              "Create a new account",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
-                            SizedBox(height: 156.h),
-                            CustomOutlinedButton(
-                              text: "lbl_login".tr,
-                              buttonStyle: CustomButtonStyles.none,
-                              decoration:
-                                  CustomButtonStyles.outlineTL241Decoration,
-                            ),
-                            SizedBox(height: 12.h),
-                            Text(
-                              "lbl_or".tr,
-                              style:
-                                  CustomTextStyles.labelMediumRobotoOnPrimary11,
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              "msg_create_a_new_account".tr,
-                              style: CustomTextStyles
-                                  .labelLargeRobotoOnPrimaryBold13_1,
-                            ),
-                            SizedBox(height: 56.h),
-                          ],
-                        ),
+                          ),
+                          SizedBox(height: 30.h),
+                        ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                SizedBox(height: 34.h),
-              ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24.h),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          height: 56.h,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(24.h),
+          ),
+          child: TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.loginScreen);
+            },
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.h),
+              ),
+            ),
+            child: Text(
+              "Login",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ),

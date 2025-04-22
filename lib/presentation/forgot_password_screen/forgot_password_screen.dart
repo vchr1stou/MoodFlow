@@ -46,105 +46,195 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
-        child: SafeArea(
-          child: Form(
-            key: _formKey,
-            child: Container(
-              margin: EdgeInsets.only(top: 44.h),
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.all(26.h),
-                    decoration: AppDecoration.outline14,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12.h),
-                          child: Text(
-                            "msg_forgot_password".tr,
-                            style: CustomTextStyles.displayMediumWhiteA700,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  color: Color(0xFFBCBCBC).withOpacity(0.04),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(24.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 61.h),
+                      Text(
+                        "Forgot Password?",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
+                      Text(
+                        "Enter your email, and we'll help you\nget back into your account.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          height: 1.5,
+                        ),
+                      ),
+                      SizedBox(height: 80.h),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Enter your email:",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          "msg_enter_your_email".tr,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: CustomTextStyles.titleMediumSemiBold16
-                              .copyWith(height: 1.38),
-                        ),
-                        SizedBox(height: 78.h),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "msg_enter_your_email2".tr,
-                            style: CustomTextStyles.titleMediumWhiteA700,
-                          ),
-                        ),
-                        SizedBox(height: 16.h),
-                        Padding(
-                          padding: EdgeInsets.only(right: 12.h),
-                          child: Selector<ForgotPasswordProvider,
-                              TextEditingController?>(
-                            selector: (_, provider) => provider.emailController,
-                            builder: (_, emailController, __) {
-                              return CustomTextFormField(
-                                controller: emailController,
-                                hintText: "msg_johnappleseed_example_com".tr,
-                                textInputAction: TextInputAction.done,
-                                textInputType: TextInputType.emailAddress,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 18.h,
-                                  vertical: 10.h,
+                      ),
+                      SizedBox(height: 16.h),
+                      Selector<ForgotPasswordProvider, TextEditingController?>(
+                        selector: (_, provider) => provider.emailController,
+                        builder: (_, emailController, __) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(28),
+                              color: Colors.white.withOpacity(0.2),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(28),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                child: TextFormField(
+                                  controller: emailController,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: "johnappleseed@example.com",
+                                    hintStyle: TextStyle(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 16,
+                                    ),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: (value) {
+                                    if (value == null ||
+                                        !isValidEmail(value,
+                                            isRequired: true)) {
+                                      return "Please enter a valid email address";
+                                    }
+                                    return null;
+                                  },
                                 ),
-                                validator: (value) {
-                                  if (value == null ||
-                                      !isValidEmail(value, isRequired: true)) {
-                                    return "err_msg_please_enter_valid_email"
-                                        .tr;
-                                  }
-                                  return null;
-                                },
-                              );
-                            },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 24.h),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(24.h),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            width: double.infinity,
+                            height: 56.h,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(24.h),
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  // Handle continue
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24.h),
+                                ),
+                              ),
+                              child: Text(
+                                "Continue",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        SizedBox(height: 24.h),
-                        CustomOutlinedButton(
-                          text: "lbl_continue".tr,
-                          margin: EdgeInsets.symmetric(horizontal: 56.h),
-                          buttonStyle: CustomButtonStyles.none,
-                          decoration: CustomButtonStyles.outlineTL241Decoration,
-                        ),
-                        SizedBox(height: 4.h),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      height: 44.h,
-      leadingWidth: 60.h,
-      leading: AppbarLeadingIconbuttonOne(
-        imagePath: ImageConstant.imgBack,
-        height: 44.h,
-        width: 44.h,
-        margin: EdgeInsets.only(left: 16.h),
-        onTap: () => NavigatorService.goBack(),
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 40,
+      leading: Align(
+        alignment: Alignment.centerLeft,
+        child: GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Padding(
+            padding: EdgeInsets.only(left: 12.h),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                ),
+                Positioned(
+                  child: Icon(
+                    Icons.chevron_left,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
