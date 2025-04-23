@@ -310,7 +310,8 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => LogInputScreen(),
+                                builder: (context) =>
+                                    LogInputScreen.builder(context),
                               ),
                             );
                           },

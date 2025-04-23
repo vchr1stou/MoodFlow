@@ -1,12 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/app_bar/appbar_trailing_iconbutton_one.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import 'models/listtext_item_model.dart';
-import 'models/log_input_model.dart';
-import 'provider/log_input_provider.dart';
-import 'widgets/listtext_item_widget.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LogInputScreen extends StatefulWidget {
   const LogInputScreen({Key? key}) : super(key: key);
@@ -15,10 +11,7 @@ class LogInputScreen extends StatefulWidget {
   LogInputScreenState createState() => LogInputScreenState();
 
   static Widget builder(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LogInputProvider(),
-      child: LogInputScreen(),
-    );
+    return LogInputScreen();
   }
 }
 
@@ -33,101 +26,203 @@ class LogInputScreenState extends State<LogInputScreen> {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppbar(context),
-      body: Container(
-        width: double.maxFinite,
-        height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed4001,
-        child: SafeArea(
-          child: Container(
-            margin: EdgeInsets.only(top: 56.h),
-            padding: EdgeInsets.only(
-              left: 18.h,
-              top: 40.h,
-              right: 18.h,
-            ),
-            child: Column(
-              spacing: 48,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Text(
-                  "msg_let_s_unpack_those".tr,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyles.headlineMediumSFProOnPrimary
-                      .copyWith(height: 1.15),
-                ),
-                _buildColumntext(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      actions: [
-        AppbarTrailingIconbuttonOne(
-          imagePath: ImageConstant.imgClose,
-          margin: EdgeInsets.only(
-            top: 13.h,
-            right: 24.h,
-            bottom: 13.h,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Section Widget
-  Widget _buildColumntext(BuildContext context) {
-    return Expanded(
-      child: SizedBox(
-        width: double.maxFinite,
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.symmetric(
-                horizontal: 12.h,
-                vertical: 48.h,
+      body: Stack(
+        children: [
+          // Background Image
+          Container(
+            width: double.maxFinite,
+            height: double.maxFinite,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background.png'),
+                fit: BoxFit.cover,
               ),
-              decoration: AppDecoration.outline3,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
+            ),
+          ),
+          // Semi-transparent overlay with blur
+          Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Color(0xFF000000).withOpacity(0.15),
+                ),
+              ),
+            ),
+          ),
+          // Close Button
+          Positioned(
+            top: 60.h,
+            right: 24.h,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 35,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: SvgPicture.asset(
+                  'assets/images/close_button.svg',
+                  width: 38.h,
+                  height: 38.h,
+                ),
+              ),
+            ),
+          ),
+          // Title Text
+          Positioned(
+            top: 131.h,
+            left: 0,
+            right: 0,
+            child: Text(
+              "Let's unpack those feels!\nLog your mood using:",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.roboto(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                height: 1.2,
+              ),
+            ),
+          ),
+          // Text Log and Wave Image
+          Positioned(
+            top: 240.h,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Expanded(
-                    child: Consumer<LogInputProvider>(
-                      builder: (context, provider, child) {
-                        return ListView.separated(
-                          padding: EdgeInsets.zero,
-                          physics: BouncingScrollPhysics(),
-                          shrinkWrap: true,
-                          separatorBuilder: (context, index) {
-                            return SizedBox(height: 36.h);
-                          },
-                          itemCount:
-                              provider.logInputModelObj.listtextItemList.length,
-                          itemBuilder: (context, index) {
-                            ListtextItemModel model = provider
-                                .logInputModelObj.listtextItemList[index];
-                            return ListtextItemWidget(model);
-                          },
-                        );
-                      },
+                  // First Text Log SVG behind
+                  SizedBox(
+                    height: 80.h,
+                    child: SvgPicture.asset(
+                      'assets/images/text_log.svg',
+                      fit: BoxFit.fill,
                     ),
                   ),
-                  SizedBox(height: 30.h),
+                  // First Text elements
+                  Transform.translate(
+                    offset: Offset(16.h, -4.h),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Text",
+                          style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 0.1.h),
+                        Text(
+                          "Chat your feels! MoodFlow AI listens and logs.",
+                          style: GoogleFonts.roboto(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Second Text Log SVG
+                  Transform.translate(
+                    offset: Offset(0, 108.h),
+                    child: SizedBox(
+                      height: 80.h,
+                      child: SvgPicture.asset(
+                        'assets/images/text_log.svg',
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                  // Emoji Circle for second text_log
+                  Transform.translate(
+                    offset: Offset(-125.h, 104.h),
+                    child: Container(
+                      width: 63.h,
+                      height: 63.h,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.transparent,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 35,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          'assets/images/emoji_star_struck.png',
+                          width: 45.h,
+                          height: 45.h,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Second Text elements
+                  Transform.translate(
+                    offset: Offset(23.h,
+                        104.h), // Adjusted to match second text_log position
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Emoji",
+                          style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 0.1.h),
+                        Text(
+                          "Feeling emoji-nal? Express yourself using emojis!",
+                          style: GoogleFonts.roboto(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Wave Image in front
+                  Transform.translate(
+                    offset: Offset(-125.h, -4),
+                    child: Container(
+                      width: 63.h,
+                      height: 63.h,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/img_image.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
