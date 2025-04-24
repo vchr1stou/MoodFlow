@@ -20,6 +20,7 @@ import '../history_empty_screen/history_empty_screen.dart';
 import '../discover_screen/discover_screen.dart';
 import '../statistics_mood_charts_screen/statistics_mood_charts_screen.dart';
 import '../log_input_screen/log_input_screen.dart';
+import '../little_lifts_screen/little_lifts_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'models/homescreen_model.dart';
@@ -59,40 +60,41 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         child: SafeArea(
           child: Column(
             children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20),
+                    _buildHeader(),
+                    SizedBox(height: 20),
+                  ],
+                ),
+              ),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
+                child: Column(
+                  children: [
+                    _buildQuoteCard(),
+                    SizedBox(height: 13),
+                    Expanded(
+                      flex: 2,
+                      child: _buildFeelingCard(),
+                    ),
+                    SizedBox(height: 13),
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 20),
-                            _buildHeader(),
-                            SizedBox(height: 20),
-                          ],
-                        ),
+                        child: _buildStatisticsCard(),
                       ),
-                      _buildQuoteCard(),
-                      SizedBox(height: 13),
-                      _buildFeelingCard(),
-                      SizedBox(height: 13),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildStatisticsCard(),
-                            SizedBox(height: 13),
-                            _buildActionButtons(),
-                            SizedBox(height: 23),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: 13),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildActionButtons(),
+                    ),
+                    SizedBox(height: 23),
+                  ],
                 ),
               ),
             ],
@@ -608,9 +610,14 @@ class HomescreenScreenState extends State<HomescreenScreen> {
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          SvgPicture.asset(
-            'assets/images/bottom_bar_home_pressed.svg',
-            fit: BoxFit.fitWidth,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRoutes.littleLiftsScreen),
+            child: SvgPicture.asset(
+              'assets/images/bottom_bar_home_pressed.svg',
+              fit: BoxFit.fitWidth,
+            ),
           ),
           Positioned(
             bottom: 4,

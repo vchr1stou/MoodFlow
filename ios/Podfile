@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-platform :ios, '12.0'
+platform :ios, '15.6' # Set an explicit platform version to avoid ambiguity.
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -31,7 +31,12 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  # Explicit Firebase dependency to resolve version conflicts
+  pod 'Firebase/Firestore', '~> 10.25.0' # Align with the cloud_firestore plugin dependency.
+  pod 'Firebase/Auth', '~> 10.25.0'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  
   target 'RunnerTests' do
     inherit! :search_paths
   end
@@ -40,16 +45,30 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-    
-    # Start of the Firebase configuration
+
+    # Fixes for M1/M2 Macs and additional settings
     target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
       
-      # Add these lines for Firebase
+      # Add permissions definitions
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
-        'PERMISSION_NOTIFICATIONS=1',
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_PHOTOS=1',
+        'PERMISSION_PHOTOS_ADD_ONLY=1',
+        'PERMISSION_MICROPHONE=1',
       ]
+      
+      # Ensure minimum iOS deployment target
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.6'
+
+      # Fix gRPC compiler flags for arm64
+      if target.name.include?('gRPC') || target.name.include?('BoringSSL')
+        config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '0'
+        config.build_settings['COMPILER_INDEX_STORE_ENABLE'] = 'NO'
+        config.build_settings['OTHER_CFLAGS'] = '$(inherited) -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation -Wno-strict-prototypes -Wno-missing-prototypes'
+        config.build_settings['USE_HEADERMAP'] = 'NO'
+      end
     end
   end
 end

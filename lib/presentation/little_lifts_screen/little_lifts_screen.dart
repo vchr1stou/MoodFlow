@@ -39,27 +39,29 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: SafeArea(
-          child: Container(
-            decoration: AppDecoration.gradientAmberToRed,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: Navigator(
-                    key: navigatorKey,
-                    initialRoute: AppRoutes.littleLiftsInitialPage,
-                    onGenerateRoute: (routeSetting) => PageRouteBuilder(
-                      pageBuilder: (ctx, ani, ani1) =>
-                          getCurrentPage(context, routeSetting.name!),
-                      transitionDuration: Duration(seconds: 0),
-                    ),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Expanded(
+                child: Navigator(
+                  key: navigatorKey,
+                  initialRoute: AppRoutes.littleLiftsInitialPage,
+                  onGenerateRoute: (routeSetting) => PageRouteBuilder(
+                    pageBuilder: (ctx, ani, ani1) =>
+                        getCurrentPage(context, routeSetting.name!),
+                    transitionDuration: Duration(seconds: 0),
                   ),
                 ),
-                SizedBox(height: 14.h)
-              ],
-            ),
+              ),
+              SizedBox(height: 14.h)
+            ],
           ),
         ),
       ),
