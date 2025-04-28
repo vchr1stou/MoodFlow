@@ -25,6 +25,7 @@ dependencies:
   google_fonts: ^6.1.0
   sizer: ^2.0.15
   flutter_launcher_icons: ^0.14.3
+  glassmorphism: ^3.0.0
   # Firebase dependencies
   firebase_core: ^2.24.2
   firebase_auth: ^4.15.3
@@ -49,3 +50,4 @@ flutter:
     - assets/images/img_image.png
     - assets/images/siri_glow.svg
     - assets/images/surprise_me.svg
+    - assets/images/bottom_bar_little_lifts_pressed.svg

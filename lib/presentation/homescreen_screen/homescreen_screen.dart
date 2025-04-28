@@ -646,24 +646,59 @@ class HomescreenScreenState extends State<HomescreenScreen> {
             offset: Offset(0, -23),
             child: Stack(
               children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRoutes.littleLiftsScreen),
-                  child: SvgPicture.asset(
-                    'assets/images/bottom_bar_home_pressed.svg',
-                    fit: BoxFit.fitWidth,
+                // The entire bottom bar SVG
+                SvgPicture.asset(
+                  'assets/images/bottom_bar_home_pressed.svg',
+                  fit: BoxFit.fitWidth,
+                ),
+
+                // Left side - Home text (no navigation)
+                // Increased width to make it easier to press
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width:
+                      250, // Increased from 186 to 250 for a wider touch target
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    // No onTap handler - tapping does nothing
                   ),
                 ),
+
+                // Right side - Little Lifts text (navigates to Little Lifts screen)
+                // Increased width to make it easier to press
                 Positioned(
                   right: 0,
                   top: 0,
                   bottom: 0,
-                  width: 186, // Half of the bottom bar width
+                  width:
+                      250, // Increased from 220 to 250 for a wider touch target
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(AppRoutes.littleLiftsScreen),
+                    onTap: () => Navigator.of(context).push(
+                      PageRouteBuilder(
+                        opaque: false,
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            LittleLiftsScreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale:
+                                  Tween<double>(begin: 0.95, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOut,
+                                ),
+                              ),
+                              child: child,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ],
