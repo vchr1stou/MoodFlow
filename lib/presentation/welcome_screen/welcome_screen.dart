@@ -78,7 +78,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                             "Let your feelings flow—we've got you covered",
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),

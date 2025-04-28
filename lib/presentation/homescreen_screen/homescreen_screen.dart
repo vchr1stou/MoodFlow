@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
@@ -26,6 +27,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
 
+class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
+  NoSwipeBackRoute({required WidgetBuilder builder}) : super(builder: builder);
+
+  @override
+  bool get hasScopedWillPopCallback => true;
+
+  @override
+  bool get canPop => false;
+
+  @override
+  bool get gestureEnabled => false;
+}
+
 class HomescreenScreen extends StatefulWidget {
   const HomescreenScreen({Key? key}) : super(key: key);
 
@@ -33,7 +47,17 @@ class HomescreenScreen extends StatefulWidget {
   HomescreenScreenState createState() => HomescreenScreenState();
 
   static Widget builder(BuildContext context) {
-    return HomescreenScreen();
+    return NoSwipeBackRoute(
+      builder: (context) => const HomescreenScreen(),
+    ).buildPage(
+      context,
+      Animation.fromValueListenable(
+        ValueNotifier<double>(1),
+      ),
+      Animation.fromValueListenable(
+        ValueNotifier<double>(0),
+      ),
+    );
   }
 }
 
@@ -45,63 +69,71 @@ class HomescreenScreenState extends State<HomescreenScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      body: Container(
-        width: double.maxFinite,
-        height: double.maxFinite,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        body: Container(
+          width: double.maxFinite,
+          height: double.maxFinite,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/background.png'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 20),
-                    _buildHeader(),
-                    SizedBox(height: 20),
-                  ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 20),
+                      _buildHeader(),
+                      SizedBox(height: 20),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildQuoteCard(),
-                    SizedBox(height: 13),
-                    Expanded(
-                      flex: 2,
-                      child: _buildFeelingCard(),
-                    ),
-                    SizedBox(height: 13),
-                    Expanded(
-                      flex: 2,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildStatisticsCard(),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildQuoteCard(),
+                      SizedBox(height: 13),
+                      Expanded(
+                        flex: 2,
+                        child: _buildFeelingCard(),
                       ),
-                    ),
-                    SizedBox(height: 13),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildActionButtons(),
-                    ),
-                    SizedBox(height: 23),
-                  ],
+                      SizedBox(height: 5),
+                      Expanded(
+                        flex: 2,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildStatisticsCard(),
+                        ),
+                      ),
+                      Transform.translate(
+                        offset: Offset(0, -8),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Container(
+                            height: 69,
+                            child: _buildActionButtons(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 23),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNav(),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -610,17 +642,35 @@ class HomescreenScreenState extends State<HomescreenScreen> {
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () =>
-                Navigator.of(context).pushNamed(AppRoutes.littleLiftsScreen),
-            child: SvgPicture.asset(
-              'assets/images/bottom_bar_home_pressed.svg',
-              fit: BoxFit.fitWidth,
+          Transform.translate(
+            offset: Offset(0, -23),
+            child: Stack(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRoutes.littleLiftsScreen),
+                  child: SvgPicture.asset(
+                    'assets/images/bottom_bar_home_pressed.svg',
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 186, // Half of the bottom bar width
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRoutes.littleLiftsScreen),
+                  ),
+                ),
+              ],
             ),
           ),
-          Positioned(
-            bottom: 4,
+          Transform.translate(
+            offset: Offset(0, -25),
             child: Image.asset(
               'assets/images/ai_button.png',
               width: 118.667,
