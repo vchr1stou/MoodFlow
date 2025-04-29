@@ -28,15 +28,16 @@ class CircleClipper extends CustomClipper<Path> {
 }
 
 class EmojiLogTwoScreen extends StatefulWidget {
-  const EmojiLogTwoScreen({Key? key}) : super(key: key);
+  final String source;
+  const EmojiLogTwoScreen({Key? key, required this.source}) : super(key: key);
 
   @override
   EmojiLogTwoScreenState createState() => EmojiLogTwoScreenState();
 
-  static Widget builder(BuildContext context) {
+  static Widget builder(BuildContext context, {String source = 'homescreen'}) {
     return ChangeNotifierProvider(
       create: (_) => EmojiLogTwoProvider(),
-      child: const EmojiLogTwoScreen(),
+      child: EmojiLogTwoScreen(source: source),
     );
   }
 }
@@ -106,7 +107,7 @@ class EmojiLogTwoScreenState extends State<EmojiLogTwoScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogThreeScreen(),
+                    EmojiLogThreeScreen.builder(context, source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -125,7 +126,7 @@ class EmojiLogTwoScreenState extends State<EmojiLogTwoScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogOneScreen(),
+                    EmojiLogOneScreen(source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -380,7 +381,10 @@ class EmojiLogTwoScreenState extends State<EmojiLogTwoScreen>
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LogInputScreen.builder(context),
+                          builder: (context) => LogInputScreen.builder(
+                            context,
+                            source: widget.source,
+                          ),
                         ),
                       );
                     },

@@ -31,15 +31,16 @@ class CircleClipper extends CustomClipper<Path> {
 }
 
 class EmojiLogOneScreen extends StatefulWidget {
-  const EmojiLogOneScreen({Key? key}) : super(key: key);
+  final String source;
+  const EmojiLogOneScreen({Key? key, required this.source}) : super(key: key);
 
   @override
   EmojiLogOneScreenState createState() => EmojiLogOneScreenState();
 
-  static Widget builder(BuildContext context) {
+  static Widget builder(BuildContext context, {String source = 'homescreen'}) {
     return ChangeNotifierProvider(
       create: (_) => EmojiLogOneProvider(),
-      child: const EmojiLogOneScreen(),
+      child: EmojiLogOneScreen(source: source),
     );
   }
 }
@@ -109,7 +110,7 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogTwoScreen(),
+                    EmojiLogTwoScreen.builder(context, source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -364,7 +365,10 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LogInputScreen.builder(context),
+                          builder: (context) => LogInputScreen.builder(
+                            context,
+                            source: widget.source,
+                          ),
                         ),
                       );
                     },

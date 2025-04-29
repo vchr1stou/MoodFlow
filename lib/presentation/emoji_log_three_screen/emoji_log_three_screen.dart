@@ -13,15 +13,16 @@ import 'models/emoji_log_three_model.dart';
 import 'provider/emoji_log_three_provider.dart';
 
 class EmojiLogThreeScreen extends StatefulWidget {
-  const EmojiLogThreeScreen({Key? key}) : super(key: key);
+  final String source;
+  const EmojiLogThreeScreen({Key? key, required this.source}) : super(key: key);
 
   @override
   EmojiLogThreeScreenState createState() => EmojiLogThreeScreenState();
 
-  static Widget builder(BuildContext context) {
+  static Widget builder(BuildContext context, {String source = 'homescreen'}) {
     return ChangeNotifierProvider(
       create: (_) => EmojiLogThreeProvider(),
-      child: const EmojiLogThreeScreen(),
+      child: EmojiLogThreeScreen(source: source),
     );
   }
 }
@@ -91,7 +92,7 @@ class EmojiLogThreeScreenState extends State<EmojiLogThreeScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogFourScreen(),
+                    EmojiLogFourScreen(source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -110,7 +111,7 @@ class EmojiLogThreeScreenState extends State<EmojiLogThreeScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogTwoScreen(),
+                    EmojiLogTwoScreen.builder(context, source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(

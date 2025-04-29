@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'firebase_options.dart';
 import 'core/app_export.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,6 +46,13 @@ class MyApp extends StatelessWidget {
                       colorScheme:
                           ColorScheme.fromSeed(seedColor: Colors.deepPurple),
                       useMaterial3: true,
+                      appBarTheme: AppBarTheme(
+                        systemOverlayStyle: SystemUiOverlayStyle.light,
+                      ),
+                      cupertinoOverrideTheme: CupertinoThemeData(
+                        barBackgroundColor: Colors.transparent,
+                        brightness: Brightness.dark,
+                      ),
                     ),
                     builder: (context, child) {
                       return MediaQuery(

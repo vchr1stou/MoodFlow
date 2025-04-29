@@ -169,6 +169,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
           children: [
             Row(
               children: [
+                SizedBox(width: 15),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -344,8 +345,9 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    LogInputScreen.builder(context),
+                                builder: (context) => LogInputScreen.builder(
+                                    context,
+                                    source: 'homescreen'),
                               ),
                             );
                           },
@@ -538,7 +540,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (context) => HistoryEmptyScreen(),
                           ),
                         );
@@ -659,7 +661,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                   top: 0,
                   bottom: 0,
                   width:
-                      250, // Increased from 186 to 250 for a wider touch target
+                      300, // Increased from 250 to 300 for a wider touch target
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     // No onTap handler - tapping does nothing
@@ -673,7 +675,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                   top: 0,
                   bottom: 0,
                   width:
-                      250, // Increased from 220 to 250 for a wider touch target
+                      300, // Increased from 250 to 300 for a wider touch target
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => Navigator.of(context).push(

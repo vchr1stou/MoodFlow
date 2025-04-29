@@ -5,17 +5,24 @@ import '../../core/app_export.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../emoji_log_one_screen/emoji_log_one_screen.dart';
+import '../emoji_log_two_screen/emoji_log_two_screen.dart';
 import '../homescreen_screen/homescreen_screen.dart';
 import '../log_input_colors_screen/log_input_colors_screen.dart';
+import '../history_empty_screen/history_empty_screen.dart';
 
 class LogInputScreen extends StatefulWidget {
-  const LogInputScreen({Key? key}) : super(key: key);
+  final String source;
+
+  const LogInputScreen({
+    Key? key,
+    required this.source,
+  }) : super(key: key);
 
   @override
   LogInputScreenState createState() => LogInputScreenState();
 
-  static Widget builder(BuildContext context) {
-    return LogInputScreen();
+  static Widget builder(BuildContext context, {String source = 'homescreen'}) {
+    return LogInputScreen(source: source);
   }
 }
 
@@ -60,6 +67,24 @@ class LogInputScreenState extends State<LogInputScreen> {
       overlays: SystemUiOverlay.values,
     );
     super.dispose();
+  }
+
+  void _handleCloseButton() {
+    if (widget.source == 'history') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HistoryEmptyScreen.builder(context),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomescreenScreen.builder(context),
+        ),
+      );
+    }
   }
 
   @override
@@ -110,14 +135,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                   ],
                 ),
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HomescreenScreen.builder(context),
-                      ),
-                    );
-                  },
+                  onTap: _handleCloseButton,
                   child: SvgPicture.asset(
                     'assets/images/close_button.svg',
                     width: 39.h,
@@ -159,8 +177,8 @@ class LogInputScreenState extends State<LogInputScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            EmojiLogOneScreen.builder(context),
+                        builder: (context) => EmojiLogOneScreen.builder(context,
+                            source: widget.source),
                       ),
                     );
                   },
@@ -237,7 +255,8 @@ class LogInputScreenState extends State<LogInputScreen> {
                       context,
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
-                            EmojiLogOneScreen.builder(context),
+                            EmojiLogOneScreen.builder(context,
+                                source: widget.source),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
                           return ScaleTransition(

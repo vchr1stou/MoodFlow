@@ -13,15 +13,16 @@ import 'models/emoji_log_four_model.dart';
 import 'provider/emoji_log_four_provider.dart';
 
 class EmojiLogFourScreen extends StatefulWidget {
-  const EmojiLogFourScreen({Key? key}) : super(key: key);
+  final String source;
+  const EmojiLogFourScreen({Key? key, required this.source}) : super(key: key);
 
   @override
   EmojiLogFourScreenState createState() => EmojiLogFourScreenState();
 
-  static Widget builder(BuildContext context) {
+  static Widget builder(BuildContext context, {String source = 'homescreen'}) {
     return ChangeNotifierProvider(
       create: (_) => EmojiLogFourProvider(),
-      child: const EmojiLogFourScreen(),
+      child: EmojiLogFourScreen(source: source),
     );
   }
 }
@@ -91,7 +92,7 @@ class EmojiLogFourScreenState extends State<EmojiLogFourScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogFiveScreen(),
+                    const EmojiLogFiveScreen(),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -110,7 +111,7 @@ class EmojiLogFourScreenState extends State<EmojiLogFourScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    EmojiLogThreeScreen(),
+                    EmojiLogThreeScreen(source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -365,7 +366,8 @@ class EmojiLogFourScreenState extends State<EmojiLogFourScreen>
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LogInputScreen.builder(context),
+                          builder: (context) => LogInputScreen.builder(context,
+                              source: widget.source),
                         ),
                       );
                     },

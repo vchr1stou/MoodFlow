@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:responsive_grid_list/responsive_grid_list.dart';
 import 'package:gradient_borders/gradient_borders.dart';
@@ -19,6 +20,7 @@ import '../traveling_screen/traveling_screen.dart';
 import '../safetynetlittlelifts_screen/safetynetlittlelifts_screen.dart';
 import '../softthanks_screen/softthanks_screen.dart';
 import '../saved_screen/saved_screen.dart';
+import '../homescreen_screen/homescreen_screen.dart';
 import 'models/little_lifts_initial_model.dart';
 import 'models/little_lifts_item_model.dart';
 import 'provider/little_lifts_provider.dart';
@@ -311,7 +313,73 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
                     ],
                   ),
                 ),
-              )
+              ),
+              // Add bottom navigation bar
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  bottom: Platform.isAndroid
+                      ? MediaQuery.of(context).padding.bottom + 20
+                      : 20,
+                ),
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Transform.translate(
+                      offset: Offset(0, -23),
+                      child: Stack(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/bottom_bar_little_lifts.svg',
+                            fit: BoxFit.fitWidth,
+                          ),
+                          // Left side - Home text (navigates to Home screen)
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: 300, // Wide touch target
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () =>
+                                  Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      HomescreenScreen.builder(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Right side - Little Lifts text (no navigation)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: 300, // Wide touch target
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              // No onTap handler - already on Little Lifts screen
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Transform.translate(
+                      offset: Offset(0, -25),
+                      child: Image.asset(
+                        'assets/images/ai_button.png',
+                        width: 118.667,
+                        height: 36,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
+                        isAntiAlias: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
