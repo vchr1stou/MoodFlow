@@ -177,7 +177,7 @@ class AppRoutes {
         emojiLogTwoScreen: EmojiLogTwoScreen.builder,
         emojiLogThreeScreen: EmojiLogThreeScreen.builder,
         emojiLogFourScreen: EmojiLogFourScreen.builder,
-        emojiLogFiveScreen: EmojiLogFiveScreen.builder,
+        emojiLogFiveScreen: (context) => const EmojiLogFiveScreen(),
         profileScreen: ProfileScreen.builder,
         porfileAcessibilitySettingsScreen:
             PorfileAcessibilitySettingsScreen.builder,
