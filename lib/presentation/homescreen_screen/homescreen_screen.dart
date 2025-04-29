@@ -168,8 +168,8 @@ class HomescreenScreenState extends State<HomescreenScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SizedBox(width: 15),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -204,49 +204,88 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                     ],
                   ),
                 ),
-                SizedBox(width: 2),
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Press and hold to start SOS'),
-                        duration: Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: ClipRRect(
+                              borderRadius: BorderRadius.circular(22),
+                              child: BackdropFilter(
+                                filter:
+                                    ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  width: 372,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(22),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'Press and hold to start SOS',
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            duration: Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            margin: EdgeInsets.only(
+                              bottom: 100,
+                              left: 20,
+                              right: 20,
+                            ),
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                          ),
+                        );
+                      },
+                      onLongPress: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BreathingmainScreen(),
+                          ),
+                        );
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/sos_button.svg',
+                        width: 40,
+                        height: 40,
                       ),
-                    );
-                  },
-                  onLongPress: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BreathingmainScreen(),
-                      ),
-                    );
-                  },
-                  child: SvgPicture.asset(
-                    'assets/images/sos_button.svg',
-                    width: 40,
-                    height: 40,
-                  ),
-                ),
-                SizedBox(width: 5),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfileScreen(),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 3),
-                    child: SvgPicture.asset(
-                      'assets/images/person.crop.circle.fill.svg',
-                      width: 37,
-                      height: 37,
                     ),
-                  ),
+                    SizedBox(width: 5),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfileScreen(),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 3),
+                        child: SvgPicture.asset(
+                          'assets/images/person.crop.circle.fill.svg',
+                          width: 37,
+                          height: 37,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
