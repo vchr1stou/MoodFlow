@@ -10,15 +10,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'presentation/statistics_mood_charts_screen/statisticsmood_tab_page.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
-void main() async {
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Error initializing Firebase: $e');
+  }
+
   await Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     PrefUtils().init()
   ]);
+
   runApp(const MyApp());
 }
 

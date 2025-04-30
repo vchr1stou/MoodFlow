@@ -1,9 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/custom_checkbox_button.dart';
+import '../../services/auth_service.dart';
 import 'models/login_model.dart';
 import 'provider/login_provider.dart';
 
@@ -23,6 +25,7 @@ class LoginScreen extends StatefulWidget {
 
 class LoginScreenState extends State<LoginScreen> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -59,43 +62,45 @@ class LoginScreenState extends State<LoginScreen> {
             SafeArea(
               child: Form(
                 key: _formKey,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 16.h),
-                      Text(
-                        "Login",
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 16.h),
+                        Text(
+                          "Login",
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        "Welcome back to your space.",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                        SizedBox(height: 4.h),
+                        Text(
+                          "Welcome back to your space.",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 96.h),
-                      _buildEmailField(),
-                      SizedBox(height: 20.h),
-                      _buildPasswordField(),
-                      SizedBox(height: 12.h),
-                      _buildForgotPassword(),
-                      SizedBox(height: 12.h),
-                      _buildKeepMeSignedIn(context),
-                      SizedBox(height: 42.h),
-                      _buildSignInButton(),
-                      SizedBox(height: 12.h),
-                      _buildDummyLoginButton(),
-                      Spacer(),
-                    ],
+                        SizedBox(height: 96.h),
+                        _buildEmailField(),
+                        SizedBox(height: 20.h),
+                        _buildPasswordField(),
+                        SizedBox(height: 12.h),
+                        _buildForgotPassword(),
+                        SizedBox(height: 12.h),
+                        _buildKeepMeSignedIn(context),
+                        SizedBox(height: 42.h),
+                        _buildSignInButton(),
+                        SizedBox(height: 12.h),
+                        _buildDummyLoginButton(),
+                        SizedBox(height: 24.h),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -329,9 +334,64 @@ class LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(24.h),
           ),
           child: TextButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                // Handle sign in
+                final email =
+                    context.read<LoginProvider>().emailController.text;
+                final password =
+                    context.read<LoginProvider>().passwordtwoController.text;
+
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                );
+
+                try {
+                  // Attempt to sign in using AuthService
+                  final user = await _authService.signInWithEmailAndPassword(
+                    email,
+                    password,
+                  );
+
+                  // Close loading indicator
+                  if (context.mounted) Navigator.pop(context);
+
+                  if (user != null && context.mounted) {
+                    // Navigate to home screen on success
+                    Navigator.pushReplacementNamed(
+                        context, AppRoutes.homescreenScreen);
+                  } else if (context.mounted) {
+                    // Show error if user is null
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to sign in. Please try again.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // Close loading indicator
+                  if (context.mounted) Navigator.pop(context);
+
+                  // Show error message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                }
               }
             },
             style: TextButton.styleFrom(

@@ -13,23 +13,21 @@ bool isValidEmail(String? inputString, {bool isRequired = false}) {
   return isInputStringValid;
 }
 
-/// Password should have,
-/// at least a upper case letter
-///   at least a lower case letter
-///   at least a digit
-///   at least a special character [@#$%^&+=]
-///   length of at least 8
-/// no white space allowed
+/// Password validation
+/// For login: only checks if password is not empty and has minimum length of 6
+/// For registration: uses strict validation with all requirements
 bool isValidPassword(String? inputString, {bool isRequired = false}) {
-  bool isInputStringValid = false;
   if (!isRequired && (inputString == null ? true : inputString.isEmpty)) {
-    isInputStringValid = true;
+    return true;
   }
-  if (inputString != null && inputString.isNotEmpty) {
-    const pattern =
-        r'^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{8,}$';
-    final regExp = RegExp(pattern);
-    isInputStringValid = regExp.hasMatch(inputString);
+  if (inputString == null || inputString.isEmpty) {
+    return false;
   }
-  return isInputStringValid;
+
+  // For login, only check minimum length
+  if (inputString.length >= 6) {
+    return true;
+  }
+
+  return false;
 }
