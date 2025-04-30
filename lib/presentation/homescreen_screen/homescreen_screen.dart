@@ -718,11 +718,11 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                 // Left side - Home text (no navigation)
                 // Increased width to make it easier to press
                 Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
+                  left: -20, // Extend touch area to the left
+                  top: -10, // Extend touch area upward
+                  bottom: -10, // Extend touch area downward
                   width:
-                      300, // Increased from 250 to 300 for a wider touch target
+                      200, // Increased from 150 to 200 for a wider touch target
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     // No onTap handler - tapping does nothing
@@ -732,11 +732,11 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                 // Right side - Little Lifts text (navigates to Little Lifts screen)
                 // Increased width to make it easier to press
                 Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
+                  right: -20, // Extend touch area to the right
+                  top: -10, // Extend touch area upward
+                  bottom: -10, // Extend touch area downward
                   width:
-                      300, // Increased from 250 to 300 for a wider touch target
+                      200, // Increased from 150 to 200 for a wider touch target
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => Navigator.of(context).push(
