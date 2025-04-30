@@ -13,6 +13,7 @@ class SignUpStepOneProvider extends ChangeNotifier {
   TextEditingController emailtwoController = TextEditingController();
   TextEditingController passwordtwoController = TextEditingController();
   TextEditingController confirmpasswordController = TextEditingController();
+  TextEditingController pronounsController = TextEditingController();
 
   // Model object for this screen
   SignUpStepOneModel signUpStepOneModelObj = SignUpStepOneModel();
@@ -28,6 +29,7 @@ class SignUpStepOneProvider extends ChangeNotifier {
     emailtwoController.dispose();
     passwordtwoController.dispose();
     confirmpasswordController.dispose();
+    pronounsController.dispose();
     super.dispose();
   }
 

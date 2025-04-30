@@ -96,7 +96,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                           SizedBox(height: 4.h),
                           TextButton(
                             onPressed: () {
-                              // Handle create account
+                              Navigator.pushNamed(
+                                  context, AppRoutes.signUpStepOneScreen);
                             },
                             child: Text(
                               "Create a new account",

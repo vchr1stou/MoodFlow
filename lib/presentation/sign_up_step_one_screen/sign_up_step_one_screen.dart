@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
@@ -42,320 +43,580 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
-        child: SafeArea(
-          child: Form(
-            key: _formKey,
-            child: Container(
-              margin: EdgeInsets.only(top: 56.h),
-              child: SingleChildScrollView(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                 child: Container(
-                  height: 760.h,
-                  padding: EdgeInsets.symmetric(vertical: 24.h),
-                  child: Stack(
-                    alignment: Alignment.bottomLeft,
-                    children: [
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: ClipRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: 4,
-                              sigmaY: 4,
-                            ),
-                            child: Container(
-                              width: double.maxFinite,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 30.h,
-                                vertical: 14.h,
-                              ),
-                              decoration: AppDecoration.outline6,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 12.h,
-                                        right: 8.h,
-                                      ),
-                                      child: Text(
-                                        "msg_we_re_glad_you_re".tr,
-                                        style: theme.textTheme.headlineLarge,
-                                      ),
-                                    ),
-                                  ),
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      "msg_let_s_set_up_your".tr,
-                                      style: CustomTextStyles
-                                          .titleLargeRobotoOnPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 40.h),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 4.h),
-                                    child: Text(
-                                      "lbl_name".tr,
-                                      style:
-                                          CustomTextStyles.titleMediumWhiteA700,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12.h),
-                                  _buildNametwo(context),
-                                  SizedBox(height: 18.h),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 4.h),
-                                    child: Text(
-                                      "lbl_pronoums".tr,
-                                      style:
-                                          CustomTextStyles.titleMediumWhiteA700,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12.h),
-                                  _buildRowvalue(context),
-                                  SizedBox(height: 16.h),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 4.h),
-                                    child: Text(
-                                      "lbl_email2".tr,
-                                      style:
-                                          CustomTextStyles.titleMediumWhiteA700,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12.h),
-                                  _buildEmailtwo(context),
-                                  SizedBox(height: 20.h),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 4.h),
-                                    child: Text(
-                                      "lbl_password".tr,
-                                      style:
-                                          CustomTextStyles.titleMediumWhiteA700,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12.h),
-                                  _buildPasswordtwo(context),
-                                  SizedBox(height: 74.h),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      _buildColumnconfirm(context),
-                    ],
+                  color: Color(0xFFBCBCBC).withOpacity(0.04),
+                ),
+              ),
+            ),
+            // Top blur box
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 200.h,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    color: Color(0xFFBCBCBC).withOpacity(0.04),
                   ),
                 ),
               ),
             ),
-          ),
+            SafeArea(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 20.h),
+                        Center(
+                          child: Text(
+                            "We're glad you're here",
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontFamily: 'Roboto',
+                              letterSpacing: -1,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Center(
+                          child: Text(
+                            "Let's set up your space",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              fontFamily: 'Roboto',
+                              letterSpacing: -1,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 40.h),
+                        _buildNameField(),
+                        SizedBox(height: 20.h),
+                        _buildPronounsField(),
+                        SizedBox(height: 20.h),
+                        _buildEmailField(),
+                        SizedBox(height: 20.h),
+                        _buildPasswordField(),
+                        SizedBox(height: 20.h),
+                        _buildConfirmPasswordField(),
+                        SizedBox(height: 40.h),
+                        _buildNextButton(),
+                        SizedBox(height: 24.h),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 46.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgArrowLeft,
-        margin: EdgeInsets.only(
-          left: 16.h,
-          top: 13.h,
-          bottom: 13.h,
-        ),
-        onTap: () {
-          onTapArrowleftone(context);
-        },
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 40,
+      leading: Align(
+        alignment: Alignment.centerLeft,
+        child: _buildBackButton(),
       ),
     );
   }
 
-  Widget _buildNametwo(BuildContext context) {
-    return Selector<SignUpStepOneProvider, TextEditingController?>(
-      selector: (context, provider) => provider.nametwoController,
-      builder: (context, nametwoController, child) {
-        return CustomTextFormField(
-          controller: nametwoController,
-          hintText: "lbl_john_appleseed".tr,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 18.h,
-            vertical: 10.h,
-          ),
-        );
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.welcomeScreen);
       },
+      child: Padding(
+        padding: EdgeInsets.only(left: 12.h),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+            Positioned(
+              child: Icon(
+                Icons.chevron_left,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildRowvalue(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 18.h,
-        vertical: 10.h,
-      ),
-      decoration: AppDecoration.viewsRecessedMaterialView.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder24,
-      ),
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          SizedBox(
-            width: 176.h,
-            child: Text(
-              "msg_select_your_pronouns".tr,
-              overflow: TextOverflow.ellipsis,
-              style: CustomTextStyles.titleMediumSFProGray700,
+  Widget _buildNameField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Text(
+            "Name",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
-          CustomImageView(
-            imagePath: ImageConstant.imgArrowRightRed100,
-            height: 16.h,
-            width: 12.h,
-          ),
-        ],
-      ),
+        ),
+        SizedBox(height: 12),
+        _buildInputField(
+          controller: context.read<SignUpStepOneProvider>().nametwoController,
+          hintText: "John Appleseed",
+        ),
+      ],
     );
   }
 
-  Widget _buildEmailtwo(BuildContext context) {
-    return Selector<SignUpStepOneProvider, TextEditingController?>(
-      selector: (context, provider) => provider.emailtwoController,
-      builder: (context, emailtwoController, child) {
-        return CustomTextFormField(
-          controller: emailtwoController,
-          hintText: "msg_johnappleseed_exaple_com".tr,
-          textInputType: TextInputType.emailAddress,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 18.h,
-            vertical: 10.h,
+  Widget _buildPronounsField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Text(
+            "Pronouns",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
+        ),
+        SizedBox(height: 12),
+        _buildInputField(
+          controller: context.read<SignUpStepOneProvider>().pronounsController,
+          hintText: "Select your pronouns",
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Text(
+            "Email Address",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: 12),
+        _buildInputField(
+          controller: context.read<SignUpStepOneProvider>().emailtwoController,
+          hintText: "johnappleseed@example.com",
+          keyboardType: TextInputType.emailAddress,
           validator: (value) {
             if (value == null || (!isValidEmail(value, isRequired: true))) {
-              return "err_msg_please_enter_valid_email".tr;
+              return "Please enter a valid email address";
             }
             return null;
           },
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildPasswordtwo(BuildContext context) {
-    return Consumer<SignUpStepOneProvider>(
-      builder: (context, provider, child) {
-        return CustomTextFormField(
-          controller: provider.passwordtwoController,
-          suffix: InkWell(
-            onTap: () {
-              provider.changePasswordVisibility();
-            },
-            child: Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: 16.h,
-                vertical: 10.h,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.h),
-              ),
-              child: CustomImageView(
-                imagePath: ImageConstant.imgEye,
-                height: 20.h,
-                width: 20.h,
-                fit: BoxFit.contain,
-              ),
+  Widget _buildPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Text(
+            "Password",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
-          suffixConstraints: BoxConstraints(
-            maxHeight: 44.h,
+        ),
+        SizedBox(height: 12),
+        Container(
+          width: 339.h,
+          height: 44.h,
+          child: Stack(
+            children: [
+              // Text box SVG
+              IgnorePointer(
+                child: SvgPicture.asset(
+                  'assets/images/text_box.svg',
+                  width: 339.h,
+                  height: 44.h,
+                  fit: BoxFit.fill,
+                ),
+              ),
+              // Text field on top
+              Positioned(
+                left: 20.h,
+                top: -2.5.h,
+                right: 50.h,
+                bottom: 10.h,
+                child: TextFormField(
+                  controller: context
+                      .read<SignUpStepOneProvider>()
+                      .passwordtwoController,
+                  obscureText:
+                      context.watch<SignUpStepOneProvider>().isShowPassword,
+                  keyboardType: TextInputType.visiblePassword,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: "••••••",
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  validator: (value) {
+                    if (value == null ||
+                        (!isValidPassword(value, isRequired: true))) {
+                      return "Please enter a valid password";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              // Eye icon
+              Positioned(
+                right: 12.h,
+                top: 8.h,
+                child: GestureDetector(
+                  onTap: () {
+                    context
+                        .read<SignUpStepOneProvider>()
+                        .changePasswordVisibility();
+                  },
+                  child: Container(
+                    width: 30.h,
+                    height: 30.h,
+                    child: CustomPaint(
+                      painter: EyeIconPainter(
+                        isPasswordVisible: context
+                            .watch<SignUpStepOneProvider>()
+                            .isShowPassword,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          obscureText: provider.isShowPassword,
-          contentPadding: EdgeInsets.fromLTRB(18.h, 10.h, 16.h, 10.h),
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildConfirmpassword(BuildContext context) {
-    return Consumer<SignUpStepOneProvider>(
-      builder: (context, provider, child) {
-        return CustomTextFormField(
-          width: 340.h,
-          controller: provider.confirmpasswordController,
-          textInputAction: TextInputAction.done,
-          suffix: InkWell(
-            onTap: () {
-              provider.changePasswordVisibility1();
-            },
-            child: Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: 16.h,
-                vertical: 10.h,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.h),
-              ),
-              child: CustomImageView(
-                imagePath: ImageConstant.imgEye,
-                height: 20.h,
-                width: 20.h,
-                fit: BoxFit.contain,
-              ),
+  Widget _buildConfirmPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Text(
+            "Confirm Password",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
-          suffixConstraints: BoxConstraints(
-            maxHeight: 44.h,
+        ),
+        SizedBox(height: 12),
+        Container(
+          width: 339.h,
+          height: 44.h,
+          child: Stack(
+            children: [
+              // Text box SVG
+              IgnorePointer(
+                child: SvgPicture.asset(
+                  'assets/images/text_box.svg',
+                  width: 339.h,
+                  height: 44.h,
+                  fit: BoxFit.fill,
+                ),
+              ),
+              // Text field on top
+              Positioned(
+                left: 20.h,
+                top: -2.5.h,
+                right: 50.h,
+                bottom: 10.h,
+                child: TextFormField(
+                  controller: context
+                      .read<SignUpStepOneProvider>()
+                      .confirmpasswordController,
+                  obscureText:
+                      context.watch<SignUpStepOneProvider>().isShowPassword1,
+                  keyboardType: TextInputType.visiblePassword,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: "••••••",
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please confirm your password";
+                    }
+                    if (value !=
+                        context
+                            .read<SignUpStepOneProvider>()
+                            .passwordtwoController
+                            .text) {
+                      return "Passwords do not match";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              // Eye icon
+              Positioned(
+                right: 12.h,
+                top: 8.h,
+                child: GestureDetector(
+                  onTap: () {
+                    context
+                        .read<SignUpStepOneProvider>()
+                        .changePasswordVisibility1();
+                  },
+                  child: Container(
+                    width: 30.h,
+                    height: 30.h,
+                    child: CustomPaint(
+                      painter: EyeIconPainter(
+                        isPasswordVisible: context
+                            .watch<SignUpStepOneProvider>()
+                            .isShowPassword1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          obscureText: provider.isShowPassword1,
-          contentPadding: EdgeInsets.fromLTRB(18.h, 10.h, 16.h, 10.h),
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildNext(BuildContext context) {
-    return CustomOutlinedButton(
-      width: 108.h,
-      text: "lbl_next".tr,
-      margin: EdgeInsets.only(right: 20.h),
-      buttonStyle: CustomButtonStyles.none,
-      decoration: CustomButtonStyles.outlineTL241Decoration,
-      alignment: Alignment.centerRight,
-    );
-  }
-
-  Widget _buildColumnconfirm(BuildContext context) {
+  Widget _buildInputField({
+    required TextEditingController? controller,
+    required String hintText,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    FormFieldValidator<String>? validator,
+  }) {
     return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.only(
-        left: 30.h,
-        bottom: 32.h,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      width: 339.h,
+      height: 44.h,
+      child: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.only(left: 4.h),
-            child: Text(
-              "msg_confirm_password".tr,
-              style: CustomTextStyles.titleMediumWhiteA700,
+          // Text box SVG
+          IgnorePointer(
+            child: SvgPicture.asset(
+              'assets/images/text_box.svg',
+              width: 339.h,
+              height: 44.h,
+              fit: BoxFit.fill,
             ),
           ),
-          SizedBox(height: 12.h),
-          _buildConfirmpassword(context),
-          SizedBox(height: 32.h),
-          _buildNext(context),
+          // Text field on top
+          Positioned(
+            left: 20.h,
+            top: -2.5.h,
+            right: 30.h,
+            bottom: 10.h,
+            child: TextFormField(
+              controller: controller,
+              obscureText: obscureText,
+              keyboardType: keyboardType,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+              ),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              validator: validator,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+  Widget _buildNextButton() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24.h),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          height: 56.h,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(24.h),
+          ),
+          child: TextButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                // Handle next step
+              }
+            },
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.h),
+              ),
+            ),
+            child: Text(
+              "Next",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
+}
+
+class EyeIconPainter extends CustomPainter {
+  final bool isPasswordVisible;
+
+  EyeIconPainter({this.isPasswordVisible = false});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.08; // Thicker stroke
+
+    // Draw the eye outline with rounded edges
+    final path = Path();
+
+    // Starting point
+    path.moveTo(size.width * 0.15, size.height * 0.5);
+
+    // Top curve
+    path.cubicTo(
+      size.width * 0.25, size.height * 0.25, // First control point
+      size.width * 0.75, size.height * 0.25, // Second control point
+      size.width * 0.85, size.height * 0.5, // End point
+    );
+
+    // Bottom curve
+    path.cubicTo(
+      size.width * 0.75, size.height * 0.75, // First control point
+      size.width * 0.25, size.height * 0.75, // Second control point
+      size.width * 0.15, size.height * 0.5, // End point
+    );
+
+    canvas.drawPath(path, paint);
+
+    // Draw the pupil (as a ring instead of filled circle)
+    final pupilPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.08;
+
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.5),
+      size.width * 0.15,
+      pupilPaint,
+    );
+
+    // Draw the diagonal line when password is visible
+    if (isPasswordVisible) {
+      final crossPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.width * 0.08;
+
+      canvas.drawLine(
+        Offset(size.width * 0.15, size.height * 0.15),
+        Offset(size.width * 0.85, size.height * 0.85),
+        crossPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant EyeIconPainter oldDelegate) =>
+      oldDelegate.isPasswordVisible != isPasswordVisible;
 }
