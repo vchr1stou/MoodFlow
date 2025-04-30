@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -14,6 +15,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
+import '../../services/user_service.dart';
 import '../breathingmain_screen/breathingmain_screen.dart';
 import '../streak_screen/streak_screen.dart';
 import '../profile_screen/profile_screen.dart';
@@ -62,6 +64,8 @@ class HomescreenScreen extends StatefulWidget {
 }
 
 class HomescreenScreenState extends State<HomescreenScreen> {
+  final UserService _userService = UserService();
+
   @override
   void initState() {
     super.initState();
@@ -154,13 +158,31 @@ class HomescreenScreenState extends State<HomescreenScreen> {
               ),
             ),
             SizedBox(height: 0.5),
-            Text(
-              'Vasilis',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+            StreamBuilder<DocumentSnapshot>(
+              stream: _userService.getCurrentUserStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final userData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  final userName = userData['name'] as String? ?? 'User';
+                  return Text(
+                    userName,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }
+                return Text(
+                  'User',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              },
             ),
           ],
         ),

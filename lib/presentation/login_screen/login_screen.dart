@@ -341,28 +341,12 @@ class LoginScreenState extends State<LoginScreen> {
                 final password =
                     context.read<LoginProvider>().passwordtwoController.text;
 
-                // Show loading indicator
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    );
-                  },
-                );
-
                 try {
                   // Attempt to sign in using AuthService
                   final user = await _authService.signInWithEmailAndPassword(
                     email,
                     password,
                   );
-
-                  // Close loading indicator
-                  if (context.mounted) Navigator.pop(context);
 
                   if (user != null && context.mounted) {
                     // Navigate to home screen on success
@@ -378,9 +362,6 @@ class LoginScreenState extends State<LoginScreen> {
                     );
                   }
                 } catch (e) {
-                  // Close loading indicator
-                  if (context.mounted) Navigator.pop(context);
-
                   // Show error message
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
