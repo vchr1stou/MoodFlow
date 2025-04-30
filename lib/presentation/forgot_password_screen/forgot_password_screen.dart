@@ -9,6 +9,7 @@ import '../../widgets/app_bar/appbar_leading_iconbutton_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../../services/auth_service.dart';
 
 import 'models/forgot_password_model.dart';
 import 'provider/forgot_password_provider.dart';
@@ -167,9 +168,45 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               borderRadius: BorderRadius.circular(24.h),
                             ),
                             child: TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  // Handle continue
+                                  try {
+                                    final email = context
+                                        .read<ForgotPasswordProvider>()
+                                        .emailController
+                                        ?.text;
+                                    if (email != null) {
+                                      await AuthService().resetPassword(email);
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Password reset email sent. Please check your inbox.',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                        Navigator.pop(context);
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            e.toString(),
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
                                 }
                               },
                               style: TextButton.styleFrom(
