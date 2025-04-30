@@ -76,15 +76,15 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
               ),
             ),
             SafeArea(
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.h),
+              child: Padding(
+                padding: EdgeInsets.only(top: 20.h, left: 24.h, right: 24.h),
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 10.h),
                         Center(
                           child: Text(
                             "We're glad you're here",
@@ -97,7 +97,7 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: 2.h),
                         Center(
                           child: Text(
                             "Let's set up your space",
@@ -110,18 +110,50 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 40.h),
+                        SizedBox(height: 30.h),
                         _buildNameField(),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 15.h),
                         _buildPronounsField(),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 15.h),
                         _buildEmailField(),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 15.h),
                         _buildPasswordField(),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 15.h),
                         _buildConfirmPasswordField(),
                         SizedBox(height: 40.h),
-                        _buildNextButton(),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (_formKey.currentState!.validate()) {
+                                Navigator.pushNamed(context, AppRoutes.signUpStepTwoScreen);
+                              }
+                            },
+                            child: Container(
+                              width: 130.h,
+                              height: 60.h,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/next.svg',
+                                    width: 109.h,
+                                    height: 48.h,
+                                  ),
+                                  Text(
+                                    "Next",
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                         SizedBox(height: 24.h),
                       ],
                     ),
@@ -218,11 +250,149 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
           ),
         ),
         SizedBox(height: 12),
-        _buildInputField(
-          controller: context.read<SignUpStepOneProvider>().pronounsController,
-          hintText: "Select your pronouns",
+        GestureDetector(
+          onTap: () {
+            _showPronounsBottomSheet();
+          },
+          child: Container(
+            width: 339.h,
+            height: 44.h,
+            child: Stack(
+              children: [
+                // Text box SVG
+                IgnorePointer(
+                  child: SvgPicture.asset(
+                    'assets/images/text_box.svg',
+                    width: 339.h,
+                    height: 44.h,
+                    fit: BoxFit.fill,
+                  ),
+                ),
+                // Text field on top
+                Positioned(
+                  left: 20.h,
+                  top: -2.5.h,
+                  right: 50.h,
+                  bottom: 10.h,
+                  child: TextFormField(
+                    controller: context.read<SignUpStepOneProvider>().pronounsController,
+                    readOnly: true,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "Select your pronouns",
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                // Chevron icon
+                Positioned(
+                  right: 13.h,
+                  top: 12.h,
+                  child: Opacity(
+                    opacity: 0.7,
+                    child: SvgPicture.asset(
+                      'assets/images/pronouns.svg',
+                      width: 21.h,
+                      height: 21.h,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
+    );
+  }
+
+  void _showPronounsBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Color(0xFFBCBCBC).withOpacity(0.04),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFFBCBCBC).withOpacity(0.04),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 12.h),
+                  Container(
+                    width: 40.h,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(2.h),
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+                  Text(
+                    "Select your pronouns",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+                  _buildPronounOption("He / Him"),
+                  _buildPronounOption("She / Her"),
+                  _buildPronounOption("They / Them"),
+                  SizedBox(height: 24.h),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPronounOption(String pronouns) {
+    return GestureDetector(
+      onTap: () {
+        context.read<SignUpStepOneProvider>().pronounsController.text = pronouns;
+        Navigator.pop(context);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.h),
+        child: Text(
+          pronouns,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
     );
   }
 
@@ -303,14 +473,14 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     hintText: "••••••",
                     hintStyle: TextStyle(
                       color: Colors.white.withOpacity(0.7),
                       fontSize: 18,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w600,
                     ),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -339,11 +509,14 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                   child: Container(
                     width: 30.h,
                     height: 30.h,
-                    child: CustomPaint(
-                      painter: EyeIconPainter(
-                        isPasswordVisible: context
-                            .watch<SignUpStepOneProvider>()
-                            .isShowPassword,
+                    child: Opacity(
+                      opacity: 0.7,
+                      child: CustomPaint(
+                        painter: EyeIconPainter(
+                          isPasswordVisible: context
+                              .watch<SignUpStepOneProvider>()
+                              .isShowPassword,
+                        ),
                       ),
                     ),
                   ),
@@ -402,14 +575,14 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     hintText: "••••••",
                     hintStyle: TextStyle(
                       color: Colors.white.withOpacity(0.7),
                       fontSize: 18,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w600,
                     ),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -444,11 +617,14 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                   child: Container(
                     width: 30.h,
                     height: 30.h,
-                    child: CustomPaint(
-                      painter: EyeIconPainter(
-                        isPasswordVisible: context
-                            .watch<SignUpStepOneProvider>()
-                            .isShowPassword1,
+                    child: Opacity(
+                      opacity: 0.7,
+                      child: CustomPaint(
+                        painter: EyeIconPainter(
+                          isPasswordVisible: context
+                              .watch<SignUpStepOneProvider>()
+                              .isShowPassword1,
+                        ),
                       ),
                     ),
                   ),
@@ -495,14 +671,14 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 18,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.w600,
                 ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -513,43 +689,6 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildNextButton() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24.h),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          width: double.infinity,
-          height: 56.h,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(24.h),
-          ),
-          child: TextButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                // Handle next step
-              }
-            },
-            style: TextButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24.h),
-              ),
-            ),
-            child: Text(
-              "Next",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

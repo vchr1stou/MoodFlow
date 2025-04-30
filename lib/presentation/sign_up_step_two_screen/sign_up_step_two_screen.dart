@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
@@ -25,6 +27,9 @@ class SignUpStepTwoScreen extends StatefulWidget {
 }
 
 class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
+  bool _dailyCheckInEnabled = true;
+  bool _quoteEnabled = true;
+
   @override
   void initState() {
     super.initState();
@@ -39,366 +44,307 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
-        child: SafeArea(
-          child: Container(
-            margin: EdgeInsets.only(top: 56.h),
-            child: SingleChildScrollView(
-              child: Container(
-                height: 760.h,
-                padding: EdgeInsets.symmetric(vertical: 24.h),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                          child: Container(
-                            width: double.maxFinite,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20.h, vertical: 8.h),
-                            decoration: AppDecoration.outline6,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "msg_gentle_reminders".tr,
-                                  style: theme.textTheme.headlineLarge,
-                                ),
-                                SizedBox(height: 6.h),
-                                Text(
-                                  "msg_we_ll_nudge_you".tr,
-                                  style: CustomTextStyles
-                                      .titleLargeRobotoOnPrimary_1,
-                                ),
-                                SizedBox(height: 6.h),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(left: 6.h),
-                                    child: RichText(
-                                      text: TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: "lbl2".tr,
-                                            style: CustomTextStyles
-                                                .titleMediumBold,
-                                          ),
-                                          TextSpan(
-                                            text: "msg_a_daily_check_in".tr,
-                                            style: CustomTextStyles
-                                                .titleSmallRobotoOnPrimary_2,
-                                          ),
-                                        ],
-                                      ),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 2.h),
-                                Padding(
-                                  padding:
-                                      EdgeInsets.only(left: 6.h, right: 4.h),
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: "lbl3".tr,
-                                          style:
-                                              CustomTextStyles.titleMediumBold,
-                                        ),
-                                        TextSpan(
-                                          text: "msg_a_quote_of_the_day".tr,
-                                          style: CustomTextStyles
-                                              .titleSmallRobotoOnPrimary_2,
-                                        ),
-                                      ],
-                                    ),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                ),
-                                SizedBox(height: 14.h),
-                                _buildAlert(context),
-                                SizedBox(height: 138.h),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    _buildColumnQuoteOfThe(context),
-                  ],
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  color: Color(0xFFBCBCBC).withOpacity(0.04),
                 ),
               ),
             ),
-          ),
+            // Top blur box
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 200.h,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    color: Color(0xFFBCBCBC).withOpacity(0.04),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(top: 20.h, left: 24.h, right: 24.h),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 10.h),
+                      Center(
+                        child: Text(
+                          "Gentle Reminders",
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Center(
+                        child: Text(
+                          "We'll nudge you with two simple things:",
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 5.h),
+                      Text(
+                        "📝 A daily check-in to reflect on your mood",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Roboto',
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        "💬 A quote of the day to lift or ground your thoughts",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Roboto',
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      Column(
+                        children: [
+                          Container(
+                            width: 340.h,
+                            height: _dailyCheckInEnabled ? 283.h : 79.h,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  _dailyCheckInEnabled 
+                                    ? 'assets/images/daily_checkin.svg'
+                                    : 'assets/images/daily_toggle_off.svg',
+                                ),
+                                Positioned(
+                                  top: 12.h,
+                                  left: 0,
+                                  right: 0,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/daily_toggle.svg',
+                                      ),
+                                      Positioned(
+                                        left: 30.h,
+                                        child: Text(
+                                          "Daily Check-in",
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: 30.h,
+                                        child: Transform.scale(
+                                          scale: 0.9,
+                                          child: CupertinoSwitch(
+                                            value: _dailyCheckInEnabled,
+                                            onChanged: (bool value) {
+                                              setState(() {
+                                                _dailyCheckInEnabled = value;
+                                              });
+                                            },
+                                            activeColor: CupertinoColors.systemGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (_dailyCheckInEnabled)
+                                  Positioned(
+                                    top: 12.h + 55.h + 7.h,
+                                    child: SvgPicture.asset(
+                                      'assets/images/times_daily_checkin.svg',
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: _dailyCheckInEnabled ? 7.h : 0),
+                          Container(
+                            width: 340.h,
+                            height: _quoteEnabled ? 155.h : 79.h,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  _quoteEnabled 
+                                    ? 'assets/images/quote_daily.svg'
+                                    : 'assets/images/daily_toggle_off.svg',
+                                  width: 340.h,
+                                  height: _quoteEnabled ? 155.h : 79.h,
+                                ),
+                                Positioned(
+                                  top: 12.h,
+                                  left: 0,
+                                  right: 0,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/daily_toggle.svg',
+                                      ),
+                                      Positioned(
+                                        left: 30.h,
+                                        child: Text(
+                                          "Quote of the Day",
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: 30.h,
+                                        child: Transform.scale(
+                                          scale: 0.9,
+                                          child: CupertinoSwitch(
+                                            value: _quoteEnabled,
+                                            onChanged: (bool value) {
+                                              setState(() {
+                                                _quoteEnabled = value;
+                                              });
+                                            },
+                                            activeColor: CupertinoColors.systemGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (_quoteEnabled)
+                                  Positioned(
+                                    top: 12.h + 55.h + 7.h,
+                                    child: SvgPicture.asset(
+                                      'assets/images/daily_toggle.svg',
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: _dailyCheckInEnabled || _quoteEnabled ? 17.h : 12.h),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                // Handle next step
+                              },
+                              child: Container(
+                                width: 130.h,
+                                height: 60.h,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/images/next.svg',
+                                      width: 109.h,
+                                      height: 48.h,
+                                    ),
+                                    Text(
+                                      "Next",
+                                      style: TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 46.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgArrowLeft,
-        margin: EdgeInsets.only(left: 16.h, top: 13.h, bottom: 13.h),
-        onTap: () => onTapArrowleftone(context),
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 40,
+      leading: Align(
+        alignment: Alignment.centerLeft,
+        child: _buildBackButton(),
       ),
     );
   }
 
-  Widget _buildAlert(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 10.h),
-      padding: EdgeInsets.all(10.h),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        spacing: 6,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            decoration: AppDecoration.outline7.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder28,
-            ),
-            width: double.maxFinite,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                child: Padding(
-                  padding: EdgeInsets.all(12.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 8.h),
-                        child: Text(
-                          "msg_daily_check_in".tr,
-                          style: theme.textTheme.titleSmall,
-                        ),
-                      ),
-                      Selector<SignUpStepTwoProvider, bool?>(
-                        selector: (context, provider) =>
-                            provider.isSelectedSwitch,
-                        builder: (context, isSelectedSwitch, child) {
-                          return CustomSwitch(
-                            value: isSelectedSwitch,
-                            onChange: (value) {
-                              context
-                                  .read<SignUpStepTwoProvider>()
-                                  .changeSwitchBox(value);
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+      },
+      child: Padding(
+        padding: EdgeInsets.only(left: 12.h),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.2),
               ),
             ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                child: Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.all(10.h),
-                  decoration: AppDecoration.outline7.copyWith(
-                    borderRadius: BorderRadiusStyle.roundedBorder32,
-                  ),
-                  child: Column(
-                    spacing: 10,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.only(left: 10.h, right: 6.h),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Text(
-                                "lbl_9_30".tr,
-                                style: theme.textTheme.titleSmall,
-                              ),
-                            ),
-                            Spacer(),
-                            CustomImageView(
-                              imagePath: ImageConstant.imgTrashFill1,
-                              height: 24.h,
-                              width: 20.h,
-                            ),
-                            CustomImageView(
-                              imagePath: ImageConstant.imgPencil1,
-                              height: 16.h,
-                              width: 20.h,
-                              margin: EdgeInsets.only(left: 6.h),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Divider(
-                          color: theme.colorScheme.onPrimary
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.only(left: 10.h, right: 6.h),
-                        child: _buildRowSpacerTwo(context,
-                            timeThree: "lbl_14_30".tr),
-                      ),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Divider(
-                          color: theme.colorScheme.onPrimary
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.only(left: 10.h, right: 6.h),
-                        child: _buildRowSpacerTwo(context,
-                            timeThree: "lbl_20_30".tr),
-                      ),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Divider(
-                          color: theme.colorScheme.onPrimary
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.only(left: 10.h, right: 6.h),
-                        child: _buildRowSpacerTwo(context,
-                            timeThree: "lbl_23_30".tr),
-                      ),
-                      SizedBox(height: 6.h),
-                    ],
-                  ),
-                ),
+            Positioned(
+              child: Icon(
+                Icons.chevron_left,
+                color: Colors.white,
+                size: 24,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  Widget _buildColumnQuoteOfThe(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.only(bottom: 32.h),
-      padding: EdgeInsets.symmetric(horizontal: 20.h),
-      child: Column(
-        spacing: 18,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: double.maxFinite,
-            margin: EdgeInsets.symmetric(horizontal: 10.h),
-            padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 14.h),
-            decoration: AppDecoration.windowsGlass.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder32,
-            ),
-            child: Column(
-              spacing: 10,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: AppDecoration.outline7.copyWith(
-                    borderRadius: BorderRadiusStyle.roundedBorder28,
-                  ),
-                  width: double.maxFinite,
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                      child: Padding(
-                        padding: EdgeInsets.all(12.h),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(left: 8.h),
-                              child: Text(
-                                "msg_quote_of_the_day2".tr,
-                                style: theme.textTheme.titleSmall,
-                              ),
-                            ),
-                            Selector<SignUpStepTwoProvider, bool?>(
-                              selector: (context, provider) =>
-                                  provider.isSelectedSwitch1,
-                              builder: (context, isSelectedSwitch1, child) {
-                                return CustomSwitch(
-                                  value: isSelectedSwitch1,
-                                  onChange: (value) {
-                                    context
-                                        .read<SignUpStepTwoProvider>()
-                                        .changeSwitchBox1(value);
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          CustomOutlinedButton(
-            width: 108.h,
-            text: "lbl_next".tr,
-            buttonStyle: CustomButtonStyles.none,
-            decoration: CustomButtonStyles.outlineTL241Decoration,
-            alignment: Alignment.centerRight,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRowSpacerTwo(BuildContext context, {required String timeThree}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          timeThree,
-          style: theme.textTheme.titleSmall!.copyWith(
-            color: theme.colorScheme.onPrimary.withValues(alpha: 0.96),
-          ),
-        ),
-        Spacer(),
-        CustomImageView(
-          imagePath: ImageConstant.imgTrashFill1,
-          height: 24.h,
-          width: 20.h,
-        ),
-        CustomImageView(
-          imagePath: ImageConstant.imgPencil1,
-          height: 16.h,
-          width: 20.h,
-          margin: EdgeInsets.only(left: 6.h),
-        ),
-      ],
-    );
-  }
-
-  void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
   }
 }
