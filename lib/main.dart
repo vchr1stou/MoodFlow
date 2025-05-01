@@ -8,6 +8,8 @@ import 'core/app_export.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'presentation/statistics_mood_charts_screen/statisticsmood_tab_page.dart';
+import 'presentation/sign_up_step_two_screen/provider/sign_up_step_two_provider.dart';
+import 'package:provider/provider.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -43,8 +45,11 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return Sizer(
           builder: (context, orientation, deviceType) {
-            return ChangeNotifierProvider<ThemeProvider>(
-              create: (context) => ThemeProvider(),
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => ThemeProvider()),
+                ChangeNotifierProvider(create: (_) => SignUpStepTwoProvider()),
+              ],
               child: Consumer<ThemeProvider>(
                 builder: (context, provider, child) {
                   return MaterialApp(
