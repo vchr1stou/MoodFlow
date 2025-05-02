@@ -740,7 +740,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                 alignment: Alignment.centerRight,
                                 child: GestureDetector(
                                   onTap: () {
-                                    // Handle next step
+                                    Navigator.pushNamed(context, AppRoutes.signUpStepThreeScreen);
                                   },
                                   child: Container(
                                     width: 130.h,

@@ -47,73 +47,76 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
             SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(height: 150.h),
-                    Container(
-                      width: double.maxFinite,
-                      padding: EdgeInsets.symmetric(horizontal: 30.h),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgImage,
-                            height: 220.h,
-                            width: 220.h,
-                            radius: BorderRadius.circular(110.h),
-                            alignment: Alignment.center,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CustomImageView(
+                          imagePath: ImageConstant.imgImage,
+                          height: 220.h,
+                          width: 220.h,
+                          radius: BorderRadius.circular(110.h),
+                          alignment: Alignment.center,
+                        ),
+                        SizedBox(height: 0.h),
+                        Text(
+                          "MoodFlow",
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
-                          SizedBox(height: 0.h),
-                          Text(
-                            "MoodFlow",
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                        ),
+                        SizedBox(height: 6.h),
+                        Text(
+                          "Let your feelings flow—we've got you covered",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
-                          SizedBox(height: 6.h),
-                          Text(
-                            "Let your feelings flow—we've got you covered",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 156.h),
-                          _buildLoginButton(context),
-                          SizedBox(height: 12.h),
-                          Text(
-                            "or",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                  context, AppRoutes.signUpStepOneScreen);
-                            },
-                            child: Text(
-                              "Create a new account",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 30.h),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.symmetric(horizontal: 30.h),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildLoginButton(context),
+                        SizedBox(height: 12.h),
+                        Text(
+                          "or",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                                context, AppRoutes.signUpStepOneScreen);
+                          },
+                          child: Text(
+                            "Create a new account",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 30.h),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

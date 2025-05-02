@@ -5,15 +5,15 @@ import 'profile_one_item_model.dart';
 class ProfileModel {
   List<ProfileOneItemModel> profileOneItemList = [
     ProfileOneItemModel(
-      dailyStreak: ImageConstant.imgFlamefill2,
+      dailyStreak: null,
       title: "lbl_daily_streak".tr,
     ),
     ProfileOneItemModel(
-      dailyStreak: ImageConstant.imgMusicNote2,
+      dailyStreak: null,
       title: "lbl_music".tr,
     ),
     ProfileOneItemModel(
-      dailyStreak: ImageConstant.imgAppleHapticsAndMusicNote,
+      dailyStreak: null,
       title: "lbl_haptic_feedback".tr,
     ),
     ProfileOneItemModel(), // Possibly placeholder or empty item

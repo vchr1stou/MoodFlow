@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
@@ -31,123 +32,226 @@ class SignUpStepThreeScreenState extends State<SignUpStepThreeScreen> {
       extendBodyBehindAppBar: true,
       appBar: _buildAppbar(context),
       body: Container(
-        width: double.infinity,
+        width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Container(
-              margin: EdgeInsets.only(top: 56.h),
-              padding: EdgeInsets.only(top: 24.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _buildIntroSection(context),
-                  SizedBox(height: 40.h),
-                  _buildAlert(context),
-                  SizedBox(height: 148.h),
-                  CustomOutlinedButton(
-                    width: 108.h,
-                    text: "lbl_next".tr,
-                    margin: EdgeInsets.only(right: 20.h),
-                    buttonStyle: CustomButtonStyles.none,
-                    decoration: CustomButtonStyles.outlineTL241Decoration,
-                  ),
-                  SizedBox(height: 32.h),
-                ],
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  color: Color(0xFFBCBCBC).withOpacity(0.04),
+                ),
               ),
             ),
-          ),
+            // Top blur box
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 200.h,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    color: Color(0xFFBCBCBC).withOpacity(0.04),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(top: 20.h, left: 24.h, right: 24.h),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 10.h),
+                      Center(
+                        child: SvgPicture.asset(
+                          'assets/images/safety_net.svg',
+                          width: 153,
+                          height: 85,
+                        ),
+                      ),
+                      SizedBox(height: 5.h),
+                      Container(
+                        width: double.infinity,
+                        child: Center(
+                          child: Text(
+                            "Your Safety Net",
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'Roboto',
+                              letterSpacing: -1,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Center(
+                        child: Text(
+                          "We all have people who help us breathe a little easier",
+                          style: TextStyle(
+                            fontSize: 14.9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            letterSpacing: -1,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 1.h),
+                      Center(
+                        child: Text(
+                          "Save them here, for peace of mind just in case you ever need to lean on someone.",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            letterSpacing: -1,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/sign_up_safety_net_empty.svg',
+                              width: 340.h,
+                              height: 233.h,
+                            ),
+                            Container(
+                              width: 340.h,
+                              height: 233.h,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Positioned(
+                                    top: 48.h,
+                                    child: Text(
+                                      "Add a Trusted Contact",
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Roboto',
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  SvgPicture.asset(
+                                    'assets/images/sign_up_safety_net_plus.svg',
+                                    width: 58.88.h,
+                                    height: 57.1.h,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 17.h),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () {
+                            // Handle next step
+                          },
+                          child: Container(
+                            width: 130.h,
+                            height: 60.h,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/next.svg',
+                                  width: 109.h,
+                                  height: 48.h,
+                                ),
+                                Text(
+                                  "Next",
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 24.h),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// Builds the app bar with a back arrow
   PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 46.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgArrowLeft,
-        margin: EdgeInsets.symmetric(horizontal: 16.h, vertical: 13.h),
-        onTap: () => onTapArrowleftone(context),
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 40,
+      leading: Align(
+        alignment: Alignment.centerLeft,
+        child: _buildBackButton(),
       ),
     );
   }
 
-  /// Builds the introductory message and illustration
-  Widget _buildIntroSection(BuildContext context) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 30.h),
-          decoration: AppDecoration.outline6,
-          child: Column(
+  Widget _buildBackButton() {
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          Navigator.of(context).pop();
+        },
+        child: Padding(
+          padding: EdgeInsets.only(left: 12.h),
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              CustomImageView(
-                imagePath: ImageConstant.imgGroupOnprimary,
-                height: 84.h,
-                width: 154.h,
-              ),
-              SizedBox(height: 10.h),
-              Text(
-                "lbl_your_safety_net".tr,
-                style: theme.textTheme.headlineLarge,
-              ),
-              Text(
-                "msg_we_all_have_people".tr,
-                style: CustomTextStyles.titleSmallRobotoOnPrimary14,
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10.h),
-                child: Text(
-                  "msg_save_them_here".tr,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyles.titleSmallRobotoOnPrimary14
-                      .copyWith(height: 1.57),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.2),
                 ),
               ),
-              SizedBox(height: 18.h),
+              Positioned(
+                child: Icon(
+                  Icons.chevron_left,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  /// Builds the trusted contact section with add button
-  Widget _buildAlert(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 50.h),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        children: [
-          Text(
-            "msg_add_a_trusted_contact".tr,
-            style: CustomTextStyles.titleMediumSFProOnPrimaryBold_1,
-          ),
-          SizedBox(height: 18.h),
-          CustomIconButton(
-            height: 56.h,
-            width: 58.h,
-            padding: EdgeInsets.all(16.h),
-            decoration: IconButtonStyleHelper.fillPrimaryTL28,
-            child: CustomImageView(imagePath: ImageConstant.imgPlus1),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Navigates back
-  void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
   }
 }

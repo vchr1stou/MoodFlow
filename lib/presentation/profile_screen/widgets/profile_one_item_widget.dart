@@ -22,15 +22,9 @@ class ProfileOneItemWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CustomImageView(
-            imagePath: profileOneItemModelObj.dailyStreak!,
-            height: 20.h,
-            width: 18.h,
-            margin: EdgeInsets.only(left: 10.h),
-          ),
           Container(
             width: 92.h,
-            margin: EdgeInsets.only(left: 4.h),
+            margin: EdgeInsets.only(left: 10.h),
             child: Text(
               profileOneItemModelObj.title!,
               overflow: TextOverflow.ellipsis,
@@ -38,11 +32,6 @@ class ProfileOneItemWidget extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          CustomImageView(
-            imagePath: ImageConstant.imageNotFound, // Placeholder image
-            height: 22.h,
-            width: 8.h,
-          ),
           CustomSwitch(
             margin: EdgeInsets.only(left: 24.h),
             value: profileOneItemModelObj.isSelectedSwitch ?? false,
