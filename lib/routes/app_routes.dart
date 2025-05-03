@@ -65,6 +65,7 @@ import '../presentation/streak_screen/streak_screen.dart';
 import '../presentation/traveling_screen/traveling_screen.dart';
 import '../presentation/welcome_screen/welcome_screen.dart';
 import '../presentation/workout_screen/workout_screen.dart';
+import '../presentation/spotify_callback_screen/spotify_callback_screen.dart';
 
 class AppRoutes {
   static const String discoverScreen = '/discover_screen';
@@ -163,6 +164,7 @@ class AppRoutes {
       '/statistics_mood_drivers_page';
   static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
+  static const String spotifyCallbackScreen = '/spotify_callback_screen';
 
   static Map<String, WidgetBuilder> get routes => {
         discoverScreen: DiscoverScreen.builder,
@@ -233,5 +235,19 @@ class AppRoutes {
         statisticsMoodChartsScreen: StatisticsMoodChartsScreen.builder,
         appNavigationScreen: AppNavigationScreen.builder,
         initialRoute: WelcomeScreen.builder,
+        spotifyCallbackScreen: (context) => const SpotifyCallbackScreen(),
       };
+
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final String? name = settings.name;
+    final WidgetBuilder? builder = routes[name];
+    
+    if (builder != null) {
+      return MaterialPageRoute(
+        builder: builder,
+        settings: settings,
+      );
+    }
+    return null;
+  }
 }

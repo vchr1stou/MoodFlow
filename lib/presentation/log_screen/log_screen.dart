@@ -314,7 +314,7 @@ class LogScreenState extends State<LogScreen> {
       leadingWidth: 30.h,
       leading: AppbarLeadingIconbutton(
         imagePath: ImageConstant.imgArrowLeft,
-        onTap: () => NavigatorService.goBack(),
+        onTap: () => NavigatorService.goBackWithoutContext(),
       ),
       title: Container(
         width: double.maxFinite,

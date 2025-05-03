@@ -11,28 +11,39 @@ import 'package:google_fonts/google_fonts.dart';
 import 'presentation/statistics_mood_charts_screen/statisticsmood_tab_page.dart';
 import 'presentation/sign_up_step_two_screen/provider/sign_up_step_two_provider.dart';
 import 'package:provider/provider.dart';
+import 'core/utils/url_handler.dart';
+import 'core/utils/size_utils.dart';
+import 'presentation/spotify_screen/provider/spotify_provider.dart';
+import 'presentation/sign_up_step_four_screen/provider/sign_up_step_four_provider.dart';
+import 'presentation/welcome_screen/welcome_screen.dart';
 
-var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
+/// This is the main entry point of the application.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('Firebase initialized successfully');
-  } catch (e) {
-    print('Error initializing Firebase: $e');
-  }
-
-  await Future.wait([
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    PrefUtils().init(),
-    _requestContactPermission(),
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
   ]);
 
-  runApp(const MyApp());
+  // Initialize URL handler before running the app
+  UrlHandler.init();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SpotifyProvider()),
+        ChangeNotifierProvider(
+          create: (_) => SignUpStepFourProvider(),
+          lazy: false, // Ensure provider is created immediately
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 Future<void> _requestContactPermission() async {
@@ -45,67 +56,32 @@ Future<void> _requestContactPermission() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (context, child) {
-        return Sizer(
-          builder: (context, orientation, deviceType) {
-            return MultiProvider(
-              providers: [
-                ChangeNotifierProvider(create: (_) => ThemeProvider()),
-                ChangeNotifierProvider(create: (_) => SignUpStepTwoProvider()),
-              ],
-              child: Consumer<ThemeProvider>(
-                builder: (context, provider, child) {
-                  return MaterialApp(
-                    title: 'moodflow',
-                    debugShowCheckedModeBanner: false,
-                    theme: ThemeData(
-                      textTheme: GoogleFonts.robotoTextTheme(),
-                      colorScheme:
-                          ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-                      useMaterial3: true,
-                      appBarTheme: AppBarTheme(
-                        systemOverlayStyle: SystemUiOverlayStyle.light,
-                      ),
-                      cupertinoOverrideTheme: CupertinoThemeData(
-                        barBackgroundColor: Colors.transparent,
-                        brightness: Brightness.dark,
-                      ),
-                    ),
-                    builder: (context, child) {
-                      return MediaQuery(
-                        data: MediaQuery.of(context).copyWith(
-                          textScaler: TextScaler.linear(1.0),
-                        ),
-                        child: child!,
-                      );
-                    },
-                    navigatorKey: NavigatorService.navigatorKey,
-                    scaffoldMessengerKey: globalMessengerKey,
-                    localizationsDelegates: [
-                      AppLocalizationDelegate(),
-                      GlobalMaterialLocalizations.delegate,
-                      GlobalWidgetsLocalizations.delegate,
-                      GlobalCupertinoLocalizations.delegate
-                    ],
-                    locale: Locale('en', ''),
-                    supportedLocales: [Locale('en', '')],
-                    initialRoute: AppRoutes.initialRoute,
-                    routes: AppRoutes.routes,
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
+      builder: (_, __) => MaterialApp(
+        theme: theme,
+        title: 'MoodFlow',
+        debugShowCheckedModeBanner: false,
+        navigatorKey: rootNavigatorKey,
+        scaffoldMessengerKey: globalMessengerKey,
+        builder: (context, child) {
+          SizeUtils.init(context);
+          // Ensure the navigator key is properly set up
+          if (rootNavigatorKey.currentState == null) {
+            debugPrint('=== Navigator key not initialized ===');
+          } else {
+            debugPrint('=== Navigator key initialized successfully ===');
+          }
+          return child!;
+        },
+        initialRoute: AppRoutes.welcomeScreen,
+        routes: AppRoutes.routes,
+        onGenerateRoute: AppRoutes.onGenerateRoute,
+      ),
     );
   }
 }

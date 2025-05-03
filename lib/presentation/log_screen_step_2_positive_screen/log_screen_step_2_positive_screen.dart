@@ -256,6 +256,6 @@ class LogScreenStep2PositiveScreenState
 
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

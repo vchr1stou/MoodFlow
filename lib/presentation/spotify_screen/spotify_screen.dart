@@ -66,53 +66,102 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                               vertical: 70.h,
                             ),
                             decoration: AppDecoration.outline,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CustomImageView(
-                                  imagePath:
-                                      ImageConstant.imgVectorOnprimarycontainer,
-                                  height: 176.h,
-                                  width: 178.h,
-                                ),
-                                SizedBox(height: 30.h),
-                                Text(
-                                  "msg_connect_your_soundtrack".tr,
-                                  style: CustomTextStyles.headlineLarge30,
-                                ),
-                                Text(
-                                  "msg_every_feeling_has".tr,
-                                  style: CustomTextStyles
-                                      .titleLargeRobotoOnPrimaryContainer_1,
-                                ),
-                                SizedBox(height: 6.h),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 12.h,
-                                    right: 14.h,
-                                  ),
-                                  child: Text(
-                                    "msg_by_connecting_to".tr,
-                                    style: CustomTextStyles
-                                        .labelMediumRobotoOnPrimaryContainer_2,
-                                  ),
-                                ),
-                                SizedBox(height: 46.h),
-                                CustomOutlinedButton(
-                                  height: 54.h,
-                                  text: "msg_link_spotify_account".tr,
-                                  margin: EdgeInsets.only(
-                                    left: 14.h,
-                                    right: 18.h,
-                                  ),
-                                  buttonStyle: CustomButtonStyles.none,
-                                  decoration:
-                                      CustomButtonStyles.outlineTL26Decoration,
-                                  buttonTextStyle: theme.textTheme.titleSmall!,
-                                  hasBlurBackground: true,
-                                ),
-                                SizedBox(height: 46.h)
-                              ],
+                            child: Consumer<SpotifyProvider>(
+                              builder: (context, provider, child) {
+                                if (provider.isLoading) {
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                }
+
+                                if (provider.isAuthenticated) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CustomImageView(
+                                        imagePath: ImageConstant.imgVectorOnprimarycontainer,
+                                        height: 176.h,
+                                        width: 178.h,
+                                      ),
+                                      SizedBox(height: 30.h),
+                                      Text(
+                                        "Connected to Spotify",
+                                        style: CustomTextStyles.headlineLarge30,
+                                      ),
+                                      SizedBox(height: 20.h),
+                                      Text(
+                                        "Signed in as ${provider.userProfile?['display_name'] ?? 'User'}",
+                                        style: CustomTextStyles.titleLargeRobotoOnPrimaryContainer_1,
+                                      ),
+                                      SizedBox(height: 46.h),
+                                      CustomOutlinedButton(
+                                        height: 54.h,
+                                        text: "Disconnect Spotify",
+                                        margin: EdgeInsets.only(
+                                          left: 14.h,
+                                          right: 18.h,
+                                        ),
+                                        buttonStyle: CustomButtonStyles.none,
+                                        decoration: CustomButtonStyles.outlineTL26Decoration,
+                                        buttonTextStyle: theme.textTheme.titleSmall!,
+                                        hasBlurBackground: true,
+                                        onTap: () {
+                                          provider.logout();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CustomImageView(
+                                      imagePath: ImageConstant.imgVectorOnprimarycontainer,
+                                      height: 176.h,
+                                      width: 178.h,
+                                    ),
+                                    SizedBox(height: 30.h),
+                                    Text(
+                                      "msg_connect_your_soundtrack".tr,
+                                      style: CustomTextStyles.headlineLarge30,
+                                    ),
+                                    Text(
+                                      "msg_every_feeling_has".tr,
+                                      style: CustomTextStyles.titleLargeRobotoOnPrimaryContainer_1,
+                                    ),
+                                    SizedBox(height: 6.h),
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 12.h,
+                                        right: 14.h,
+                                      ),
+                                      child: Text(
+                                        "msg_by_connecting_to".tr,
+                                        style: CustomTextStyles.labelMediumRobotoOnPrimaryContainer_2,
+                                      ),
+                                    ),
+                                    SizedBox(height: 46.h),
+                                    CustomOutlinedButton(
+                                      height: 54.h,
+                                      text: "msg_link_spotify_account".tr,
+                                      margin: EdgeInsets.only(
+                                        left: 14.h,
+                                        right: 18.h,
+                                      ),
+                                      buttonStyle: CustomButtonStyles.none,
+                                      decoration: CustomButtonStyles.outlineTL26Decoration,
+                                      buttonTextStyle: theme.textTheme.titleSmall!,
+                                      hasBlurBackground: true,
+                                      onTap: () {
+                                        provider.loginWithSpotify();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -125,8 +174,7 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                       margin: EdgeInsets.only(right: 20.h),
                       buttonStyle: CustomButtonStyles.none,
                       decoration: CustomButtonStyles.outlineDecoration,
-                      buttonTextStyle: CustomTextStyles
-                          .labelLargeRobotoOnPrimaryContainerBold13_1,
+                      buttonTextStyle: CustomTextStyles.labelLargeRobotoOnPrimaryContainerBold13_1,
                     ),
                     SizedBox(height: 32.h)
                   ],
@@ -158,7 +206,7 @@ class SpotifyScreenState extends State<SpotifyScreen> {
   }
 
   /// Navigates to the previous screen.
-  onTapArrowleftone(BuildContext context) {
+  void onTapArrowleftone(BuildContext context) {
     NavigatorService.goBack();
   }
 }

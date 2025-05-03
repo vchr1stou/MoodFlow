@@ -207,6 +207,6 @@ class PorfileAcessibilitySettingsScreenState
 
   /// Navigates to the previous screen.
   void onTapBtnArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

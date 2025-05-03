@@ -59,18 +59,23 @@ class NetworkException implements Exception {}
 
 /// Can be used for throwing [NoInternetException]
 class NoInternetException implements Exception {
-  late String _message;
+  final String message;
 
-  NoInternetException([String message = 'NoInternetException Occurred']) {
+  NoInternetException([this.message = 'No Internet Connection']);
+
+  void showError() {
     if (globalMessengerKey.currentState != null) {
-      globalMessengerKey.currentState!
-          .showSnackBar(SnackBar(content: Text(message)));
+      globalMessengerKey.currentState!.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-    _message = message;
   }
 
   @override
   String toString() {
-    return _message;
+    return message;
   }
 }

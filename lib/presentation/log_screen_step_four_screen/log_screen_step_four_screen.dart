@@ -280,6 +280,6 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
 
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

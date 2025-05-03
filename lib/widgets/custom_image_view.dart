@@ -128,11 +128,13 @@ class CustomImageView extends StatelessWidget {
                 backgroundColor: Colors.grey.shade100,
               ),
             ),
-            errorWidget: (context, url, error) => Image.asset(
-              placeHolder,
+            errorWidget: (context, url, error) => Container(
               height: height,
               width: width,
-              fit: fit ?? BoxFit.cover,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: radius,
+              ),
             ),
           );
         case ImageType.png:

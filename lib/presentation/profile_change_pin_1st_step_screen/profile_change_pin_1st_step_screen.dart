@@ -126,6 +126,6 @@ class ProfileChangePin1stStepScreenState
 
   /// Back navigation
   void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

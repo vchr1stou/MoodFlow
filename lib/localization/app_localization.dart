@@ -20,7 +20,7 @@ class AppLocalization {
 
   static AppLocalization of() {
     return Localizations.of<AppLocalization>(
-      NavigatorService.navigatorKey.currentContext!,
+      rootNavigatorKey.currentContext!,
       AppLocalization,
     )!;
   }

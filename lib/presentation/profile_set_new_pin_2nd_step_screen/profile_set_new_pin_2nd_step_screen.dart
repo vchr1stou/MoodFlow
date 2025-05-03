@@ -138,6 +138,6 @@ class ProfileSetNewPin2ndStepScreenState
 
   /// Navigate back
   void onTapArrowLeft(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

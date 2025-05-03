@@ -120,6 +120,6 @@ class ProfileDeletePinScreenState extends State<ProfileDeletePinScreen> {
 
   /// Handles back navigation
   void onTapBtnArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

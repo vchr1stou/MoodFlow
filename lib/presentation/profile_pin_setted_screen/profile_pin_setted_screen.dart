@@ -159,6 +159,6 @@ class ProfilePinSettedScreenState extends State<ProfilePinSettedScreen> {
 
   /// Navigates to the previous screen.
   void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

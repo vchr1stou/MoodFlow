@@ -124,6 +124,6 @@ class ProfileSafetyNetScreenState extends State<ProfileSafetyNetScreen> {
 
   /// Back button navigation
   void onTapArrowLeft(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

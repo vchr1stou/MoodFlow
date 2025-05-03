@@ -511,6 +511,6 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> {
 
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

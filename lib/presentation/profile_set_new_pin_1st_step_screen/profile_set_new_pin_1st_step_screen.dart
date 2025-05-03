@@ -85,7 +85,7 @@ class ProfileSetNewPin1stStepScreenState
         imagePath: ImageConstant.imgArrowLeft,
         margin: EdgeInsets.only(left: 16.h),
         onTap: () {
-          NavigatorService.goBack();
+          NavigatorService.goBackWithoutContext();
         },
       ),
     );

@@ -291,6 +291,6 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
 
   /// Navigates to the previous screen.
   void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

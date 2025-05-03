@@ -96,6 +96,6 @@ class BreathingdoneScreenState extends State<BreathingdoneScreen> {
 
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

@@ -191,6 +191,6 @@ class SignUpStep3FilledScreenState extends State<SignUpStep3FilledScreen> {
 
   /// Navigates to the previous screen.
   void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

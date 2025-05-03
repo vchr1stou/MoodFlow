@@ -534,6 +534,7 @@ class SignUpStepThreeScreenState extends State<SignUpStepThreeScreen> {
                       child: GestureDetector(
                         onTap: () {
                           // Handle next step
+                          Navigator.pushNamed(context, AppRoutes.signUpStepFourScreen);
                         },
                         child: Container(
                           width: 130.h,

@@ -52,6 +52,28 @@ class Sizer extends StatelessWidget {
 
 // ignore_for_file: must_be_immutable
 class SizeUtils {
+  static late MediaQueryData _mediaQueryData;
+  static double screenWidth = 0.0;
+  static double screenHeight = 0.0;
+  static double horizontalBlockSize = 0.0;
+  static double verticalBlockSize = 0.0;
+  static double statusBarHeight = 0.0;
+  static double bottomBarHeight = 0.0;
+
+  static void init(BuildContext context) {
+    _mediaQueryData = MediaQuery.of(context);
+    screenWidth = _mediaQueryData.size.width;
+    screenHeight = _mediaQueryData.size.height;
+    statusBarHeight = _mediaQueryData.padding.top;
+    bottomBarHeight = _mediaQueryData.padding.bottom;
+  }
+
+  static double get height => screenHeight;
+  static double get width => screenWidth;
+
+  static set height(double value) => screenHeight = value;
+  static set width(double value) => screenWidth = value;
+
   /// Device's BoxConstraints
   static BoxConstraints boxConstraints = BoxConstraints();
 
@@ -65,12 +87,6 @@ class SizeUtils {
 
   /// Flag to check if SizeUtils has been initialized
   static bool isInitialized = false;
-
-  /// Device's Height
-  static late double height;
-
-  /// Device's Width
-  static late double width;
 
   static void setScreenSize(
     BoxConstraints constraints,

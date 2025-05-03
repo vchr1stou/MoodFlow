@@ -135,6 +135,6 @@ class ProfileSpotifyScreenState extends State<ProfileSpotifyScreen> {
 
   /// Handles back navigation
   void onTapArrowLeft(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }

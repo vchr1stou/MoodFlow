@@ -1,1 +1,93 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"moodflow-1390a","appId":"1:463986263013:android:273cf61d916ce4b55ba50c","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"moodflow-1390a","appId":"1:463986263013:ios:8b7e32a82b98ea1e5ba50c","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"moodflow-1390a","appId":"1:463986263013:ios:7ed1f08e2c95c0925ba50c","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"moodflow-1390a","configurations":{"android":"1:463986263013:android:273cf61d916ce4b55ba50c","ios":"1:463986263013:ios:8b7e32a82b98ea1e5ba50c","macos":"1:463986263013:ios:7ed1f08e2c95c0925ba50c","web":"1:463986263013:web:ec99cbe3405452cd5ba50c","windows":"1:463986263013:web:54eced169e444efa5ba50c"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "moodflow-1390a",
+          "appId": "1:463986263013:android:273cf61d916ce4b55ba50c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "moodflow-1390a",
+          "appId": "1:463986263013:ios:8b7e32a82b98ea1e5ba50c",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "moodflow-1390a",
+          "appId": "1:463986263013:ios:7ed1f08e2c95c0925ba50c",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "moodflow-1390a",
+          "configurations": {
+            "android": "1:463986263013:android:273cf61d916ce4b55ba50c",
+            "ios": "1:463986263013:ios:8b7e32a82b98ea1e5ba50c",
+            "macos": "1:463986263013:ios:7ed1f08e2c95c0925ba50c",
+            "web": "1:463986263013:web:ec99cbe3405452cd5ba50c",
+            "windows": "1:463986263013:web:54eced169e444efa5ba50c"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    },
+    {
+      "source": "spotify-auth",
+      "codebase": "spotify-auth",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "emulators": {
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData"
+    }
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

@@ -124,6 +124,6 @@ class ProfileChangePin2ndStepScreenState
 
   /// Back button handler
   void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBackWithoutContext();
   }
 }
