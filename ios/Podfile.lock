@@ -1568,6 +1568,8 @@ PODS:
     - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
+  - contacts_service (0.2.2):
+    - Flutter
   - Firebase (11.11.0):
     - Firebase/Core (= 11.11.0)
   - Firebase/Analytics (11.11.0):
@@ -1853,6 +1855,8 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - permission_handler_apple (9.3.0):
+    - Flutter
   - PromisesObjC (2.4.0)
   - RecaptchaInterop (101.0.0)
   - shared_preferences_foundation (0.0.1):
@@ -1868,6 +1872,7 @@ DEPENDENCIES:
   - abseil
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
+  - contacts_service (from `.symlinks/plugins/contacts_service/ios`)
   - Firebase (~> 11.11.0)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -1878,6 +1883,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - GoogleUtilities
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -1916,6 +1922,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
+  contacts_service:
+    :path: ".symlinks/plugins/contacts_service/ios"
   firebase_analytics:
     :path: ".symlinks/plugins/firebase_analytics/ios"
   firebase_auth:
@@ -1930,6 +1938,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sqflite_darwin:
@@ -1942,6 +1952,7 @@ SPEC CHECKSUMS:
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   cloud_firestore: a6e06291a1f2e71fd0d3bca6eee38111622176bd
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
+  contacts_service: 7c2ed10147f55891576c6a582f431e385d8de92d
   Firebase: 6a8f201c61eda24e98f1ce2b44b1b9c2caf525cc
   firebase_analytics: fc61f5eb2b4eedfa1ae100d638bec6726a253261
   firebase_auth: 2de668bb37813c0dacc63f4dcb8d3a58530f9748
@@ -1971,6 +1982,7 @@ SPEC CHECKSUMS:
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7

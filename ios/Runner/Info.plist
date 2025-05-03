@@ -72,5 +72,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to contacts to add trusted contacts</string>
 </dict>
 </plist>

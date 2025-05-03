@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'firebase_options.dart';
 import 'core/app_export.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,10 +28,20 @@ Future<void> main() async {
 
   await Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    PrefUtils().init()
+    PrefUtils().init(),
+    _requestContactPermission(),
   ]);
 
   runApp(const MyApp());
+}
+
+Future<void> _requestContactPermission() async {
+  final status = await Permission.contacts.request();
+  if (status.isDenied) {
+    print('Contact permission denied');
+  } else if (status.isGranted) {
+    print('Contact permission granted');
+  }
 }
 
 class MyApp extends StatelessWidget {
