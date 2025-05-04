@@ -9,16 +9,22 @@ import '../../services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:async';
+import 'package:chat_bubbles/chat_bubbles.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
   final List<Color> colors;
   final List<double> stops;
+  final bool isKeyboardOpen;
 
   GlowPainter({
     required this.animation,
     required this.colors,
     required this.stops,
+    required this.isKeyboardOpen,
   });
 
   @override
@@ -36,16 +42,14 @@ class GlowPainter extends CustomPainter {
       ..strokeWidth = 25.0
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 35);
 
-    // Draw the main glow
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.deflate(-0.2),
-        Radius.circular(47.33),
-      ),
-      gradientPaint,
+    // Draw the main glow with conditional corner radius
+    final rrect = RRect.fromRectAndRadius(
+      rect.deflate(-0.2),
+      Radius.circular(isKeyboardOpen ? 0 : 47.33),
     );
+    canvas.drawRRect(rrect, gradientPaint);
 
-    // Draw an inner stroke for more visibility
+    // Draw an inner stroke with conditional corner radius
     final innerPaint = Paint()
       ..shader = SweepGradient(
         colors: colors,
@@ -55,24 +59,21 @@ class GlowPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.deflate(-0.2),
-        Radius.circular(47.33),
-      ),
-      innerPaint,
-    );
+    canvas.drawRRect(rrect, innerPaint);
   }
 
   @override
   bool shouldRepaint(GlowPainter oldDelegate) {
     return animation != oldDelegate.animation ||
-           stops != oldDelegate.stops;
+           stops != oldDelegate.stops ||
+           isKeyboardOpen != oldDelegate.isKeyboardOpen;
   }
 }
 
 class GlowEffect extends StatefulWidget {
-  const GlowEffect({Key? key}) : super(key: key);
+  final bool isKeyboardOpen;
+  
+  const GlowEffect({Key? key, required this.isKeyboardOpen}) : super(key: key);
 
   @override
   State<GlowEffect> createState() => _GlowEffectState();
@@ -146,6 +147,7 @@ class _GlowEffectState extends State<GlowEffect> with SingleTickerProviderStateM
             animation: _animation.value,
             colors: _colors,
             stops: _fixedStops,
+            isKeyboardOpen: widget.isKeyboardOpen,
           ),
           size: Size.infinite,
         );
@@ -176,11 +178,20 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
   bool _isManualStop = false;
   late AnimationController _breathingController;
   late Animation<double> _breathingAnimation;
+  List<Map<String, dynamic>> _messages = [];
+  bool _showChat = false;
+  ScrollController _scrollController = ScrollController();
+  double _chatTopOffset = 40.0;
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(_onFocusChange);
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _isTyping = false;
+        if (mounted) setState(() {});
+      }
+    });
     _loadUserName();
     _speech = stt.SpeechToText();
     
@@ -222,9 +233,8 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus) {
-      setState(() {
-        _isTyping = false;
-      });
+      _isTyping = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -283,6 +293,65 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
     }
   }
 
+  void _sendMessage() {
+    if (_textController.text.trim().isEmpty) return;
+    
+    setState(() {
+      _showChat = true;
+      _messages.add({
+        'text': _textController.text,
+        'isSender': true,
+        'color': Color(0xFF1B97F3),
+        'tail': true,
+      });
+      _textController.clear();
+    });
+
+    // Scroll to bottom after adding message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+
+    // Simulate AI response after a short delay
+    Future.delayed(Duration(seconds: 1), () {
+      setState(() {
+        _messages.add({
+          'text': "I'm here to help you feel better. How can I assist you today?",
+          'isSender': false,
+          'color': Color(0xFFE8E8EE),
+          'tail': true,
+        });
+      });
+      
+      // Scroll to bottom after AI response
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    });
+  }
+
+  void _handleTextInputTap() {
+    setState(() {
+      _isTyping = true;
+    });
+    // Request focus and show keyboard
+    FocusScope.of(context).requestFocus(_focusNode);
+    // Ensure keyboard is shown
+    SystemChannels.textInput.invokeMethod('TextInput.show');
+  }
+
   @override
   void dispose() {
     _textController.dispose();
@@ -325,32 +394,86 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
               ),
             ),
           ),
-          // Glow Effect - moved on top of background blur
-          const Positioned(
+          // Glow Effect
+          Positioned(
             left: 0,
             right: 0,
             top: 0,
             bottom: 0,
-            child: GlowEffect(),
+            child: GlowEffect(isKeyboardOpen: _focusNode.hasFocus),
           ),
           // User greeting text
-          if (!_isTyping) Positioned(
-            top: 120,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(
-                'How are you feeling\nnow, ${_userName ?? 'User'}?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+          if (!_showChat && !_isTyping) 
+            Positioned(
+              top: 120,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  'How are you feeling\nnow, ${_userName ?? 'User'}?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
+          // Chat messages
+          if (_showChat)
+            Positioned(
+              top: 85,
+              left: 0,
+              right: 0,
+              bottom: defaultPosition + 60,
+              child: Container(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        reverse: false,
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _messages.map((message) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: message['isSender']
+                                  ? BubbleSpecialThree(
+                                      text: message['text'],
+                                      color: message['color'],
+                                      tail: message['tail'],
+                                      textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 17,
+                                      ),
+                                    )
+                                  : BubbleSpecialThree(
+                                      text: message['text'],
+                                      color: message['color'],
+                                      tail: message['tail'],
+                                      isSender: false,
+                                      textStyle: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 17,
+                                      ),
+                                    ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           // Text input field
           Positioned(
             bottom: _isTyping ? keyboardPosition : defaultPosition,
@@ -441,11 +564,22 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                       Positioned(
                         right: 13,
                         top: 1,
-                        child: SvgPicture.asset(
-                          'assets/images/send_button.svg',
-                          width: 49,
-                          height: 49,
-                          fit: BoxFit.contain,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (_textController.text.trim().isNotEmpty) {
+                              _sendMessage();
+                              _focusNode.unfocus();
+                              setState(() {
+                                _isTyping = false;
+                              });
+                            }
+                          },
+                          child: SvgPicture.asset(
+                            'assets/images/send_button.svg',
+                            width: 49,
+                            height: 49,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       // Text input field
@@ -475,6 +609,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                                   isCollapsed: true,
                                 ),
                                 onSubmitted: (text) {
+                                  _sendMessage();
                                   _focusNode.unfocus();
                                 },
                               )
