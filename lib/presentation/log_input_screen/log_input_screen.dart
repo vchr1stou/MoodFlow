@@ -10,6 +10,7 @@ import '../homescreen_screen/homescreen_screen.dart';
 import '../log_input_colors_screen/log_input_colors_screen.dart';
 import '../history_empty_screen/history_empty_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../ai_screen/ai_screen.dart';
 
 class LogInputScreen extends StatefulWidget {
   final String source;
@@ -153,15 +154,30 @@ class LogInputScreenState extends State<LogInputScreen> {
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 24.h),
-                child: Text(
-                  "msg_lets_unpack_feels".tr(),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.roboto(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      "Let's unpack those feels!",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.roboto(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: 1.h),
+                    Text(
+                      "Log your mood using:",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.roboto(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -178,8 +194,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EmojiLogOneScreen.builder(context,
-                            source: widget.source),
+                        builder: (context) => AiScreen.builder(context),
                       ),
                     );
                   },
@@ -215,22 +230,24 @@ class LogInputScreenState extends State<LogInputScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "lbl_text".tr(),
+                              "Text",
                               style: GoogleFonts.roboto(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
+                                height: 1.2,
                               ),
                             ),
                             Transform.translate(
                               offset: Offset(textLogDescLeft - textLogTitleLeft,
                                   textLogDescTop),
                               child: Text(
-                                "msg_chat_your_feels".tr(),
+                                "Chat your feels! MoodFlow AI listens and logs.",
                                 style: GoogleFonts.roboto(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
+                                  height: 1.2,
                                 ),
                               ),
                             ),
@@ -306,9 +323,10 @@ class LogInputScreenState extends State<LogInputScreen> {
                             Text(
                               "Emoji",
                               style: GoogleFonts.roboto(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
+                                height: 1.2,
                               ),
                             ),
                             Transform.translate(
@@ -321,6 +339,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
+                                  height: 1.2,
                                 ),
                               ),
                             ),
@@ -432,9 +451,10 @@ class LogInputScreenState extends State<LogInputScreen> {
                             Text(
                               "Colour",
                               style: GoogleFonts.roboto(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
+                                height: 1.2,
                               ),
                             ),
                             Transform.translate(
@@ -447,6 +467,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
+                                  height: 1.2,
                                 ),
                               ),
                             ),
