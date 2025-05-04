@@ -6,6 +6,7 @@ import '../../core/utils/validation_functions.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/custom_checkbox_button.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_persistence_service.dart';
 import 'models/login_model.dart';
 import 'provider/login_provider.dart';
 
@@ -338,6 +339,7 @@ class LoginScreenState extends State<LoginScreen> {
                     context.read<LoginProvider>().emailController.text;
                 final password =
                     context.read<LoginProvider>().passwordtwoController.text;
+                final rememberMe = context.read<LoginProvider>().keepmesignedin;
 
                 try {
                   // Attempt to sign in using AuthService
@@ -347,6 +349,13 @@ class LoginScreenState extends State<LoginScreen> {
                   );
 
                   if (user != null && context.mounted) {
+                    // Save credentials if "Remember Me" is checked
+                    if (rememberMe) {
+                      await AuthPersistenceService.saveRememberMe(true, email, password);
+                    } else {
+                      await AuthPersistenceService.clearSavedCredentials();
+                    }
+                    
                     // Navigate to home screen on success
                     Navigator.pushReplacementNamed(
                         context, AppRoutes.homescreenScreen);

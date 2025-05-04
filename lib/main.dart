@@ -17,6 +17,9 @@ import 'presentation/spotify_screen/provider/spotify_provider.dart';
 import 'presentation/sign_up_step_four_screen/provider/sign_up_step_four_provider.dart';
 import 'presentation/welcome_screen/welcome_screen.dart';
 import 'core/utils/root_bundle_asset_loader.dart';
+import 'services/auth_service.dart';
+import 'services/auth_persistence_service.dart';
+import 'presentation/homescreen_screen/homescreen_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -33,6 +36,24 @@ Future<void> main() async {
 
   // Initialize URL handler before running the app
   UrlHandler.init();
+
+  // Check for saved credentials and attempt auto-login
+  final savedCredentials = await AuthPersistenceService.getSavedCredentials();
+  final authService = AuthService();
+  bool isAuthenticated = false;
+
+  if (savedCredentials != null) {
+    try {
+      final user = await authService.signInWithEmailAndPassword(
+        savedCredentials['email']!,
+        savedCredentials['password']!,
+      );
+      isAuthenticated = user != null;
+    } catch (e) {
+      // If auto-login fails, clear saved credentials
+      await AuthPersistenceService.clearSavedCredentials();
+    }
+  }
 
   runApp(
     EasyLocalization(
@@ -68,13 +89,13 @@ Future<void> main() async {
                 SizeUtils.init(context);
                 return child!;
               },
-              initialRoute: AppRoutes.welcomeScreen,
+              initialRoute: isAuthenticated ? AppRoutes.homescreenScreen : AppRoutes.welcomeScreen,
               routes: AppRoutes.routes,
               onGenerateRoute: AppRoutes.onGenerateRoute,
-              home: WelcomeScreen.builder(context),
+              home: isAuthenticated ? HomescreenScreen.builder(context) : WelcomeScreen.builder(context),
             );
           },
-          child: const WelcomeScreen(),
+          child: isAuthenticated ? const HomescreenScreen() : const WelcomeScreen(),
         ),
       ),
     ),
