@@ -303,19 +303,17 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
                 child: Container(
                   width: double.maxFinite,
                   padding: EdgeInsets.only(top: 38.h),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: _buildAppbar(context),
-                        ),
-                        _buildRowalertone(context),
-                        SizedBox(height: 30.h),
-                        _buildLittlelifts(context),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(
+                        width: double.maxFinite,
+                        child: _buildAppbar(context),
+                      ),
+                      _buildRowalertone(context),
+                      SizedBox(height: 30.h),
+                      _buildLittlelifts(context),
+                    ],
                   ),
                 ),
               ),

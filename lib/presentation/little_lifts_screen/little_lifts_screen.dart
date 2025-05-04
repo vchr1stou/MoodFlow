@@ -37,13 +37,11 @@ class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
 }
 
 class LittleLiftsScreen extends StatefulWidget {
-  const LittleLiftsScreen({Key? key})
-      : super(
-          key: key,
-        );
+  const LittleLiftsScreen({Key? key}) : super(key: key);
 
   @override
   LittleLiftsScreenState createState() => LittleLiftsScreenState();
+  
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => LittleLiftsProvider(),
@@ -70,6 +68,7 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
         extendBodyBehindAppBar: true,
         body: Stack(
           children: [
+            // Background container
             Container(
               width: double.maxFinite,
               height: SizeUtils.height,
@@ -79,23 +78,18 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                   fit: BoxFit.cover,
                 ),
               ),
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      child: Navigator(
-                        key: navigatorKey,
-                        initialRoute: AppRoutes.littleLiftsInitialPage,
-                        onGenerateRoute: (routeSetting) => NoSwipeBackRoute(
-                          builder: (context) => getCurrentPage(context, routeSetting.name!),
-                        ),
-                      ),
-                    ),
-                  ],
+            ),
+            // Main content with navigation
+            SafeArea(
+              child: Navigator(
+                key: navigatorKey,
+                initialRoute: AppRoutes.littleLiftsInitialPage,
+                onGenerateRoute: (routeSetting) => NoSwipeBackRoute(
+                  builder: (context) => getCurrentPage(context, routeSetting.name!),
                 ),
               ),
             ),
+            // Bottom navigation bar
             Positioned(
               left: 0,
               right: 0,
@@ -103,11 +97,10 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    bottom: Platform.isAndroid
-                        ? 20 + MediaQuery.of(context).padding.bottom
-                        : 20),
+                  left: 20,
+                  right: 20,
+                  bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
+                ),
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
@@ -119,6 +112,7 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                             'assets/images/bottom_bar_little_lifts_pressed.svg',
                             fit: BoxFit.fitWidth,
                           ),
+                          // Home navigation
                           Positioned(
                             left: 0,
                             top: 0,
@@ -129,17 +123,13 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                               onTap: () => Navigator.of(context).push(
                                 PageRouteBuilder(
                                   opaque: false,
-                                  pageBuilder: (context, animation,
-                                          secondaryAnimation) =>
+                                  pageBuilder: (context, animation, secondaryAnimation) =>
                                       HomescreenScreen.builder(context),
-                                  transitionsBuilder: (context, animation,
-                                      secondaryAnimation, child) {
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                     return FadeTransition(
                                       opacity: animation,
                                       child: ScaleTransition(
-                                        scale:
-                                            Tween<double>(begin: 0.95, end: 1.0)
-                                                .animate(
+                                        scale: Tween<double>(begin: 0.95, end: 1.0).animate(
                                           CurvedAnimation(
                                             parent: animation,
                                             curve: Curves.easeOut,
@@ -153,6 +143,7 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                               ),
                             ),
                           ),
+                          // Little Lifts section (no navigation)
                           Positioned(
                             right: 0,
                             top: 0,
@@ -165,52 +156,39 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                         ],
                       ),
                     ),
+                    // AI button
                     Transform.translate(
                       offset: const Offset(0, -25),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/ai_button.png',
-                            width: 118.667,
-                            height: 36,
-                            fit: BoxFit.contain,
-                            filterQuality: FilterQuality.high,
-                            isAntiAlias: true,
-                          ),
-                          Positioned.fill(
-                            top: -22,
-                            bottom: -22,
-                            child: GestureDetector(
-                              onTap: () => Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  opaque: false,
-                                  pageBuilder: (context, animation, secondaryAnimation) =>
-                                      AiScreen.builder(context),
-                                  transitionsBuilder:
-                                      (context, animation, secondaryAnimation, child) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: ScaleTransition(
-                                        scale: Tween<double>(begin: 0.95, end: 1.0)
-                                            .animate(
-                                          CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOut,
-                                          ),
-                                        ),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          PageRouteBuilder(
+                            opaque: false,
+                            pageBuilder: (context, animation, secondaryAnimation) =>
+                                AiScreen.builder(context),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: ScaleTransition(
+                                  scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOut,
+                                    ),
+                                  ),
+                                  child: child,
                                 ),
-                              ),
-                              child: Container(
-                                color: Colors.transparent,
-                              ),
-                            ),
+                              );
+                            },
                           ),
-                        ],
+                        ),
+                        child: Image.asset(
+                          'assets/images/ai_button.png',
+                          width: 118.667,
+                          height: 36,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                          isAntiAlias: true,
+                        ),
                       ),
                     ),
                   ],
@@ -223,10 +201,7 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
     );
   }
 
-  Widget getCurrentPage(
-    BuildContext context,
-    String currentRoute,
-  ) {
+  Widget getCurrentPage(BuildContext context, String currentRoute) {
     switch (currentRoute) {
       case AppRoutes.littleLiftsInitialPage:
         return LittleLiftsInitialPage.builder(context, navigatorKey);
