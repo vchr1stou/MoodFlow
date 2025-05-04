@@ -8,6 +8,7 @@ import '../log_screen_step_3_positive_one_page/log_screen_step_3_positive_one_pa
 import 'logscreenstep_tab_page.dart';
 import 'models/log_screen_step_2_positive_model.dart';
 import 'provider/log_screen_step_2_positive_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogScreenStep2PositiveScreen extends StatefulWidget {
   const LogScreenStep2PositiveScreen({Key? key})
@@ -88,12 +89,12 @@ class LogScreenStep2PositiveScreenState
                             ),
                             SizedBox(height: 8.h),
                             Text(
-                              "lbl_select_feelings".tr,
+                              "lbl_select_feelings".tr(),
                               style: theme.textTheme.headlineSmall,
                             ),
                             SizedBox(height: 6.h),
                             Text(
-                              "msg_no_feeling_is_too".tr,
+                              "msg_no_feeling_is_too".tr(),
                               style: CustomTextStyles.labelMediumOnPrimary,
                             ),
                             SizedBox(height: 10.h),
@@ -177,7 +178,7 @@ class LogScreenStep2PositiveScreenState
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 16.h),
                                         child: Text(
-                                          "lbl_positive".tr,
+                                          "lbl_positive".tr(),
                                         ),
                                       ),
                                     ),
@@ -188,7 +189,7 @@ class LogScreenStep2PositiveScreenState
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 16.h),
                                         child: Text(
-                                          "lbl_negative".tr,
+                                          "lbl_negative".tr(),
                                         ),
                                       ),
                                     )

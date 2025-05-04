@@ -74,7 +74,7 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                         CustomOutlinedButton(
                           height: 30.h,
                           width: 126.h,
-                          text: "lbl_edit".tr,
+                          text: "Edit",
                           buttonStyle: CustomButtonStyles.none,
                           decoration: CustomButtonStyles.outlineTL14Decoration,
                         ),
@@ -96,13 +96,13 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "lbl_name".tr,
+                                      "Name",
                                       style: CustomTextStyles
                                           .titleMediumSemiBold_1,
                                     ),
                                     Spacer(),
                                     Text(
-                                      "msg_vasilis_christou".tr,
+                                      AppStrings.vasilisChristou,
                                       style: CustomTextStyles
                                           .titleSmallRobotoOnPrimarySemiBold,
                                     ),
@@ -137,13 +137,13 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "lbl_pronouns".tr,
+                                      "Pronouns",
                                       style: CustomTextStyles
                                           .titleMediumSemiBold_1,
                                     ),
                                     Spacer(),
                                     Text(
-                                      "lbl_he_him".tr,
+                                      "He/Him",
                                       style: CustomTextStyles
                                           .titleSmallRobotoOnPrimarySemiBold,
                                     ),
@@ -180,14 +180,14 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                                     Padding(
                                       padding: EdgeInsets.only(top: 4.h),
                                       child: Text(
-                                        "lbl_e_mail".tr,
+                                        "E-mail",
                                         style: CustomTextStyles
                                             .titleMediumSemiBold_1,
                                       ),
                                     ),
                                     Spacer(),
                                     Text(
-                                      "msg_vchristou_gmail_com".tr,
+                                      AppStrings.vchristouGmailCom,
                                       style: CustomTextStyles
                                           .titleSmallRobotoOnPrimarySemiBold,
                                     ),
@@ -227,14 +227,14 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                                     Padding(
                                       padding: EdgeInsets.only(top: 4.h),
                                       child: Text(
-                                        "lbl_password".tr,
+                                        "Password",
                                         style: CustomTextStyles
                                             .titleMediumSemiBold_1,
                                       ),
                                     ),
                                     Spacer(),
                                     Text(
-                                      "lbl".tr,
+                                      "•••••••",
                                       style:
                                           CustomTextStyles.titleSmallGray700_1,
                                     ),
@@ -260,7 +260,7 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                   SizedBox(height: 148.h),
                   CustomOutlinedButton(
                     width: 190.h,
-                    text: "lbl_sign_out".tr,
+                    text: "Sign Out",
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),

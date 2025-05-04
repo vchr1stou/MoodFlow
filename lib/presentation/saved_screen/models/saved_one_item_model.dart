@@ -1,4 +1,5 @@
 import '../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [saved_one_item_widget] screen.
 // ignore_for_file: must_be_immutable
@@ -9,8 +10,8 @@ class SavedOneItemModel {
     this.italian,
     this.id,
   }) {
-    messagelarge ??= "msg_italian_carbonara".tr;
-    messagelarge1 ??= "lbl_cooking".tr;
+    messagelarge ??= "msg_italian_carbonara".tr();
+    messagelarge1 ??= "lbl_cooking".tr();
     italian ??= ImageConstant.imgArrowRight;
     id ??= "";
   }

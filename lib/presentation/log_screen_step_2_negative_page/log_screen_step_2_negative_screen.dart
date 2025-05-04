@@ -7,6 +7,7 @@ import 'models/grid_item_model.dart';
 import 'models/log_screen_step_2_negative_model.dart';
 import 'provider/log_screen_step_2_negative_provider.dart';
 import 'widgets/grid_item_widget.dart'; // ignore_for_file: must_be_immutable
+import 'package:easy_localization/easy_localization.dart';
 
 class LogScreenStep2NegativePage extends StatefulWidget {
   const LogScreenStep2NegativePage({Key? key})
@@ -62,7 +63,7 @@ class LogScreenStep2NegativePageState extends State<LogScreenStep2NegativePage>
                         CustomOutlinedButton(
                           height: 36.h,
                           width: 118.h,
-                          text: "lbl_next".tr,
+                          text: "lbl_next".tr(),
                           buttonStyle: CustomButtonStyles.none,
                           decoration: CustomButtonStyles.outlineTL18Decoration,
                           buttonTextStyle: CustomTextStyles.titleSmallSemiBold,

@@ -1,4 +1,6 @@
-import '../../../core/app_export.dart';
+import 'package:flutter/material.dart';
+import '../../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [history_preview_item_widget] screen.
 
@@ -6,7 +8,7 @@ import '../../../core/app_export.dart';
 class HistoryPreviewItemModel {
   HistoryPreviewItemModel({this.bagOne, this.work, this.id}) {
     bagOne = bagOne ?? ImageConstant.imgBag;
-    work = work ?? "lbl_work".tr;
+    work = work ?? "lbl_work".tr();
     id = id ?? "";
   }
 

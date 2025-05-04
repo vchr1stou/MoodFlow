@@ -3,6 +3,7 @@ import '../../../core/app_export.dart';
 import '../../../theme/custom_button_style.dart';
 import '../../../widgets/custom_drop_down.dart';
 import '../models/listmovie_time_item_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 // ignore_for_file: must_be_immutable
 class ListmovieTimeItemWidget extends StatelessWidget {
@@ -68,7 +69,7 @@ class ListmovieTimeItemWidget extends StatelessWidget {
   Widget _buildSourcehow(BuildContext context) {
     return CustomElevatedButton(
       height: 24.h,
-      text: "msg_source_how_watching".tr,
+      text: "msg_source_how_watching".tr(),
       buttonStyle: CustomButtonStyles.none,
       decoration: CustomButtonStyles.gradientPrimaryToPrimaryTL12Decoration,
       buttonTextStyle: CustomTextStyles.robotoOnPrimaryBold,

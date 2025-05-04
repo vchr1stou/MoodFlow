@@ -6,7 +6,7 @@ import '../../../core/app_export.dart';
 class LittleLiftsItemModel {
   LittleLiftsItemModel({this.workoutOne, this.workoutTwo, this.id}) {
     workoutOne = workoutOne ?? ImageConstant.imgFigureStrength;
-    workoutTwo = workoutTwo ?? "lbl_workout".tr;
+    workoutTwo = workoutTwo ?? "Workout";
     id = id ?? "";
   }
 

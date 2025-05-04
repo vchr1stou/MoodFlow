@@ -1,49 +1,20 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 
-import '../core/app_export.dart';
-import 'en/en_translations.dart';
-
-extension LocalizationExtension on String {
-  String get tr => AppLocalization.of().getString(this);
-}
-
-// ignore_for_file: must_be_immutable
 class AppLocalization {
-  AppLocalization(this.locale);
-
-  Locale locale;
-
-  static final Map<String, Map<String, String>> _localizedValues = {
-    'en': en,
+  static const Map<String, String> _translations = {
+    'lbl_exercise': 'Exercise',
+    'lbl_party': 'Party',
+    'lbl_travelling': 'Travelling',
+    'lbl_20': '20',
+    'lbl_mum': 'Mum',
+    'lbl_dad': 'Dad',
+    'lbl_partner': 'Partner',
+    'lbl_best_friend': 'Best Friend',
+    'lbl_6969696969': '6969696969',
   };
 
-  static AppLocalization of() {
-    return Localizations.of<AppLocalization>(
-      rootNavigatorKey.currentContext!,
-      AppLocalization,
-    )!;
+  static String tr(String key) {
+    return _translations[key] ?? key;
   }
-
-  static List<String> languages() => _localizedValues.keys.toList();
-
-  String getString(String text) =>
-      _localizedValues[locale.languageCode]![text] ?? text;
-}
-
-class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalization> {
-  const AppLocalizationDelegate();
-
-  @override
-  bool isSupported(Locale locale) =>
-      AppLocalization.languages().contains(locale.languageCode);
-
-  // Returning a SynchronousFuture here because an async "load" operation is not needed.
-  @override
-  Future<AppLocalization> load(Locale locale) {
-    return SynchronousFuture<AppLocalization>(AppLocalization(locale));
-  }
-
-  @override
-  bool shouldReload(AppLocalizationDelegate old) => false;
-}
+} 

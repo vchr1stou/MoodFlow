@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 enum BottomBarEnum { Home, Littlelifts }
 
@@ -21,20 +22,20 @@ class CustomBottomBarState extends State<CustomBottomBar> {
     BottomMenuModel(
       icon: ImageConstant.imgHouseFill1Pink100,
       activeIcon: ImageConstant.imgHouseFill1Pink100,
-      title: "lbl_home".tr,
+      title: "lbl_home".tr(),
       type: BottomBarEnum.Home,
     ),
     BottomMenuModel(
       icon: ImageConstant.imgImage3,
       activeIcon: ImageConstant.imgImage3,
-      title: "lbl_little_lifts".tr,
+      title: "lbl_little_lifts".tr(),
       type: BottomBarEnum.Littlelifts,
       isCircle: true,
     ),
     BottomMenuModel(
       icon: ImageConstant.imgNavLittleLifts,
       activeIcon: ImageConstant.imgNavLittleLifts,
-      title: "lbl_little_lifts".tr,
+      title: "lbl_little_lifts".tr(),
       type: BottomBarEnum.Littlelifts,
     )
   ];

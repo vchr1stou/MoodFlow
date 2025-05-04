@@ -1,4 +1,6 @@
-import '../../../core/app_export.dart';
+import 'package:flutter/material.dart';
+import '../../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [listmovie_time_item_widget] screen.
 
@@ -7,8 +9,8 @@ class ListmovieTimeItemModel {
   ListmovieTimeItemModel(
       {this.movieTimeOne, this.movietime, this.description, this.id}) {
     movieTimeOne = movieTimeOne ?? ImageConstant.imgPopcornFill1;
-    movietime = movietime ?? "lbl_movie_time2".tr;
-    description = description ?? "msg_movies_can_offer".tr;
+    movietime = movietime ?? "lbl_movie_time2".tr();
+    description = description ?? "msg_movies_can_offer".tr();
     id = id ?? "";
   }
 

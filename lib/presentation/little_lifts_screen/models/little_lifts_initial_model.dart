@@ -8,35 +8,35 @@ class LittleLiftsInitialModel {
   List<LittleLiftsItemModel> littleLiftsItemList = [
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgFigureStrength,
-        workoutTwo: "lbl_workout".tr),
+        workoutTwo: "Workout"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgBrainHeadProfileFill,
-        workoutTwo: "lbl_meditation".tr),
+        workoutTwo: "Meditation"),
     LittleLiftsItemModel(
-        workoutOne: ImageConstant.imgWind1, workoutTwo: "lbl_breathing".tr),
+        workoutOne: ImageConstant.imgWind1, workoutTwo: "Breathing"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgPopcornFill1,
-        workoutTwo: "lbl_movie_time".tr),
+        workoutTwo: "Movie Time"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgBeatsHeadphones,
-        workoutTwo: "lbl_music".tr),
+        workoutTwo: "Music"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgBookFill2,
-        workoutTwo: "lbl_read_a_book".tr),
+        workoutTwo: "Read a Book"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgTextBubbleFill,
-        workoutTwo: "lbl_affirmations".tr),
+        workoutTwo: "Affirmations"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgFryingPanFill,
-        workoutTwo: "lbl_cooking".tr),
+        workoutTwo: "Cooking"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgAirplane,
-        workoutTwo: "lbl_travel_plans".tr),
+        workoutTwo: "Travel Plans"),
     LittleLiftsItemModel(
         workoutOne: ImageConstant.imgThumbsUpOnprimary,
-        workoutTwo: "lbl_safety_net".tr),
+        workoutTwo: "Safety Net"),
     LittleLiftsItemModel(workoutOne: ImageConstant.imgHeartFill4),
     LittleLiftsItemModel(
-        workoutOne: ImageConstant.imgBookmarkFill1, workoutTwo: "lbl_saved".tr)
+        workoutOne: ImageConstant.imgBookmarkFill1, workoutTwo: "Saved")
   ];
 }

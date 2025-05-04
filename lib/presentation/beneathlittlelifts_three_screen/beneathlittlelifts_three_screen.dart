@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
@@ -7,6 +8,7 @@ import 'models/beneathlittlelifts_three_model.dart';
 import 'models/listcooking_one_item_model.dart';
 import 'provider/beneathlittlelifts_three_provider.dart';
 import 'widgets/listcooking_one_item_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class BeneathlittleliftsThreeScreen extends StatefulWidget {
   const BeneathlittleliftsThreeScreen({Key? key})
@@ -69,7 +71,7 @@ class BeneathlittleliftsThreeScreenState
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );

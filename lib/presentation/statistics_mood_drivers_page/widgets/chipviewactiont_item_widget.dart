@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../core/app_export.dart';
 import '../models/chipviewactiont_item_model.dart';
 
@@ -18,33 +19,27 @@ class ChipviewactiontItemWidget extends StatelessWidget {
     return RawChip(
       padding: EdgeInsets.only(
         top: 6.h,
-        right: 14.h,
+        right: 12.h,
         bottom: 6.h,
+        left: 12.h,
       ),
       showCheckmark: false,
       labelPadding: EdgeInsets.zero,
       label: Text(
-        chipviewactiontItemModelObj.actiontwoOne!,
+        chipviewactiontItemModelObj.actiontwoOne?.tr() ?? "",
         style: TextStyle(
-          color: theme.colorScheme.onPrimary.withValues(alpha: 0.96),
-          fontSize: 10.fSize,
-          fontFamily: 'SF Pro',
-          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.onPrimary,
+          fontSize: 13.fSize,
+          fontFamily: 'SF Pro Display',
+          fontWeight: FontWeight.w500,
         ),
       ),
-      avatar: CustomImageView(
-        imagePath: ImageConstant.imgFigurerun1,
-        height: 18.h,
-        width: 14.h,
-        margin: EdgeInsets.only(right: 4.h),
-      ),
-      selected: (chipviewactiontItemModelObj.isSelected ?? false),
-      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.3),
-      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.18),
-      side: BorderSide.none,
+      selected: chipviewactiontItemModelObj.isSelected ?? false,
+      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+      selectedColor: theme.colorScheme.primary.withOpacity(0.1),
       shape: RoundedRectangleBorder(
         side: BorderSide.none,
-        borderRadius: BorderRadius.circular(14.h),
+        borderRadius: BorderRadius.circular(8.h),
       ),
       onSelected: (value) {
         onSelectedChipView?.call(value);

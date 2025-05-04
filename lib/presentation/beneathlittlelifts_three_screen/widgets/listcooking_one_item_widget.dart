@@ -66,7 +66,7 @@ class ListcookingOneItemWidget extends StatelessWidget {
   Widget _buildSourcecooking(BuildContext context) {
     return CustomElevatedButton(
       height: 24.h,
-      text: "msg_source_cooking".tr,
+      text: AppStrings.sourceCooking,
       buttonStyle: CustomButtonStyles.none,
       decoration: CustomButtonStyles.gradientPrimaryToPrimaryTL12Decoration,
       buttonTextStyle: CustomTextStyles.robotoOnPrimaryBold,

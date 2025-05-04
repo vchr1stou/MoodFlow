@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -239,7 +240,7 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                           25.h +
                           titleLeftOffset,
                       child: Text(
-                        "Heavy",
+                        "Heavy".tr(),
                         style: GoogleFonts.roboto(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -424,7 +425,7 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                       margin: EdgeInsets.only(left: 14.h),
                       decoration: AppDecoration.textPrimary,
                       child: Text(
-                        "lbl_heavy".tr,
+                        "lbl_heavy".tr(),
                         textAlign: TextAlign.center,
                         style: CustomTextStyles.headlineSmall24,
                       ),
@@ -446,7 +447,7 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
         child: CustomOutlinedButton(
           height: 36.h,
           width: 180.h,
-          text: "lbl_this_matches_me".tr,
+          text: "lbl_this_matches_me".tr(),
           buttonStyle: CustomButtonStyles.none,
           decoration: CustomButtonStyles.outlineTL18Decoration,
           buttonTextStyle: CustomTextStyles.titleSmallSemiBold,

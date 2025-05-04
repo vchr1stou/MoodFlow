@@ -4,6 +4,7 @@ import '../../../core/app_export.dart';
 import '../../../theme/custom_button_style.dart';
 import '../../../widgets/custom_drop_down.dart';
 import '../models/listmum_one_item_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 // ignore_for_file: must_be_immutable
 class ListmumOneItemWidget extends StatelessWidget {
@@ -64,7 +65,7 @@ class ListmumOneItemWidget extends StatelessWidget {
     return CustomElevatedButton(
       height: 30.h,
       width: 68.h,
-      text: "lbl_call".tr,
+      text: "lbl_call".tr(),
       margin: EdgeInsets.only(bottom: 2.h),
       leftIcon: Padding(
         padding: EdgeInsets.only(right: 4.h),

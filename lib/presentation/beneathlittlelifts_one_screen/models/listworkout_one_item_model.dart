@@ -1,4 +1,6 @@
-import '../../../core/app_export.dart';
+import 'package:flutter/material.dart';
+import '../../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [listworkout_one_item_widget] screen.
 
@@ -7,8 +9,8 @@ class ListworkoutOneItemModel {
   ListworkoutOneItemModel(
       {this.workoutOne, this.workoutTwo, this.description, this.id}) {
     workoutOne = workoutOne ?? ImageConstant.imgFigureStrength;
-    workoutTwo = workoutTwo ?? "lbl_workout".tr;
-    description = description ?? "msg_exercise_is_a_powerful".tr;
+    workoutTwo = workoutTwo ?? "lbl_workout".tr();
+    description = description ?? "msg_exercise_is_a_powerful".tr();
     id = id ?? "";
   }
 

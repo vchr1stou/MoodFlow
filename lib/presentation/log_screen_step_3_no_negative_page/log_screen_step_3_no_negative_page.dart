@@ -4,6 +4,7 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/log_screen_step_3_no_negative_model.dart';
 import 'provider/log_screen_step_3_no_negative_provider.dart'; // ignore_for_file: must_be_immutable
+import 'package:easy_localization/easy_localization.dart';
 
 class LogScreenStep3NoNegativePage extends StatefulWidget {
   const LogScreenStep3NoNegativePage({Key? key})
@@ -95,7 +96,7 @@ class LogScreenStep3NoNegativePageState
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "msg_no_negative_feelings".tr,
+                                      "msg_no_negative_feelings".tr(),
                                       style: CustomTextStyles
                                           .titleMediumSFProSemiBold,
                                     ),
@@ -109,7 +110,7 @@ class LogScreenStep3NoNegativePageState
                         CustomOutlinedButton(
                           height: 36.h,
                           width: 118.h,
-                          text: "lbl_next".tr,
+                          text: "lbl_next".tr(),
                           margin: EdgeInsets.only(right: 6.h),
                           buttonStyle: CustomButtonStyles.none,
                           decoration: CustomButtonStyles.outlineTL18Decoration,

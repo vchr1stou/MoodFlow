@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [segmented_item_widget] screen.
 /// Represents an individual segment option (e.g., a button).
@@ -8,7 +10,7 @@ class SegmentedItemModel {
     this.buttononeOne,
     this.isSelected,
   }) {
-    buttononeOne = buttononeOne ?? "lbl_past_week".tr;
+    buttononeOne = buttononeOne ?? "lbl_past_week".tr();
     isSelected = isSelected ?? false;
   }
 

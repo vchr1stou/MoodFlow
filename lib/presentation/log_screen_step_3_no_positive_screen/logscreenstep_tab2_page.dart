@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_outlined_button.dart';
@@ -77,7 +78,7 @@ class LogscreenstepTab2PageState extends State<LogscreenstepTab2Page> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "msg_no_positive_feelings".tr,
+                                  "msg_no_positive_feelings".tr(),
                                   style:
                                       CustomTextStyles.titleMediumSFProSemiBold,
                                 ),
@@ -91,7 +92,7 @@ class LogscreenstepTab2PageState extends State<LogscreenstepTab2Page> {
                     CustomOutlinedButton(
                       height: 36.h,
                       width: 118.h,
-                      text: "lbl_next".tr,
+                      text: "lbl_next".tr(),
                       margin: EdgeInsets.only(right: 6.h),
                       buttonStyle: CustomButtonStyles.none,
                       decoration: CustomButtonStyles.outlineTL18Decoration,

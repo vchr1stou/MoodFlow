@@ -7,6 +7,7 @@ import 'models/grid_item_model.dart';
 import 'models/logscreenstep_tab_model.dart';
 import 'provider/log_screen_step_2_positive_provider.dart';
 import 'widgets/grid_item_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogscreenstepTabPage extends StatefulWidget {
   const LogscreenstepTabPage({Key? key})
@@ -46,7 +47,7 @@ class LogscreenstepTabPageState extends State<LogscreenstepTabPage> {
                     CustomOutlinedButton(
                       height: 36.h,
                       width: 118.h,
-                      text: "lbl_next".tr,
+                      text: "lbl_next".tr(),
                       buttonStyle: CustomButtonStyles.none,
                       decoration: CustomButtonStyles.outlineTL18Decoration,
                       buttonTextStyle: CustomTextStyles.titleSmallSemiBold,

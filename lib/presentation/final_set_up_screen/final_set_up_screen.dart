@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -115,7 +116,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                   children: [
                                     Center(
                                       child: Text(
-                                        "You've Planted the First Seed",
+                                        'youvePlantedTheFirstSeed'.tr(),
                                         style: TextStyle(
                                           fontFamily: 'Roboto',
                                           fontSize: 22,
@@ -128,7 +129,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                     SizedBox(height: 2.h),
                                     Center(
                                       child: Text(
-                                        "Your space is ready to grow",
+                                        'yourSpaceIsReadyToGrow'.tr(),
                                         style: TextStyle(
                                           fontFamily: 'Roboto',
                                           fontSize: 17,
@@ -140,7 +141,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                     SizedBox(height: 2.h),
                                     Center(
                                       child: Text(
-                                        "Some days will bloom, some will rest",
+                                        'someDaysWillBloom'.tr(),
                                         style: TextStyle(
                                           fontFamily: 'Roboto',
                                           fontSize: 15,
@@ -152,7 +153,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                     SizedBox(height: 2.h),
                                     Center(
                                       child: Text(
-                                        "You've started something meaningful",
+                                        'youveStartedSomethingMeaningful'.tr(),
                                         style: TextStyle(
                                           fontFamily: 'Roboto',
                                           fontSize: 15,
@@ -184,7 +185,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                         width: 130.h,
                                       ),
                                       Text(
-                                        "Step Inside",
+                                        'stepInside'.tr(),
                                         style: TextStyle(
                                           fontFamily: 'Roboto',
                                           fontSize: 14,

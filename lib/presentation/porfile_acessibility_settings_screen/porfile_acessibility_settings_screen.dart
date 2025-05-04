@@ -1,9 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_switch.dart';
 import 'models/porfile_acessibility_settings_model.dart';
 import 'provider/porfile_acessibility_settings_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PorfileAcessibilitySettingsScreen extends StatefulWidget {
   const PorfileAcessibilitySettingsScreen({Key? key}) : super(key: key);
@@ -69,7 +71,7 @@ class PorfileAcessibilitySettingsScreenState
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    "lbl_accessibility".tr,
+                    "lbl_accessibility".tr(),
                     style: theme.textTheme.headlineLarge,
                   ),
                   SizedBox(height: 2.h),
@@ -101,7 +103,7 @@ class PorfileAcessibilitySettingsScreenState
           SizedBox(
             width: 84.h,
             child: Text(
-              "lbl_voice_over".tr,
+              "lbl_voice_over".tr(),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleMedium,
             ),
@@ -132,7 +134,7 @@ class PorfileAcessibilitySettingsScreenState
             width: 100.h,
             margin: EdgeInsets.only(left: 6.h),
             child: Text(
-              "lbl_invert_colors".tr,
+              "lbl_invert_colors".tr(),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleMedium,
             ),
@@ -182,7 +184,7 @@ class PorfileAcessibilitySettingsScreenState
             width: 88.h,
             margin: EdgeInsets.only(left: 8.h),
             child: Text(
-              "lbl_larger_text".tr,
+              "lbl_larger_text".tr(),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleMedium,
             ),

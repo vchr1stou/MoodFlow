@@ -1,13 +1,16 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/positiveaffirmations_model.dart';
 import 'provider/positiveaffirmations_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PositiveaffirmationsScreen extends StatefulWidget {
   const PositiveaffirmationsScreen({Key? key}) : super(key: key);
@@ -62,7 +65,7 @@ class PositiveaffirmationsScreenState
                     builder: (context, searchfieldoneController, child) {
                       return CustomTextFormField(
                         controller: searchfieldoneController,
-                        hintText: "lbl_ask_me_anything".tr,
+                        hintText: "lbl_ask_me_anything".tr(),
                         textInputAction: TextInputAction.done,
                         prefix: Padding(
                           padding: EdgeInsets.only(
@@ -142,7 +145,7 @@ class PositiveaffirmationsScreenState
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_activities".tr,
+        text: "lbl_activities".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );

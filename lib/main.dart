@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
 import 'core/app_export.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,6 +16,7 @@ import 'core/utils/size_utils.dart';
 import 'presentation/spotify_screen/provider/spotify_provider.dart';
 import 'presentation/sign_up_step_four_screen/provider/sign_up_step_four_provider.dart';
 import 'presentation/welcome_screen/welcome_screen.dart';
+import 'core/utils/root_bundle_asset_loader.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -24,6 +25,7 @@ final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldM
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await EasyLocalization.ensureInitialized();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -33,15 +35,48 @@ Future<void> main() async {
   UrlHandler.init();
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => SpotifyProvider()),
-        ChangeNotifierProvider(
-          create: (_) => SignUpStepFourProvider(),
-          lazy: false, // Ensure provider is created immediately
+    EasyLocalization(
+      supportedLocales: const [Locale('en')],
+      path: 'lib/localization',
+      assetLoader: CustomRootBundleAssetLoader(),
+      fallbackLocale: const Locale('en'),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => SpotifyProvider()),
+          ChangeNotifierProvider(
+            create: (_) => SignUpStepFourProvider(),
+            lazy: false,
+          ),
+        ],
+        child: ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return MaterialApp(
+              theme: ThemeData(
+                visualDensity: VisualDensity.standard,
+                useMaterial3: true,
+              ),
+              title: 'MoodFlow',
+              navigatorKey: rootNavigatorKey,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
+              builder: (context, child) {
+                SizeUtils.init(context);
+                return child!;
+              },
+              initialRoute: AppRoutes.welcomeScreen,
+              routes: AppRoutes.routes,
+              onGenerateRoute: AppRoutes.onGenerateRoute,
+              home: WelcomeScreen.builder(context),
+            );
+          },
+          child: const WelcomeScreen(),
         ),
-      ],
-      child: MyApp(),
+      ),
     ),
   );
 }
@@ -70,7 +105,6 @@ class MyApp extends StatelessWidget {
         scaffoldMessengerKey: globalMessengerKey,
         builder: (context, child) {
           SizeUtils.init(context);
-          // Ensure the navigator key is properly set up
           if (rootNavigatorKey.currentState == null) {
             debugPrint('=== Navigator key not initialized ===');
           } else {

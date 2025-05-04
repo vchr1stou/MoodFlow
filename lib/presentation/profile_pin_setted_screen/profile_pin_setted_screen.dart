@@ -6,6 +6,7 @@ import 'models/listchange_pin_item_model.dart';
 import 'models/profile_pin_setted_model.dart';
 import 'provider/profile_pin_setted_provider.dart';
 import 'widgets/listchange_pin_item_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfilePinSettedScreen extends StatefulWidget {
   const ProfilePinSettedScreen({Key? key}) : super(key: key);
@@ -74,7 +75,7 @@ class ProfilePinSettedScreenState extends State<ProfilePinSettedScreen> {
                       ),
                     ),
                     Text(
-                      "lbl_set_pin".tr,
+                      "lbl_set_pin".tr(),
                       style: theme.textTheme.headlineLarge,
                     ),
                   ],
@@ -82,7 +83,7 @@ class ProfilePinSettedScreenState extends State<ProfilePinSettedScreen> {
               ),
               SizedBox(height: 8.h),
               Text(
-                "msg_create_a_pin_to".tr,
+                "msg_create_a_pin_to".tr(),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -128,7 +129,7 @@ class ProfilePinSettedScreenState extends State<ProfilePinSettedScreen> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              "msg_a_pin_has_been_set".tr,
+              "msg_a_pin_has_been_set".tr(),
               style: theme.textTheme.titleSmall,
             ),
             Expanded(

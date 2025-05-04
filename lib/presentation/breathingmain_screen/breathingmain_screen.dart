@@ -17,7 +17,9 @@ class BreathingmainScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => BreathingmainProvider(),
-      child: BreathingmainScreen(),
+      child: Builder(
+        builder: (context) => BreathingmainScreen(),
+      ),
     );
   }
 }
@@ -51,14 +53,14 @@ class BreathingmainScreenState extends State<BreathingmainScreen> {
                   width: 150.h,
                 ),
                 Text(
-                  "lbl_breathing".tr,
+                  "Breathing",
                   style: CustomTextStyles.displayMediumSemiBold,
                 ),
                 SizedBox(height: 6.h),
                 _buildColumndescripti(context),
                 SizedBox(height: 32.h),
                 Text(
-                  "lbl_set_duration".tr,
+                  "Set duration",
                   style: CustomTextStyles.labelLargeRobotoOnPrimaryMedium,
                 ),
                 SizedBox(height: 8.h),
@@ -138,7 +140,7 @@ class BreathingmainScreenState extends State<BreathingmainScreen> {
                 CustomOutlinedButton(
                   height: 36.h,
                   width: 118.h,
-                  text: "lbl_begin".tr,
+                  text: "Begin",
                   buttonStyle: CustomButtonStyles.none,
                   decoration: CustomButtonStyles.outlineTL18Decoration,
                   buttonTextStyle: CustomTextStyles.titleSmallSemiBold,
@@ -160,7 +162,7 @@ class BreathingmainScreenState extends State<BreathingmainScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_saved".tr,
+        text: "Saved",
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -181,7 +183,7 @@ class BreathingmainScreenState extends State<BreathingmainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "msg_find_a_quiet_cozy".tr,
+            "Find a quiet, cozy place to sit or lie down",
             maxLines: 5,
             overflow: TextOverflow.ellipsis,
             style:

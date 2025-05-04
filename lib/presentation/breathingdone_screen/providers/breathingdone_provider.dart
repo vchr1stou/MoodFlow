@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Added provider import
+import 'package:easy_localization/easy_localization.dart';
 
 // Assuming these imports point to valid files in your project structure
 import '../../core/app_export.dart';
@@ -65,13 +66,13 @@ class BreathingdoneScreenState extends State<BreathingdoneScreen> {
                 SizedBox(height: 32.v), // Spacing
 
                 Text(
-                  "lbl_well_done".tr,
+                  "lbl_well_done".tr(),
                   style: CustomTextStyles.displayMediumSemiBold,
                 ),
                 SizedBox(height: 8.v), // Spacing
 
                 Text(
-                  "msg_the_world_can_wait".tr,
+                  "msg_the_world_can_wait".tr(),
                   style: CustomTextStyles.titleLargeRobotoOnPrimarySemiBold_1,
                 ),
 
@@ -82,7 +83,7 @@ class BreathingdoneScreenState extends State<BreathingdoneScreen> {
                 CustomOutlinedButton(
                   height: 48.v, // Slightly larger touch target?
                   // width: 150.h, // Let button size to text or set a minWidth?
-                  text: "lbl_return".tr,
+                  text: "lbl_return".tr(),
                   margin: EdgeInsets.symmetric(
                       horizontal: 60.h), // Add horizontal margin if needed
                   buttonStyle: CustomButtonStyles

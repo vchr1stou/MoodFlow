@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
@@ -70,11 +71,11 @@ class SignUpStep3FilledScreenState extends State<SignUpStep3FilledScreen> {
                                 ),
                                 SizedBox(height: 10.h),
                                 Text(
-                                  "lbl_your_safety_net".tr,
+                                  "lbl_your_safety_net".tr(),
                                   style: theme.textTheme.headlineLarge,
                                 ),
                                 Text(
-                                  "msg_we_all_have_people".tr,
+                                  "msg_we_all_have_people".tr(),
                                   style: CustomTextStyles
                                       .titleSmallRobotoOnPrimary14,
                                 ),
@@ -84,7 +85,7 @@ class SignUpStep3FilledScreenState extends State<SignUpStep3FilledScreen> {
                                     right: 10.h,
                                   ),
                                   child: Text(
-                                    "msg_save_them_here".tr,
+                                    "msg_save_them_here".tr(),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
@@ -111,7 +112,7 @@ class SignUpStep3FilledScreenState extends State<SignUpStep3FilledScreen> {
                           _buildAlert(context),
                           CustomOutlinedButton(
                             width: 108.h,
-                            text: "lbl_next".tr,
+                            text: "lbl_next".tr(),
                             buttonStyle: CustomButtonStyles.none,
                             decoration:
                                 CustomButtonStyles.outlineTL241Decoration,

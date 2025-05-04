@@ -8,6 +8,7 @@ import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/log_screen_step_four_model.dart';
 import 'provider/log_screen_step_four_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogScreenStepFourScreen extends StatefulWidget {
   const LogScreenStepFourScreen({Key? key})
@@ -75,12 +76,12 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                 children: [
                                   SizedBox(height: 96.h),
                                   Text(
-                                    "lbl_add_photo".tr,
+                                    "lbl_add_photo".tr(),
                                     style: theme.textTheme.headlineSmall,
                                   ),
                                   SizedBox(height: 6.h),
                                   Text(
-                                    "msg_save_the_scene_that".tr,
+                                    "msg_save_the_scene_that".tr(),
                                     style:
                                         CustomTextStyles.labelMediumOnPrimary,
                                   ),
@@ -88,12 +89,12 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                   _buildAlert(context),
                                   SizedBox(height: 10.h),
                                   Text(
-                                    "msg_add_music_track".tr,
+                                    "msg_add_music_track".tr(),
                                     style: theme.textTheme.headlineSmall,
                                   ),
                                   SizedBox(height: 6.h),
                                   Text(
-                                    "msg_every_feeling_has2".tr,
+                                    "msg_every_feeling_has2".tr(),
                                     style:
                                         CustomTextStyles.labelMediumOnPrimary,
                                   )
@@ -114,12 +115,12 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                               ),
                               SizedBox(height: 8.h),
                               Text(
-                                "lbl_add_to_journal".tr,
+                                "lbl_add_to_journal".tr(),
                                 style: theme.textTheme.headlineSmall,
                               ),
                               SizedBox(height: 6.h),
                               Text(
-                                "msg_spill_the_tea_it_s".tr,
+                                "msg_spill_the_tea_it_s".tr(),
                                 style: CustomTextStyles.labelMediumOnPrimary,
                               ),
                               SizedBox(height: 16.h),
@@ -130,7 +131,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                               CustomOutlinedButton(
                                 height: 36.h,
                                 width: 118.h,
-                                text: "lbl_save".tr,
+                                text: "lbl_save".tr(),
                                 buttonStyle: CustomButtonStyles.none,
                                 decoration:
                                     CustomButtonStyles.outlineTL18Decoration,
@@ -171,7 +172,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
             width: 38.h,
           ),
           Text(
-            "lbl_add_photo2".tr,
+            "lbl_add_photo2".tr(),
             style: theme.textTheme.labelMedium,
           ),
           SizedBox(height: 6.h)
@@ -241,7 +242,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
             ),
           ),
           Text(
-            "msg_press_to_start_writing".tr,
+            "msg_press_to_start_writing".tr(),
             style: CustomTextStyles.labelMediumOnPrimary_1,
           ),
           SizedBox(height: 6.h)
@@ -269,7 +270,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
             width: 30.h,
           ),
           Text(
-            "lbl_add_music".tr,
+            "lbl_add_music".tr(),
             style: theme.textTheme.labelMedium,
           ),
           SizedBox(height: 4.h)

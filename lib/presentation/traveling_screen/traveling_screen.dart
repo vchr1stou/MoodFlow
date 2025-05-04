@@ -7,6 +7,7 @@ import '../../widgets/app_bar/appbar_subtitle_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import 'models/traveling_model.dart';
 import 'provider/traveling_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class TravelingScreen extends StatefulWidget {
   const TravelingScreen({Key? key}) : super(key: key);
@@ -138,7 +139,7 @@ class TravelingScreenState extends State<TravelingScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_trailing_button_one.dart';
@@ -49,7 +50,7 @@ class LogInputAiScreenState extends State<LogInputAiScreen> {
                     builder: (context, miconeController, child) {
                       return CustomTextFormField(
                         controller: miconeController,
-                        hintText: "lbl_ask_me_anything".tr,
+                        hintText: "lbl_ask_me_anything".tr(),
                         textInputAction: TextInputAction.done,
                         alignment: Alignment.bottomCenter,
                         prefix: Padding(
@@ -188,7 +189,7 @@ class LogInputAiScreenState extends State<LogInputAiScreen> {
             Align(
               alignment: Alignment.bottomCenter,
               child: Text(
-                "msg_how_are_you_feeling2".tr,
+                "msg_how_are_you_feeling2".tr(),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,

@@ -3,6 +3,7 @@ import '../../../core/app_export.dart';
 import '../../../theme/custom_button_style.dart';
 import '../../../widgets/custom_drop_down.dart';
 import '../models/listworkout_one_item_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 // ignore_for_file: must_be_immutable
 class ListworkoutOneItemWidget extends StatelessWidget {
@@ -62,12 +63,13 @@ class ListworkoutOneItemWidget extends StatelessWidget {
             ),
           ),
           CustomElevatedButton(
-            height: 24.h,
-            text: "msg_source_exercise".tr,
+            text: "msg_source_exercise".tr(),
+            margin: EdgeInsets.only(
+              left: 16.h,
+              right: 16.h,
+            ),
             buttonStyle: CustomButtonStyles.none,
-            decoration:
-                CustomButtonStyles.gradientPrimaryToPrimaryTL12Decoration,
-            buttonTextStyle: CustomTextStyles.robotoOnPrimaryBold,
+            decoration: CustomButtonStyles.outlineTL241Decoration,
           ),
           SizedBox(height: 10.h)
         ],

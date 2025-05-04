@@ -6,6 +6,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/breathingdone_model.dart';
 import 'provider/breathingdone_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class BreathingdoneScreen extends StatefulWidget {
   const BreathingdoneScreen({Key? key})
@@ -53,18 +54,18 @@ class BreathingdoneScreenState extends State<BreathingdoneScreen> {
                   width: 150.h,
                 ),
                 Text(
-                  "lbl_well_done".tr,
+                  "lbl_well_done".tr(),
                   style: CustomTextStyles.displayMediumOnPrimaryContainer,
                 ),
                 Text(
-                  "msg_the_world_can_wait".tr,
+                  "msg_the_world_can_wait".tr(),
                   style: CustomTextStyles
                       .titleLargeRobotoOnPrimaryContainerSemiBold_1,
                 ),
                 const Spacer(),
                 CustomOutlinedButton(
                   width: 118.h,
-                  text: "lbl_return".tr,
+                  text: "lbl_return".tr(),
                   buttonStyle: CustomButtonStyles.none,
                   decoration: CustomButtonStyles.outlineTL18Decoration,
                 )

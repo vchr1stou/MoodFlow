@@ -5,6 +5,7 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/welcome_model.dart';
 import 'provider/welcome_provider.dart';
+import '../../routes/app_routes.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class WelcomeScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => WelcomeProvider(),
-      child: WelcomeScreen(),
+      child: const WelcomeScreen(),
     );
   }
 }
@@ -30,9 +31,13 @@ class WelcomeScreenState extends State<WelcomeScreen> {
         width: double.maxFinite,
         height: SizeUtils.height,
         decoration: BoxDecoration(
+          color: Colors.white, // Fallback color
           image: DecorationImage(
             image: AssetImage('assets/images/background.png'),
             fit: BoxFit.cover,
+            onError: (exception, stackTrace) {
+              debugPrint('Error loading background image: $exception');
+            },
           ),
         ),
         child: Stack(
@@ -100,8 +105,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                         SizedBox(height: 4.h),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(
-                                context, AppRoutes.signUpStepOneScreen);
+                            Navigator.pushNamed(context, AppRoutes.signUpStepOneScreen);
                           },
                           child: Text(
                             "Create a new account",

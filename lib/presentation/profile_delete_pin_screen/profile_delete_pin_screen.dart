@@ -5,6 +5,7 @@ import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_delete_pin_model.dart';
 import 'provider/profile_delete_pin_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileDeletePinScreen extends StatefulWidget {
   const ProfileDeletePinScreen({Key? key}) : super(key: key);
@@ -66,13 +67,13 @@ class ProfileDeletePinScreenState extends State<ProfileDeletePinScreen> {
                   ),
                   SizedBox(height: 12.h),
                   Text(
-                    "lbl_delete_pin".tr,
+                    "lbl_delete_pin".tr(),
                     style: theme.textTheme.headlineLarge,
                   ),
                   SizedBox(
                     width: 224.h,
                     child: Text(
-                      "msg_you_have_to_confirm2".tr,
+                      "msg_you_have_to_confirm2".tr(),
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium,
@@ -83,7 +84,7 @@ class ProfileDeletePinScreenState extends State<ProfileDeletePinScreen> {
                   SizedBox(height: 22.h),
                   CustomOutlinedButton(
                     width: 182.h,
-                    text: "lbl_confirm_pin".tr,
+                    text: "lbl_confirm_pin".tr(),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),
@@ -110,7 +111,7 @@ class ProfileDeletePinScreenState extends State<ProfileDeletePinScreen> {
         children: [
           SizedBox(height: 6.h),
           Text(
-            "lbl4".tr,
+            "lbl4".tr(),
             style: theme.textTheme.displayMedium,
           ),
         ],

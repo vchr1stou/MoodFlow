@@ -6,6 +6,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_set_new_pin_2nd_step_model.dart';
 import 'provider/profile_set_new_pin_2nd_step_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileSetNewPin2ndStepScreen extends StatefulWidget {
   const ProfileSetNewPin2ndStepScreen({Key? key}) : super(key: key);
@@ -46,7 +47,7 @@ class ProfileSetNewPin2ndStepScreenState
                   _buildPinTitleSection(),
                   SizedBox(height: 6.h),
                   Text(
-                    "msg_set_your_new_pin".tr,
+                    "msg_set_your_new_pin".tr(),
                     style: theme.textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -55,7 +56,7 @@ class ProfileSetNewPin2ndStepScreenState
                   SizedBox(height: 22.h),
                   CustomOutlinedButton(
                     width: 182.h,
-                    text: "lbl_set_pin".tr,
+                    text: "lbl_set_pin".tr(),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),
@@ -109,7 +110,7 @@ class ProfileSetNewPin2ndStepScreenState
             ),
           ),
           Text(
-            "lbl_set_pin".tr,
+            "lbl_set_pin".tr(),
             style: theme.textTheme.headlineLarge,
           ),
         ],
@@ -128,7 +129,7 @@ class ProfileSetNewPin2ndStepScreenState
         padding: EdgeInsets.all(16.h),
         child: Center(
           child: Text(
-            "lbl4".tr,
+            "lbl4".tr(),
             style: theme.textTheme.displayMedium,
           ),
         ),

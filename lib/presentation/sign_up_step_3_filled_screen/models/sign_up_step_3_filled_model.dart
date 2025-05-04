@@ -4,11 +4,9 @@ import 'listmum_one_item_model.dart';
 // ignore_for_file: must_be_immutable
 class SignUpStep3FilledModel {
   List<ListmumOneItemModel> listmumOneItemList = [
-    ListmumOneItemModel(mumTwo: "lbl_mum".tr, mobileNo: "lbl_6969696969".tr),
-    ListmumOneItemModel(mumTwo: "lbl_dad".tr, mobileNo: "lbl_6969696969".tr),
-    ListmumOneItemModel(
-        mumTwo: "lbl_partner".tr, mobileNo: "lbl_6969696969".tr),
-    ListmumOneItemModel(
-        mumTwo: "lbl_best_friend".tr, mobileNo: "lbl_6969696969".tr),
+    ListmumOneItemModel(mumTwo: "Mum", mobileNo: "6969696969"),
+    ListmumOneItemModel(mumTwo: "Dad", mobileNo: "6969696969"),
+    ListmumOneItemModel(mumTwo: "Partner", mobileNo: "6969696969"),
+    ListmumOneItemModel(mumTwo: "Best Friend", mobileNo: "6969696969"),
   ];
 }

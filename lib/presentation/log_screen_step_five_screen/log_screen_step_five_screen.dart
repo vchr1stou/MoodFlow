@@ -10,6 +10,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/log_screen_step_five_model.dart';
 import 'provider/log_screen_step_five_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogScreenStepFiveScreen extends StatefulWidget {
   const LogScreenStepFiveScreen({Key? key}) : super(key: key);
@@ -338,7 +339,7 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    "msg_all_the_feels_captured".tr,
+                    "msg_all_the_feels_captured".tr(),
                     style: CustomTextStyles.headlineSmall24,
                   ),
                 ),
@@ -357,7 +358,7 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> {
                       child: Padding(
                         padding: EdgeInsets.only(top: 4.h),
                         child: Text(
-                          "msg_another_step_in".tr,
+                          "msg_another_step_in".tr(),
                           style: CustomTextStyles.titleMediumSFProBold,
                         ),
                       ),

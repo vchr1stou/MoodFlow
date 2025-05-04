@@ -6,7 +6,7 @@ export 'package:moodflow/core/utils/navigator_service.dart';
 export 'package:moodflow/core/utils/pref_utils.dart';
 export 'package:moodflow/core/utils/size_utils.dart';
 export 'package:moodflow/core/global_keys.dart';
-export 'package:moodflow/localization/app_localization.dart';
+export 'package:moodflow/core/strings.dart';
 export 'package:moodflow/routes/app_routes.dart';
 export 'package:moodflow/theme/app_decoration.dart';
 export 'package:moodflow/theme/custom_text_style.dart';

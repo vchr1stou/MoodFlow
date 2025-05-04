@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -77,8 +78,8 @@ class LogscreenstepTab1PageState extends State<LogscreenstepTab1Page> {
                                   width: double.maxFinite,
                                   child: _buildRowlabelThree(
                                     context,
-                                    labelThree: "lbl_confident".tr,
-                                    labelFour: "lbl_70".tr,
+                                    labelThree: "lbl_confident".tr(),
+                                    labelFour: "lbl_70".tr(),
                                   ),
                                 ),
                                 SizedBox(height: 8.h),
@@ -113,8 +114,8 @@ class LogscreenstepTab1PageState extends State<LogscreenstepTab1Page> {
                                   width: double.maxFinite,
                                   child: _buildRowlabelThree(
                                     context,
-                                    labelThree: "lbl_proud".tr,
-                                    labelFour: "lbl_50".tr,
+                                    labelThree: "lbl_proud".tr(),
+                                    labelFour: "lbl_50".tr(),
                                   ),
                                 ),
                                 SizedBox(height: 8.h),
@@ -129,8 +130,8 @@ class LogscreenstepTab1PageState extends State<LogscreenstepTab1Page> {
                                   width: double.maxFinite,
                                   child: _buildRowlabelThree(
                                     context,
-                                    labelThree: "lbl_secure".tr,
-                                    labelFour: "lbl_302".tr,
+                                    labelThree: "lbl_secure".tr(),
+                                    labelFour: "lbl_302".tr(),
                                   ),
                                 ),
                                 SizedBox(height: 8.h),
@@ -148,7 +149,7 @@ class LogscreenstepTab1PageState extends State<LogscreenstepTab1Page> {
                                     SizedBox(
                                       width: 56.h,
                                       child: Text(
-                                        "lbl_playful".tr,
+                                        "lbl_playful".tr(),
                                         overflow: TextOverflow.ellipsis,
                                         style: CustomTextStyles
                                             .titleMediumSFProOnPrimarySemiBold,
@@ -157,7 +158,7 @@ class LogscreenstepTab1PageState extends State<LogscreenstepTab1Page> {
                                     SizedBox(
                                       width: 48.h,
                                       child: Text(
-                                        "lbl_100".tr,
+                                        "lbl_100".tr(),
                                         overflow: TextOverflow.ellipsis,
                                         style: CustomTextStyles
                                             .titleMediumSFProOnPrimarySemiBold,
@@ -196,7 +197,7 @@ class LogscreenstepTab1PageState extends State<LogscreenstepTab1Page> {
                     CustomOutlinedButton(
                       height: 36.h,
                       width: 118.h,
-                      text: "lbl_next".tr,
+                      text: "lbl_next".tr(),
                       margin: EdgeInsets.only(right: 6.h),
                       buttonStyle: CustomButtonStyles.none,
                       decoration: CustomButtonStyles.outlineTL18Decoration,

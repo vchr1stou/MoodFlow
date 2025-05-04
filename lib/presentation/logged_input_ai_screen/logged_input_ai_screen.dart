@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -14,6 +15,7 @@ import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/custom_image_view.dart';
 import 'models/logged_input_ai_model.dart';
 import 'provider/logged_input_ai_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LoggedInputAiScreen extends StatefulWidget {
   const LoggedInputAiScreen({Key? key})
@@ -61,7 +63,7 @@ class LoggedInputAiScreenState extends State<LoggedInputAiScreen> {
                       builder: (context, miconeController, child) {
                         return CustomTextFormField(
                           controller: miconeController,
-                          hintText: "lbl_ask_me_anything".tr,
+                          hintText: "lbl_ask_me_anything".tr(),
                           textInputAction: TextInputAction.done,
                           alignment: Alignment.bottomCenter,
                           prefix: Padding(

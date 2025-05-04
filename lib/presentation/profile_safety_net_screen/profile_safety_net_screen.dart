@@ -55,14 +55,14 @@ class ProfileSafetyNetScreenState extends State<ProfileSafetyNetScreen> {
                   ),
                   SizedBox(height: 10.h),
                   Text(
-                    "lbl_your_safety_net".tr,
+                    "Your Safety Net",
                     style: theme.textTheme.headlineLarge,
                   ),
                   SizedBox(height: 24.h),
                   _buildColumnMumOne(context),
                   SizedBox(height: 30.h),
                   CustomOutlinedButton(
-                    text: "msg_add_another_trusted".tr,
+                    text: AppStrings.addAnotherTrusted,
                     margin: EdgeInsets.symmetric(horizontal: 84.h),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,

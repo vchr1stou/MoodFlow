@@ -9,6 +9,7 @@ import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/meditation_model.dart';
 import 'provider/meditation_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({Key? key}) : super(key: key);
@@ -75,7 +76,7 @@ class MeditationScreenState extends State<MeditationScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -107,7 +108,7 @@ class MeditationScreenState extends State<MeditationScreen> {
               children: [
                 SizedBox(height: 2.h),
                 Text(
-                  "msg_sink_into_silence".tr,
+                  "msg_sink_into_silence".tr(),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style:
@@ -170,21 +171,21 @@ class MeditationScreenState extends State<MeditationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "lbl_a_gentle_reset".tr,
+                "lbl_a_gentle_reset".tr(),
                 style: CustomTextStyles.headlineSmallRobotoOnPrimarySemiBold,
               ),
               Text(
-                "msg_soft_breath_quiet".tr,
+                "msg_soft_breath_quiet".tr(),
                 style: CustomTextStyles.labelLargeRobotoOnPrimary13,
               ),
               SizedBox(height: 2.h),
               Text(
-                "lbl_about".tr,
+                "lbl_about".tr(),
                 style: CustomTextStyles.labelLargeRobotoOnPrimary13,
               ),
               SizedBox(height: 2.h),
               Text(
-                "msg_this_calming_10_minute".tr,
+                "msg_this_calming_10_minute".tr(),
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
                 style: CustomTextStyles.labelMediumRobotoOnPrimarySemiBold
@@ -210,7 +211,7 @@ class MeditationScreenState extends State<MeditationScreen> {
         CustomElevatedButton(
           height: 42.h,
           width: 154.h,
-          text: "msg_watch_it_on_youtube".tr,
+          text: "msg_watch_it_on_youtube".tr(),
           leftIcon: Padding(
             padding: EdgeInsets.only(right: 4.h),
             child: CustomImageView(
@@ -228,7 +229,7 @@ class MeditationScreenState extends State<MeditationScreen> {
         CustomElevatedButton(
           height: 42.h,
           width: 78.h,
-          text: "lbl_save".tr,
+          text: "lbl_save".tr(),
           leftIcon: Padding(
             padding: EdgeInsets.only(right: 4.h),
             child: CustomImageView(
@@ -255,7 +256,7 @@ class MeditationScreenState extends State<MeditationScreen> {
         builder: (context, searchfieldoneController, child) {
           return CustomTextFormField(
             controller: searchfieldoneController,
-            hintText: "lbl_ask_me_anything".tr,
+            hintText: "lbl_ask_me_anything".tr(),
             textInputAction: TextInputAction.done,
             prefix: Padding(
               padding: EdgeInsets.only(left: 14.57.h, right: 30.h),

@@ -11,6 +11,7 @@ import 'models/saved_model.dart';
 import 'models/saved_one_item_model.dart';
 import 'provider/saved_provider.dart';
 import 'widgets/saved_one_item_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SavedScreen extends StatefulWidget {
   const SavedScreen({Key? key}) : super(key: key);
@@ -64,7 +65,7 @@ class SavedScreenState extends State<SavedScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -76,7 +77,7 @@ class SavedScreenState extends State<SavedScreen> {
       children: [
         Expanded(
           child: Text(
-            "lbl_saved".tr,
+            "lbl_saved".tr(),
             style: theme.textTheme.displaySmall,
           ),
         ),
@@ -95,7 +96,7 @@ class SavedScreenState extends State<SavedScreen> {
                 ),
               ),
               iconSize: 16.h,
-              hintText: "lbl_all".tr,
+              hintText: "lbl_all".tr(),
               items: savedModelObj?.dropdownItemList ?? [],
               contentPadding:
                   EdgeInsets.symmetric(horizontal: 14.h, vertical: 6.h),

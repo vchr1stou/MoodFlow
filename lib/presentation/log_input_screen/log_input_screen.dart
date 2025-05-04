@@ -9,6 +9,7 @@ import '../emoji_log_two_screen/emoji_log_two_screen.dart';
 import '../homescreen_screen/homescreen_screen.dart';
 import '../log_input_colors_screen/log_input_colors_screen.dart';
 import '../history_empty_screen/history_empty_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogInputScreen extends StatefulWidget {
   final String source;
@@ -153,7 +154,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 24.h),
                 child: Text(
-                  "Let's unpack those feels!\nLog your mood using:",
+                  "msg_lets_unpack_feels".tr(),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.roboto(
                     fontSize: 26,
@@ -214,7 +215,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "Text",
+                              "lbl_text".tr(),
                               style: GoogleFonts.roboto(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -225,7 +226,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                               offset: Offset(textLogDescLeft - textLogTitleLeft,
                                   textLogDescTop),
                               child: Text(
-                                "Chat your feels! MoodFlow AI listens and logs.",
+                                "msg_chat_your_feels".tr(),
                                 style: GoogleFonts.roboto(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,

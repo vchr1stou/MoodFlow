@@ -575,4 +575,32 @@ class CustomTextStyles {
         fontWeight: FontWeight.w600,
         fontFamily: 'Roboto',
       );
+
+  static TextStyle get titleLargeRobotoOnPrimaryContainer => TextStyle(
+        color: theme.colorScheme.onPrimaryContainer,
+        fontSize: 20.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Roboto',
+      );
+
+  static TextStyle get titleMediumRobotoWhiteA700 => TextStyle(
+        color: appTheme.whiteA700,
+        fontSize: 16.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Roboto',
+      );
+
+  static TextStyle get titleMediumGray70001 => TextStyle(
+        color: appTheme.gray70001,
+        fontSize: 16.fSize,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Roboto',
+      );
+
+  static TextStyle get labelLargeRobotoOnPrimaryContainerBold13_1 => TextStyle(
+        color: theme.colorScheme.onPrimaryContainer,
+        fontSize: 13.fSize,
+        fontWeight: FontWeight.w700,
+        fontFamily: 'Roboto',
+      );
 }

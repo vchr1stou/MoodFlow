@@ -19,7 +19,9 @@ class DiscoverScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => DiscoverProvider(),
-      child: const DiscoverScreen(),
+      child: Builder(
+        builder: (context) => DiscoverScreen(),
+      ),
     );
   }
 }
@@ -51,7 +53,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                   Padding(
                     padding: EdgeInsets.only(left: 14.h),
                     child: Text(
-                      "lbl_discover".tr,
+                      "Discover",
                       style: theme.textTheme.displaySmall,
                     ),
                   ),
@@ -76,7 +78,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_back".tr,
+        text: "Back",
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -129,7 +131,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         borderRadius: BorderRadiusStyle.roundedBorder24,
       ),
       child: Text(
-        "msg_explore_insights".tr,
+        "Explore insights and articles about mental health",
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyles.labelMediumRobotoOnPrimary11_1,
@@ -151,7 +153,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "msg_what_are_the_benefits".tr,
+            "What are the benefits of mindfulness?",
             style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13_1,
           ),
           const SizedBox(height: 4),
@@ -164,11 +166,11 @@ class DiscoverScreenState extends State<DiscoverScreen> {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: "lbl_summary".tr,
+                        text: "Summary: ",
                         style: CustomTextStyles.labelMediumRobotoOnPrimary_1,
                       ),
                       TextSpan(
-                        text: "msg_the_american_psychological".tr,
+                        text: "The American Psychological Association explains how mindfulness can improve mental health",
                         style:
                             CustomTextStyles.labelMediumRobotoOnPrimaryMedium,
                       ),
@@ -204,13 +206,13 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "msg_how_sleep_deprivation".tr,
+            "How sleep deprivation affects mental health",
             style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13_1,
           ),
           const SizedBox(height: 8),
           _buildRowArrowRight(
             context,
-            description: "msg_summary_columbia".tr,
+            description: "Summary: Columbia University research on sleep and mental health",
           ),
         ],
       ),
@@ -234,11 +236,11 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "lbl_coping_with".tr,
+                  text: "Coping with ",
                   style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13,
                 ),
                 TextSpan(
-                  text: "msg_stress_vs_burnout".tr,
+                  text: "Stress vs Burnout",
                   style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13,
                 ),
               ],
@@ -247,7 +249,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           const SizedBox(height: 8),
           _buildRowArrowRight(
             context,
-            description: "msg_summary_this_article".tr,
+            description: "Summary: This article explains the difference between stress and burnout",
           ),
         ],
       ),
@@ -270,7 +272,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "msg_preventing_burnout".tr,
+                  text: "Preventing Burnout in the Workplace",
                   style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13,
                 ),
               ],
@@ -279,7 +281,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
           const SizedBox(height: 8),
           _buildRowArrowRight(
             context,
-            description: "msg_summary_columbia".tr,
+            description: "Summary: Columbia University research on workplace burnout prevention",
           ),
         ],
       ),
@@ -300,13 +302,13 @@ class DiscoverScreenState extends State<DiscoverScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "msg_coping_after_disaster".tr,
+            "Coping After Disaster",
             style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13_1,
           ),
           const SizedBox(height: 8),
           _buildRowArrowRight(
             context,
-            description: "msg_summary_provides".tr,
+            description: "Summary: Provides guidance on coping with trauma after natural disasters",
           ),
         ],
       ),
@@ -326,7 +328,7 @@ class DiscoverScreenState extends State<DiscoverScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "lbl_summary".tr,
+                  text: "Summary: ",
                   style: CustomTextStyles.labelMediumRobotoOnPrimary_1,
                 ),
                 TextSpan(

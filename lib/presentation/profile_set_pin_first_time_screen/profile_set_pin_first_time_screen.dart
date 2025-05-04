@@ -6,6 +6,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_set_pin_first_time_model.dart';
 import 'provider/profile_set_pin_first_time_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileSetPinFirstTimeScreen extends StatefulWidget {
   const ProfileSetPinFirstTimeScreen({Key? key}) : super(key: key);
@@ -48,12 +49,12 @@ class ProfileSetPinFirstTimeScreenState
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    "lbl_set_pin".tr,
+                    "lbl_set_pin".tr(),
                     style: theme.textTheme.headlineLarge,
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    "msg_create_a_pin_to".tr,
+                    "msg_create_a_pin_to".tr(),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -65,7 +66,7 @@ class ProfileSetPinFirstTimeScreenState
                   SizedBox(height: 16.h),
                   CustomOutlinedButton(
                     width: 182.h,
-                    text: "lbl_set_a_new_pin".tr,
+                    text: "lbl_set_a_new_pin".tr(),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),

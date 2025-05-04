@@ -5,6 +5,7 @@ import '../../widgets/app_bar/appbar_subtitle_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import 'models/inhale_model.dart';
 import 'provider/inhale_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class InhaleScreen extends StatefulWidget {
   const InhaleScreen({Key? key})
@@ -52,7 +53,7 @@ class InhaleScreenState extends State<InhaleScreen> {
                   width: 258.h,
                 ),
                 Text(
-                  "lbl_now_inhale".tr,
+                  "lbl_now_inhale".tr(),
                   style: CustomTextStyles.displayMediumSemiBold,
                 )
               ],
@@ -72,7 +73,7 @@ class InhaleScreenState extends State<InhaleScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_saved".tr,
+        text: "lbl_saved".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );

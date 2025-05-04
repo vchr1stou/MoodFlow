@@ -8,12 +8,12 @@ import '../models/workout_model.dart';
 /// current workoutModelObj
 // ignore_for_file: must_be_immutable
 class WorkoutProvider extends ChangeNotifier {
-  TextEditingController searchfieldoneController = TextEditingController();
   WorkoutModel workoutModelObj = WorkoutModel();
 
   @override
   void dispose() {
-    searchfieldoneController.dispose();
+    workoutModelObj.durationController?.dispose();
+    workoutModelObj.notesController?.dispose();
     super.dispose();
   }
 }

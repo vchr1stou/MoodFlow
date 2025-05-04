@@ -82,7 +82,7 @@ class MusicScreenState extends State<MusicScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "msg_hit_play_close".tr,
+                                  AppStrings.hitPlayClose,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: CustomTextStyles
@@ -147,7 +147,7 @@ class MusicScreenState extends State<MusicScreen> {
                         builder: (context, searchfieldoneController, child) {
                           return CustomTextFormField(
                             controller: searchfieldoneController,
-                            hintText: "lbl_ask_me_anything".tr,
+                            hintText: "Ask me anything",
                             textInputAction: TextInputAction.done,
                             prefix: Padding(
                               padding: EdgeInsets.only(
@@ -228,7 +228,7 @@ class MusicScreenState extends State<MusicScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "Little Lifts",
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -260,7 +260,7 @@ class MusicScreenState extends State<MusicScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 2.h),
                   child: Text(
-                    "lbl_reset".tr,
+                    "Reset",
                     style:
                         CustomTextStyles.headlineSmallRobotoOnPrimarySemiBold,
                   ),
@@ -268,7 +268,7 @@ class MusicScreenState extends State<MusicScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 2.h),
                   child: Text(
-                    "lbl_selection_quote".tr,
+                    "Selection Quote",
                     style: CustomTextStyles.labelLargeRobotoOnPrimary13,
                   ),
                 ),
@@ -276,7 +276,7 @@ class MusicScreenState extends State<MusicScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 2.h),
                   child: Text(
-                    "lbl_about".tr,
+                    "About",
                     style: CustomTextStyles.labelLargeRobotoOnPrimary13,
                   ),
                 ),
@@ -284,7 +284,7 @@ class MusicScreenState extends State<MusicScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 2.h),
                   child: Text(
-                    "msg_selection_paragraph".tr,
+                    AppStrings.selectionParagraph,
                     maxLines: 6,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyles.labelMediumRobotoOnPrimarySemiBold
@@ -303,7 +303,7 @@ class MusicScreenState extends State<MusicScreen> {
                       CustomElevatedButton(
                         height: 42.h,
                         width: 130.h,
-                        text: "lbl_play_on_spotify".tr,
+                        text: "Play on Spotify",
                         leftIcon: Container(
                           margin: EdgeInsets.only(right: 4.h),
                           child: CustomImageView(
@@ -322,7 +322,7 @@ class MusicScreenState extends State<MusicScreen> {
                       CustomElevatedButton(
                         height: 42.h,
                         width: 78.h,
-                        text: "lbl_save".tr,
+                        text: "Save",
                         margin: EdgeInsets.only(left: 8.h),
                         leftIcon: Container(
                           margin: EdgeInsets.only(right: 2.h),

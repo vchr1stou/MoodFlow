@@ -7,6 +7,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_spotify_model.dart';
 import 'provider/profile_spotify_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileSpotifyScreen extends StatefulWidget {
   const ProfileSpotifyScreen({Key? key}) : super(key: key);
@@ -53,7 +54,7 @@ class ProfileSpotifyScreenState extends State<ProfileSpotifyScreen> {
                       SizedBox(height: 20.h),
                       CustomOutlinedButton(
                         width: 190.h,
-                        text: "lbl_sign_out".tr,
+                        text: "lbl_sign_out".tr(),
                         buttonStyle: CustomButtonStyles.none,
                         decoration: CustomButtonStyles.outlineTL241Decoration,
                       ),
@@ -94,7 +95,7 @@ class ProfileSpotifyScreenState extends State<ProfileSpotifyScreen> {
           ),
           SizedBox(height: 10.h),
           Text(
-            "lbl_spotify_account".tr,
+            "lbl_spotify_account".tr(),
             style: CustomTextStyles.headlineLarge30,
           ),
         ],
@@ -117,12 +118,12 @@ class ProfileSpotifyScreenState extends State<ProfileSpotifyScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "lbl_signed_in_as".tr,
+                  "lbl_signed_in_as".tr(),
                   style: theme.textTheme.titleSmall,
                 ),
                 SizedBox(width: 4.h),
                 Text(
-                  "msg_vchristou32_gmail_com".tr,
+                  "msg_vchristou32_gmail_com".tr(),
                   style: CustomTextStyles.labelLargeBold,
                 ),
               ],

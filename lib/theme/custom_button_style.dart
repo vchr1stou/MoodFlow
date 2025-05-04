@@ -203,4 +203,13 @@ class CustomButtonStyles {
           BorderSide(color: Colors.transparent),
         ),
       );
+
+  static BoxDecoration get outlineDecoration => BoxDecoration(
+        color: appTheme.gray70019,
+        borderRadius: BorderRadiusStyle.circleBorder22,
+        border: Border.all(
+          color: appTheme.gray70019,
+          width: 1.h,
+        ),
+      );
 }

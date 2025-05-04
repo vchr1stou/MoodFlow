@@ -6,6 +6,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_set_new_pin_1st_step_model.dart';
 import 'provider/profile_set_new_pin_1st_step_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileSetNewPin1stStepScreen extends StatefulWidget {
   const ProfileSetNewPin1stStepScreen({Key? key}) : super(key: key);
@@ -51,7 +52,7 @@ class ProfileSetNewPin1stStepScreenState
                   SizedBox(
                     width: 294.h,
                     child: Text(
-                      "msg_now_you_have_to".tr,
+                      "msg_now_you_have_to".tr(),
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium,
@@ -62,7 +63,7 @@ class ProfileSetNewPin1stStepScreenState
                   SizedBox(height: 22.h),
                   CustomOutlinedButton(
                     width: 182.h,
-                    text: "lbl_confirm_pin".tr,
+                    text: "lbl_confirm_pin".tr(),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),
@@ -118,7 +119,7 @@ class ProfileSetNewPin1stStepScreenState
             ),
           ),
           Text(
-            "lbl_set_pin".tr,
+            "lbl_set_pin".tr(),
             style: theme.textTheme.headlineLarge,
           ),
         ],
@@ -138,7 +139,7 @@ class ProfileSetNewPin1stStepScreenState
         padding: EdgeInsets.all(16.h),
         child: Center(
           child: Text(
-            "lbl4".tr,
+            "lbl4".tr(),
             style: theme.textTheme.displayMedium,
           ),
         ),

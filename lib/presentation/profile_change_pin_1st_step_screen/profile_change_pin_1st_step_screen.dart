@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -6,6 +7,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_change_pin_1st_step_model.dart';
 import 'provider/profile_change_pin_1st_step_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileChangePin1stStepScreen extends StatefulWidget {
   const ProfileChangePin1stStepScreen({Key? key}) : super(key: key);
@@ -56,14 +58,14 @@ class ProfileChangePin1stStepScreenState
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    "lbl_change_pin".tr,
+                    "lbl_change_pin".tr(),
                     style: theme.textTheme.headlineLarge,
                   ),
                   SizedBox(height: 4.h),
                   SizedBox(
                     width: 292.h,
                     child: Text(
-                      "msg_you_have_to_confirm".tr,
+                      "msg_you_have_to_confirm".tr(),
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium,
                       textAlign: TextAlign.center,
@@ -74,7 +76,7 @@ class ProfileChangePin1stStepScreenState
                   SizedBox(height: 22.h),
                   CustomOutlinedButton(
                     width: 182.h,
-                    text: "msg_confirm_previous".tr,
+                    text: "msg_confirm_previous".tr(),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),
@@ -116,7 +118,7 @@ class ProfileChangePin1stStepScreenState
         children: [
           SizedBox(height: 6.h),
           Text(
-            "lbl4".tr,
+            "lbl4".tr(),
             style: theme.textTheme.displayMedium,
           ),
         ],

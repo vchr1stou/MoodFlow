@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../custom_drop_down.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AppbarTrailingButton extends StatelessWidget {
   AppbarTrailingButton({
@@ -24,7 +25,7 @@ class AppbarTrailingButton extends StatelessWidget {
         child: CustomElevatedButton(
           height: 26.h,
           width: 48.h,
-          text: "lbl_7".tr,
+          text: "lbl_7".tr(),
           leftIcon: Container(
             margin: EdgeInsets.only(right: 10.h),
             child: CustomImageView(

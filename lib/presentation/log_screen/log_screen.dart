@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:responsive_grid_list/responsive_grid_list.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -77,19 +78,19 @@ class LogScreenState extends State<LogScreen> {
                                     SizedBox(height: 6.h),
                                     _buildAlert(context),
                                     Text(
-                                      "msg_who_were_you_with".tr,
+                                      "msg_who_were_you_with".tr(),
                                       style: theme.textTheme.titleLarge,
                                     ),
                                     _buildAlertone(context),
                                     Text(
-                                      "lbl_where_were_you".tr,
+                                      "lbl_where_were_you".tr(),
                                       style: theme.textTheme.titleLarge,
                                     ),
                                     _buildAlerttwo(context),
                                     CustomOutlinedButton(
                                       height: 36.h,
                                       width: 118.h,
-                                      text: "lbl_next".tr,
+                                      text: "lbl_next".tr(),
                                       buttonStyle: CustomButtonStyles.none,
                                       decoration: CustomButtonStyles
                                           .outlineTL18Decoration,
@@ -118,7 +119,7 @@ class LogScreenState extends State<LogScreen> {
                                 ),
                                 SizedBox(height: 6.h),
                                 Text(
-                                  "lbl_mood_captured".tr,
+                                  "lbl_mood_captured".tr(),
                                   style: CustomTextStyles
                                       .displaySmallSFProOnPrimary,
                                 ),
@@ -141,7 +142,7 @@ class LogScreenState extends State<LogScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            "lbl_bright".tr,
+                                            "lbl_bright".tr(),
                                             style: CustomTextStyles
                                                 .headlineLargeSFProOnPrimary,
                                           ),
@@ -163,7 +164,7 @@ class LogScreenState extends State<LogScreen> {
                                             alignment: Alignment.center,
                                             child: Text(
                                               "msg_today_mar_28_17_26"
-                                                  .tr
+                                                  .tr()
                                                   .toUpperCase(),
                                               style: CustomTextStyles
                                                   .labelLargeOnPrimary13_2,
@@ -184,7 +185,7 @@ class LogScreenState extends State<LogScreen> {
                                 Padding(
                                   padding: EdgeInsets.only(right: 40.h),
                                   child: Text(
-                                    "msg_what_s_happening".tr,
+                                    "msg_what_s_happening".tr(),
                                     style: theme.textTheme.titleLarge,
                                   ),
                                 ),
@@ -267,7 +268,7 @@ class LogScreenState extends State<LogScreen> {
             ),
           ),
           Text(
-            "lbl_add_people".tr,
+            "lbl_add_people".tr(),
             style: theme.textTheme.labelMedium,
           ),
         ],
@@ -299,7 +300,7 @@ class LogScreenState extends State<LogScreen> {
             ),
           ),
           Text(
-            "lbl_add_location".tr,
+            "lbl_add_location".tr(),
             style: theme.textTheme.labelMedium,
           ),
         ],

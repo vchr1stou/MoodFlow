@@ -10,6 +10,7 @@ import 'models/softthanks_model.dart';
 import 'models/softthanks_one_item_model.dart';
 import 'provider/softthanks_provider.dart';
 import 'widgets/softthanks_one_item_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SoftthanksScreen extends StatefulWidget {
   const SoftthanksScreen({Key? key}) : super(key: key);
@@ -52,7 +53,7 @@ class SoftthanksScreenState extends State<SoftthanksScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 2.h),
                   child: Text(
-                    "lbl_soft_thanks".tr,
+                    "lbl_soft_thanks".tr(),
                     style: theme.textTheme.displaySmall,
                   ),
                 ),
@@ -64,7 +65,7 @@ class SoftthanksScreenState extends State<SoftthanksScreen> {
                     borderRadius: BorderRadiusStyle.roundedBorder14,
                   ),
                   child: Text(
-                    "msg_whispers_of_appreciation".tr,
+                    "msg_whispers_of_appreciation".tr(),
                     textAlign: TextAlign.left,
                     style: CustomTextStyles.labelLargeRobotoOnPrimaryBold_1,
                   ),
@@ -90,7 +91,7 @@ class SoftthanksScreenState extends State<SoftthanksScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -113,7 +114,7 @@ class SoftthanksScreenState extends State<SoftthanksScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "msg_what_made_you".tr,
+                  "msg_what_made_you".tr(),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -123,7 +124,7 @@ class SoftthanksScreenState extends State<SoftthanksScreen> {
                 CustomElevatedButton(
                   height: 42.h,
                   width: 154.h,
-                  text: "msg_keep_this_moment".tr,
+                  text: "msg_keep_this_moment".tr(),
                   leftIcon: Container(
                     margin: EdgeInsets.only(right: 8.h),
                     child: CustomImageView(

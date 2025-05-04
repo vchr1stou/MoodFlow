@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Added provider import
+import 'package:easy_localization/easy_localization.dart';
 
 // Assuming these imports point to valid files in your project structure
 import '../../core/app_export.dart';
@@ -145,7 +146,7 @@ class BookScreenState extends State<BookScreen> {
                                     (context, searchfieldoneController, child) {
                                   return CustomTextFormField(
                                     controller: searchfieldoneController,
-                                    hintText: "lbl_ask_me_anything".tr,
+                                    hintText: "lbl_ask_me_anything".tr(),
                                     textInputAction: TextInputAction.done,
                                     prefix: Padding(
                                       // Adjusted padding for potentially better spacing
@@ -269,7 +270,7 @@ class BookScreenState extends State<BookScreen> {
         },
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -305,7 +306,7 @@ class BookScreenState extends State<BookScreen> {
               //   bottom: 6.h,
               // ),
               child: Text(
-                "msg_storytime_mood".tr,
+                "msg_storytime_mood".tr(),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: CustomTextStyles.titleSmallRobotoSecondaryContainer
@@ -340,7 +341,7 @@ class BookScreenState extends State<BookScreen> {
           Padding(
             padding: EdgeInsets.only(left: 2.h),
             child: Text(
-              "msg_murder_on_the_orient".tr,
+              "msg_murder_on_the_orient".tr(),
               style: CustomTextStyles.titleLargeRobotoOnPrimarySemiBold,
             ),
           ),
@@ -348,7 +349,7 @@ class BookScreenState extends State<BookScreen> {
           Padding(
             padding: EdgeInsets.only(left: 2.h),
             child: Text(
-              "msg_agatha_christie".tr,
+              "msg_agatha_christie".tr(),
               style: CustomTextStyles.labelLargeRobotoOnPrimary13,
             ),
           ),
@@ -356,7 +357,7 @@ class BookScreenState extends State<BookScreen> {
           Padding(
             padding: EdgeInsets.only(left: 2.h),
             child: Text(
-              "lbl_about".tr,
+              "lbl_about".tr(),
               style: CustomTextStyles.labelLargeRobotoOnPrimary13,
             ),
           ),
@@ -369,7 +370,7 @@ class BookScreenState extends State<BookScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "msg_just_after_midnight".tr,
+                  "msg_just_after_midnight".tr(),
                   // maxLines: 6, // Let it take needed lines or constrain height
                   // overflow: TextOverflow.ellipsis, // Use if height is constrained
                   style: CustomTextStyles.labelMediumRobotoOnPrimarySemiBold
@@ -386,7 +387,7 @@ class BookScreenState extends State<BookScreen> {
                     CustomElevatedButton(
                       height: 42.h,
                       // width: 120.h, // Let button size itself or use Expanded
-                      text: "lbl_get_the_book".tr,
+                      text: "lbl_get_the_book".tr(),
                       leftIcon: Container(
                         margin: EdgeInsets.only(right: 8.h),
                         child: CustomImageView(
@@ -408,7 +409,7 @@ class BookScreenState extends State<BookScreen> {
                     CustomElevatedButton(
                       height: 42.h,
                       // width: 78.h, // Let button size itself
-                      text: "lbl_save".tr,
+                      text: "lbl_save".tr(),
                       // margin: EdgeInsets.only(right: 2.h), // Handled by Row spacing
                       leftIcon: Container(
                         margin: EdgeInsets.only(right: 4.h), // Adjust spacing

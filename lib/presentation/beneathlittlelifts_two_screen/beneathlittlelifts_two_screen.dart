@@ -8,6 +8,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/beneathlittlelifts_two_model.dart';
 import 'provider/beneathlittlelifts_two_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class BeneathlittleliftsTwoScreen extends StatefulWidget {
   const BeneathlittleliftsTwoScreen({Key? key}) : super(key: key);
@@ -56,7 +57,7 @@ class BeneathlittleliftsTwoScreenState
                       builder: (context, miconeController, child) {
                         return CustomTextFormField(
                           controller: miconeController,
-                          hintText: "lbl_ask_me_anything".tr,
+                          hintText: "lbl_ask_me_anything".tr(),
                           textInputAction: TextInputAction.done,
                           alignment: Alignment.bottomCenter,
                           prefix: Padding(

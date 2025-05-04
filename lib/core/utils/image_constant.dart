@@ -4,7 +4,7 @@ class ImageConstant {
   static String imagePath = 'assets/images';
 
   // Common images
-  static String imgChevron = '$imagePath/img_chevron.png';
+  static String imgChevron = '$imagePath/chevron.backward.svg';
 
   static String imgArrowRight = '$imagePath/img_arrow_right.svg';
 

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -93,8 +94,8 @@ class LogScreenStep3PositiveOnePageState
                             children: [
                               _buildRowlabelTwo(
                                 context,
-                                labelTwo: "lbl_lonely".tr,
-                                labelThree: "lbl_70".tr,
+                                labelTwo: "lbl_lonely".tr(),
+                                labelThree: "lbl_70".tr(),
                               ),
                               SizedBox(height: 8.h),
                               Container(
@@ -126,8 +127,8 @@ class LogScreenStep3PositiveOnePageState
                               SizedBox(height: 24.h),
                               _buildRowlabelTwo(
                                 context,
-                                labelTwo: "lbl_numb".tr,
-                                labelThree: "lbl_50".tr,
+                                labelTwo: "lbl_numb".tr(),
+                                labelThree: "lbl_50".tr(),
                               ),
                               SizedBox(height: 8.h),
                               Slider(
@@ -139,8 +140,8 @@ class LogScreenStep3PositiveOnePageState
                               SizedBox(height: 24.h),
                               _buildRowlabelTwo(
                                 context,
-                                labelTwo: "lbl_worried".tr,
-                                labelThree: "lbl_302".tr,
+                                labelTwo: "lbl_worried".tr(),
+                                labelThree: "lbl_302".tr(),
                               ),
                               SizedBox(height: 8.h),
                               Slider(
@@ -157,7 +158,7 @@ class LogScreenStep3PositiveOnePageState
                                   SizedBox(
                                     width: 48.h,
                                     child: Text(
-                                      "lbl_bored".tr,
+                                      "lbl_bored".tr(),
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyles
                                           .titleMediumSFProOnPrimarySemiBold,
@@ -166,7 +167,7 @@ class LogScreenStep3PositiveOnePageState
                                   SizedBox(
                                     width: 48.h,
                                     child: Text(
-                                      "lbl_100".tr,
+                                      "lbl_100".tr(),
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyles
                                           .titleMediumSFProOnPrimarySemiBold,
@@ -205,7 +206,7 @@ class LogScreenStep3PositiveOnePageState
                   CustomOutlinedButton(
                     height: 36.h,
                     width: 118.h,
-                    text: "lbl_next".tr,
+                    text: "lbl_next".tr(),
                     margin: EdgeInsets.only(right: 6.h),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL18Decoration,

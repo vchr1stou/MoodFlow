@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../core/app_export.dart';
 import '../models/listmum_one_item_model.dart';
 
@@ -11,6 +12,24 @@ class ListmumOneItemWidget extends StatelessWidget {
   }) : super(key: key);
 
   final ListmumOneItemModel listmumOneItemModelObj;
+
+  String _getTranslatedText(String? value) {
+    if (value == null) return "";
+    switch (value) {
+      case "Mum":
+        return "lbl_mum".tr();
+      case "Dad":
+        return "lbl_dad".tr();
+      case "Partner":
+        return "lbl_partner".tr();
+      case "Best Friend":
+        return "lbl_best_friend".tr();
+      case "6969696969":
+        return "lbl_6969696969".tr();
+      default:
+        return value;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +56,13 @@ class ListmumOneItemWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        listmumOneItemModelObj.mumTwo ?? "",
+                        _getTranslatedText(listmumOneItemModelObj.mumTwo),
                         style: theme.textTheme.titleSmall,
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        listmumOneItemModelObj.mobileNo ?? "",
+                        _getTranslatedText(listmumOneItemModelObj.mobileNo),
                         style: CustomTextStyles.labelLargeGray70013,
                         overflow: TextOverflow.ellipsis,
                       ),

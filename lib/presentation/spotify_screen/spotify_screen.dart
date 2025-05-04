@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
@@ -87,18 +88,18 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                                       ),
                                       SizedBox(height: 30.h),
                                       Text(
-                                        "Connected to Spotify",
+                                        "msg_connected_to_spotify".tr(),
                                         style: CustomTextStyles.headlineLarge30,
                                       ),
                                       SizedBox(height: 20.h),
                                       Text(
-                                        "Signed in as ${provider.userProfile?['display_name'] ?? 'User'}",
+                                        "msg_signed_in_as".tr(args: [provider.userProfile?['display_name'] ?? "lbl_user".tr()]),
                                         style: CustomTextStyles.titleLargeRobotoOnPrimaryContainer_1,
                                       ),
                                       SizedBox(height: 46.h),
                                       CustomOutlinedButton(
                                         height: 54.h,
-                                        text: "Disconnect Spotify",
+                                        text: "msg_disconnect_spotify".tr(),
                                         margin: EdgeInsets.only(
                                           left: 14.h,
                                           right: 18.h,
@@ -107,7 +108,7 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                                         decoration: CustomButtonStyles.outlineTL26Decoration,
                                         buttonTextStyle: theme.textTheme.titleSmall!,
                                         hasBlurBackground: true,
-                                        onTap: () {
+                                        onPressed: () {
                                           provider.logout();
                                         },
                                       ),
@@ -125,11 +126,11 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                                     ),
                                     SizedBox(height: 30.h),
                                     Text(
-                                      "msg_connect_your_soundtrack".tr,
+                                      "msg_connect_your_soundtrack".tr(),
                                       style: CustomTextStyles.headlineLarge30,
                                     ),
                                     Text(
-                                      "msg_every_feeling_has".tr,
+                                      "msg_every_feeling_has".tr(),
                                       style: CustomTextStyles.titleLargeRobotoOnPrimaryContainer_1,
                                     ),
                                     SizedBox(height: 6.h),
@@ -139,14 +140,14 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                                         right: 14.h,
                                       ),
                                       child: Text(
-                                        "msg_by_connecting_to".tr,
+                                        "msg_by_connecting_to".tr(),
                                         style: CustomTextStyles.labelMediumRobotoOnPrimaryContainer_2,
                                       ),
                                     ),
                                     SizedBox(height: 46.h),
                                     CustomOutlinedButton(
                                       height: 54.h,
-                                      text: "msg_link_spotify_account".tr,
+                                      text: "msg_link_spotify_account".tr(),
                                       margin: EdgeInsets.only(
                                         left: 14.h,
                                         right: 18.h,
@@ -155,7 +156,7 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                                       decoration: CustomButtonStyles.outlineTL26Decoration,
                                       buttonTextStyle: theme.textTheme.titleSmall!,
                                       hasBlurBackground: true,
-                                      onTap: () {
+                                      onPressed: () {
                                         provider.loginWithSpotify();
                                       },
                                     ),
@@ -170,7 +171,7 @@ class SpotifyScreenState extends State<SpotifyScreen> {
                     CustomOutlinedButton(
                       height: 48.h,
                       width: 108.h,
-                      text: "lbl_next".tr,
+                      text: "lbl_next".tr(),
                       margin: EdgeInsets.only(right: 20.h),
                       buttonStyle: CustomButtonStyles.none,
                       decoration: CustomButtonStyles.outlineDecoration,
@@ -207,6 +208,6 @@ class SpotifyScreenState extends State<SpotifyScreen> {
 
   /// Navigates to the previous screen.
   void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    Navigator.pop(context);
   }
 }

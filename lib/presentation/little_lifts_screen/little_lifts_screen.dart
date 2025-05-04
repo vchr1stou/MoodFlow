@@ -1,13 +1,27 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import '../../core/app_export.dart';
 import '../../widgets/base_button.dart';
 import '../../widgets/mood_flow_bottom_bar_svg.dart';
 import '../homescreen_screen/homescreen_screen.dart';
+import '../workout_screen/workout_screen.dart';
+import '../meditation_screen/meditation_screen.dart';
+import '../breathingmain_screen/breathingmain_screen.dart';
+import '../movies_screen/movies_screen.dart';
+import '../music_screen/music_screen.dart';
+import '../book_screen/book_screen.dart';
+import '../positiveaffirmations_screen/positiveaffirmations_screen.dart';
+import '../cooking_screen/cooking_screen.dart';
+import '../traveling_screen/traveling_screen.dart';
+import '../safetynetlittlelifts_screen/safetynetlittlelifts_screen.dart';
+import '../softthanks_screen/softthanks_screen.dart';
+import '../saved_screen/saved_screen.dart';
 import 'little_lifts_initial_page.dart';
 import 'models/little_lifts_model.dart';
 import 'provider/little_lifts_provider.dart';
+import '../ai_screen/ai_screen.dart';
 
 class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
   NoSwipeBackRoute({required WidgetBuilder builder}) : super(builder: builder);
@@ -33,7 +47,7 @@ class LittleLiftsScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => LittleLiftsProvider(),
-      child: LittleLiftsScreen(),
+      child: const LittleLiftsScreen(),
     );
   }
 }
@@ -74,8 +88,7 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                         key: navigatorKey,
                         initialRoute: AppRoutes.littleLiftsInitialPage,
                         onGenerateRoute: (routeSetting) => NoSwipeBackRoute(
-                          builder: (context) =>
-                              getCurrentPage(context, routeSetting.name!),
+                          builder: (context) => getCurrentPage(context, routeSetting.name!),
                         ),
                       ),
                     ),
@@ -99,22 +112,18 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                   alignment: Alignment.bottomCenter,
                   children: [
                     Transform.translate(
-                      offset: Offset(0, -23),
+                      offset: const Offset(0, -23),
                       child: Stack(
                         children: [
-                          // The entire bottom bar SVG
                           SvgPicture.asset(
                             'assets/images/bottom_bar_little_lifts_pressed.svg',
                             fit: BoxFit.fitWidth,
                           ),
-
-                          // Left side - Home text (navigates to Home screen)
                           Positioned(
                             left: 0,
                             top: 0,
                             bottom: 0,
-                            width:
-                                250, // Increased width for better touch target
+                            width: 250,
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () => Navigator.of(context).push(
@@ -122,7 +131,7 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                                   opaque: false,
                                   pageBuilder: (context, animation,
                                           secondaryAnimation) =>
-                                      HomescreenScreen(),
+                                      HomescreenScreen.builder(context),
                                   transitionsBuilder: (context, animation,
                                       secondaryAnimation, child) {
                                     return FadeTransition(
@@ -144,31 +153,64 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                               ),
                             ),
                           ),
-
-                          // Right side - Little Lifts text (no navigation)
                           Positioned(
                             right: 0,
                             top: 0,
                             bottom: 0,
-                            width:
-                                250, // Increased width for better touch target
+                            width: 250,
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              // No onTap handler - tapping does nothing
                             ),
                           ),
                         ],
                       ),
                     ),
                     Transform.translate(
-                      offset: Offset(0, -25),
-                      child: Image.asset(
-                        'assets/images/ai_button.png',
-                        width: 118.667,
-                        height: 36,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
-                        isAntiAlias: true,
+                      offset: const Offset(0, -25),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/ai_button.png',
+                            width: 118.667,
+                            height: 36,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.high,
+                            isAntiAlias: true,
+                          ),
+                          Positioned.fill(
+                            top: -22,
+                            bottom: -22,
+                            child: GestureDetector(
+                              onTap: () => Navigator.of(context).push(
+                                PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                      AiScreen.builder(context),
+                                  transitionsBuilder:
+                                      (context, animation, secondaryAnimation, child) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: ScaleTransition(
+                                        scale: Tween<double>(begin: 0.95, end: 1.0)
+                                            .animate(
+                                          CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeOut,
+                                          ),
+                                        ),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              child: Container(
+                                color: Colors.transparent,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -181,16 +223,39 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
     );
   }
 
-  ///Handling page based on route
   Widget getCurrentPage(
     BuildContext context,
     String currentRoute,
   ) {
     switch (currentRoute) {
       case AppRoutes.littleLiftsInitialPage:
-        return LittleLiftsInitialPage.builder(context);
+        return LittleLiftsInitialPage.builder(context, navigatorKey);
+      case AppRoutes.workoutScreen:
+        return WorkoutScreen.builder(context);
+      case AppRoutes.meditationScreen:
+        return MeditationScreen.builder(context);
+      case AppRoutes.breathingmainScreen:
+        return BreathingmainScreen.builder(context);
+      case AppRoutes.moviesScreen:
+        return MoviesScreen.builder(context);
+      case AppRoutes.musicScreen:
+        return MusicScreen.builder(context);
+      case AppRoutes.bookScreen:
+        return BookScreen.builder(context);
+      case AppRoutes.positiveaffirmationsScreen:
+        return PositiveaffirmationsScreen.builder(context);
+      case AppRoutes.cookingScreen:
+        return CookingScreen.builder(context);
+      case AppRoutes.travelingScreen:
+        return TravelingScreen.builder(context);
+      case AppRoutes.safetynetlittleliftsScreen:
+        return SafetynetlittleliftsScreen.builder(context);
+      case AppRoutes.softthanksScreen:
+        return SoftthanksScreen.builder(context);
+      case AppRoutes.savedScreen:
+        return SavedScreen.builder(context);
       default:
-        return LittleLiftsInitialPage.builder(context);
+        return LittleLiftsInitialPage.builder(context, navigatorKey);
     }
   }
 }

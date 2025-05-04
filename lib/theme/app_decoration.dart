@@ -204,6 +204,11 @@ class AppDecoration {
         color: appTheme.pink900.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12.h),
       );
+
+  static BoxDecoration get recessed => BoxDecoration(
+        color: appTheme.gray70019,
+        borderRadius: BorderRadiusStyle.circleBorder22,
+      );
 }
 
 class BorderRadiusStyle {

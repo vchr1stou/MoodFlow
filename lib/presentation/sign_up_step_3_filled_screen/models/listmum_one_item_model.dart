@@ -8,8 +8,8 @@ class ListmumOneItemModel {
     this.mobileNo,
     this.id,
   }) {
-    mumTwo ??= "lbl_mum".tr;
-    mobileNo ??= "lbl_6969696969".tr;
+    mumTwo ??= "Mum";
+    mobileNo ??= "6969696969";
     id ??= "";
   }
 

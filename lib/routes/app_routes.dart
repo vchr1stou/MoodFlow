@@ -68,6 +68,9 @@ import '../presentation/workout_screen/workout_screen.dart';
 import '../presentation/spotify_callback_screen/spotify_callback_screen.dart';
 
 class AppRoutes {
+  static const String welcomeScreen = '/welcome_screen';
+  static const String loginScreen = '/login_screen';
+  static const String signUpStepOneScreen = '/sign_up_step_one_screen';
   static const String discoverScreen = '/discover_screen';
   static const String homescreenScreen = '/homescreen_screen';
   static const String streakScreen = '/streak_screen';
@@ -89,9 +92,6 @@ class AppRoutes {
   static const String profileSafetyNetScreen = '/profile_safety_net_screen';
   static const String profileMyAccountScreen = '/profile_my_account_screen';
   static const String profileSpotifyScreen = '/profile_spotify_screen';
-  static const String welcomeScreen = '/welcome_screen';
-  static const String loginScreen = '/login_screen';
-  static const String signUpStepOneScreen = '/sign_up_step_one_screen';
   static const String signUpStepTwoScreen = '/sign_up_step_two_screen';
   static const String signUpStepThreeScreen = '/sign_up_step_three_screen';
   static const String signUpStep3FilledScreen = '/sign_up_step_3_filled_screen';
@@ -167,6 +167,9 @@ class AppRoutes {
   static const String spotifyCallbackScreen = '/spotify_callback_screen';
 
   static Map<String, WidgetBuilder> get routes => {
+        welcomeScreen: WelcomeScreen.builder,
+        loginScreen: LoginScreen.builder,
+        signUpStepOneScreen: SignUpStepOneScreen.builder,
         discoverScreen: DiscoverScreen.builder,
         homescreenScreen: HomescreenScreen.builder,
         streakScreen: StreakScreen.builder,
@@ -187,9 +190,6 @@ class AppRoutes {
         profileSafetyNetScreen: ProfileSafetyNetScreen.builder,
         profileMyAccountScreen: ProfileMyAccountScreen.builder,
         profileSpotifyScreen: ProfileSpotifyScreen.builder,
-        welcomeScreen: WelcomeScreen.builder,
-        loginScreen: LoginScreen.builder,
-        signUpStepOneScreen: SignUpStepOneScreen.builder,
         signUpStepTwoScreen: SignUpStepTwoScreen.builder,
         signUpStepThreeScreen: SignUpStepThreeScreen.builder,
         signUpStep3FilledScreen: SignUpStep3FilledScreen.builder,

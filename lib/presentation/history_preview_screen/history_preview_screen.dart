@@ -11,6 +11,7 @@ import 'models/history_preview_item_model.dart';
 import 'models/history_preview_model.dart';
 import 'provider/history_preview_provider.dart';
 import 'widgets/history_preview_item_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HistoryPreviewScreen extends StatefulWidget {
   const HistoryPreviewScreen({Key? key}) : super(key: key);
@@ -107,7 +108,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            "lbl_bright".tr,
+                                            "lbl_bright".tr(),
                                             style: CustomTextStyles
                                                 .headlineLargeSFProOnPrimary,
                                           ),
@@ -128,9 +129,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                           Align(
                                             alignment: Alignment.center,
                                             child: Text(
-                                              "msg_today_mar_30_17_00"
-                                                  .tr
-                                                  .toUpperCase(),
+                                              "msg_today_mar_30_17_00".tr().toUpperCase(),
                                               style: CustomTextStyles
                                                   .labelLargeOnPrimary13_2,
                                             ),
@@ -151,7 +150,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                 SizedBox(height: 12.h),
                                 CustomOutlinedButton(
                                   height: 30.h,
-                                  text: "msg_party_in_the_u_s_a".tr,
+                                  text: "msg_party_in_the_u_s_a".tr(),
                                   leftIcon: Container(
                                     margin: EdgeInsets.only(right: 4.h),
                                     child: CustomImageView(
@@ -182,7 +181,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                     children: [
                                       SizedBox(height: 6.h),
                                       Text(
-                                        "msg_playful_100".tr,
+                                        "msg_playful_100".tr(),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         textAlign: TextAlign.center,
@@ -206,7 +205,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                     children: [
                                       SizedBox(height: 6.h),
                                       Text(
-                                        "msg_lonely_100".tr,
+                                        "msg_lonely_100".tr(),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         textAlign: TextAlign.center,
@@ -250,13 +249,13 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              "msg_your_inner_monologue".tr,
+                                              "msg_your_inner_monologue".tr(),
                                               style: CustomTextStyles
                                                   .labelMediumOnPrimarySemiBold,
                                             ),
                                             Spacer(),
                                             Text(
-                                              "lbl_show_more".tr,
+                                              "lbl_show_more".tr(),
                                               style: CustomTextStyles
                                                   .labelMediumOnPrimarySemiBold,
                                             ),
@@ -274,7 +273,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
                                         ),
                                       ),
                                       Text(
-                                        "msg_lorem_ipsum_dolor2".tr,
+                                        "msg_lorem_ipsum_dolor2".tr(),
                                         maxLines: 12,
                                         overflow: TextOverflow.ellipsis,
                                         style: CustomTextStyles
@@ -310,7 +309,7 @@ class HistoryPreviewScreenState extends State<HistoryPreviewScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_history".tr,
+        text: "lbl_history".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
       actions: [

@@ -24,6 +24,7 @@ import '../discover_screen/discover_screen.dart';
 import '../statistics_mood_charts_screen/statistics_mood_charts_screen.dart';
 import '../log_input_screen/log_input_screen.dart';
 import '../little_lifts_screen/little_lifts_screen.dart';
+import '../ai_screen/ai_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'models/homescreen_model.dart';
@@ -197,7 +198,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => StreakScreen(),
+                        builder: (context) => StreakScreen.builder(context),
                       ),
                     );
                   },
@@ -278,7 +279,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => BreathingmainScreen(),
+                            builder: (context) => BreathingmainScreen.builder(context),
                           ),
                         );
                       },
@@ -452,7 +453,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => StatisticsMoodChartsScreen(),
+            builder: (context) => StatisticsMoodChartsScreen.builder(context),
           ),
         );
       },
@@ -644,7 +645,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DiscoverScreen(),
+                            builder: (context) => DiscoverScreen.builder(context),
                           ),
                         );
                       },
@@ -743,7 +744,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                       PageRouteBuilder(
                         opaque: false,
                         pageBuilder: (context, animation, secondaryAnimation) =>
-                            LittleLiftsScreen(),
+                            LittleLiftsScreen.builder(context),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
                           return FadeTransition(
@@ -769,13 +770,49 @@ class HomescreenScreenState extends State<HomescreenScreen> {
           ),
           Transform.translate(
             offset: Offset(0, -25),
-            child: Image.asset(
-              'assets/images/ai_button.png',
-              width: 118.667,
-              height: 36,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-              isAntiAlias: true,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/ai_button.png',
+                  width: 118.667,
+                  height: 36,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  isAntiAlias: true,
+                ),
+                Positioned.fill(
+                  top: -22,
+                  bottom: -22,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      PageRouteBuilder(
+                        opaque: false,
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            AiScreen.builder(context),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOut,
+                                ),
+                              ),
+                              child: child,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -7,6 +7,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_switch.dart';
 import 'models/profile_gentle_reminders_model.dart';
 import 'provider/profile_gentle_reminders_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileGentleRemindersScreen extends StatefulWidget {
   const ProfileGentleRemindersScreen({Key? key}) : super(key: key);
@@ -62,7 +63,7 @@ class ProfileGentleRemindersScreenState
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  "msg_gentle_reminders".tr,
+                                  "msg_gentle_reminders".tr(),
                                   style: theme.textTheme.headlineLarge,
                                 ),
                                 SizedBox(height: 6.h),
@@ -146,7 +147,7 @@ class ProfileGentleRemindersScreenState
                       Padding(
                         padding: EdgeInsets.only(left: 8.h),
                         child: Text(
-                          "msg_daily_check_in".tr,
+                          "msg_daily_check_in".tr(),
                           style: theme.textTheme.titleSmall,
                         ),
                       ),
@@ -225,7 +226,7 @@ class ProfileGentleRemindersScreenState
                       Padding(
                         padding: EdgeInsets.only(left: 8.h),
                         child: Text(
-                          "msg_quote_of_the_day2".tr,
+                          "msg_quote_of_the_day2".tr(),
                           style: theme.textTheme.titleSmall,
                         ),
                       ),
@@ -266,7 +267,7 @@ class ProfileGentleRemindersScreenState
                       Padding(
                         padding: EdgeInsets.only(left: 4.h),
                         child: Text(
-                          "lbl_9_30".tr,
+                          "lbl_9_30".tr(),
                           style: theme.textTheme.titleSmall,
                         ),
                       ),
@@ -322,7 +323,7 @@ class ProfileGentleRemindersScreenState
                       Padding(
                         padding: EdgeInsets.only(left: 8.h),
                         child: Text(
-                          "lbl_streak_reminder".tr,
+                          "lbl_streak_reminder".tr(),
                           style: theme.textTheme.titleSmall,
                         ),
                       ),
@@ -364,7 +365,7 @@ class ProfileGentleRemindersScreenState
                       Padding(
                         padding: EdgeInsets.only(left: 4.h),
                         child: Text(
-                          "lbl_23_40".tr,
+                          "lbl_23_40".tr(),
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
@@ -399,7 +400,7 @@ class ProfileGentleRemindersScreenState
         children: [
           CustomOutlinedButton(
             width: 182.h,
-            text: "msg_add_a_new_reminder".tr,
+            text: "msg_add_a_new_reminder".tr(),
             margin: EdgeInsets.only(bottom: 12.h),
             buttonStyle: CustomButtonStyles.none,
             decoration: CustomButtonStyles.outlineTL241Decoration,

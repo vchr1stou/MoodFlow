@@ -1,287 +1,163 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../core/app_export.dart';
-import '../../widgets/app_bar/appbar_trailing_button_one.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_text_form_field.dart';
-import 'models/ai_model.dart';
-import 'provider/ai_provider.dart';
+import 'dart:io';
+import 'dart:ui';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../homescreen_screen/homescreen_screen.dart';
+import '../little_lifts_screen/little_lifts_screen.dart';
 
 class AiScreen extends StatefulWidget {
-  const AiScreen({Key? key})
-      : super(
-          key: key,
-        );
+  const AiScreen({Key? key}) : super(key: key);
 
   @override
   AiScreenState createState() => AiScreenState();
+
   static Widget builder(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AiProvider(),
-      child: AiScreen(),
-    );
+    return const AiScreen();
   }
 }
 
 class AiScreenState extends State<AiScreen> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: appTheme.gray6004c,
-      body: SafeArea(
-        child: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: 830.h,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Background image
+          Container(
+            width: double.maxFinite,
+            height: double.maxFinite,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Semi-transparent overlay with blur
+          Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Color(0xFF000000).withOpacity(0.15),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        width: double.infinity,
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
+        ),
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Transform.translate(
+              offset: const Offset(0, -23),
               child: Stack(
-                alignment: Alignment.center,
                 children: [
-                  _buildColumnsearchfie(context),
-                  _buildStackhelp(context),
-                  CustomImageView(
-                    imagePath: ImageConstant.imgSirianimationshakyphone15pro,
-                    height: 830.h,
-                    width: double.maxFinite,
-                  )
+                  SvgPicture.asset(
+                    'assets/images/bottom_bar_ai.svg',
+                    fit: BoxFit.fitWidth,
+                  ),
+                  // Left side - Home navigation
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 250,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                        PageRouteBuilder(
+                          opaque: false,
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              HomescreenScreen.builder(context),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: ScaleTransition(
+                                scale: Tween<double>(begin: 0.95, end: 1.0)
+                                    .animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOut,
+                                  ),
+                                ),
+                                child: child,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Right side - Little Lifts navigation
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 250,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                        PageRouteBuilder(
+                          opaque: false,
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              LittleLiftsScreen.builder(context),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: ScaleTransition(
+                                scale: Tween<double>(begin: 0.95, end: 1.0)
+                                    .animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOut,
+                                  ),
+                                ),
+                                child: child,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildColumnsearchfie(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 4,
-            sigmaY: 4,
-          ),
-          child: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(
-              horizontal: 14.h,
-              vertical: 56.h,
-            ),
-            decoration: AppDecoration.gradientBlackToGray,
-            child: Column(
-              spacing: 14,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 18.h),
-                Selector<AiProvider, TextEditingController?>(
-                  selector: (context, provider) =>
-                      provider.searchfieldoneController,
-                  builder: (context, searchfieldoneController, child) {
-                    return CustomTextFormField(
-                      controller: searchfieldoneController,
-                      hintText: "lbl_ask_me_anything".tr,
-                      textInputAction: TextInputAction.done,
-                      prefix: Padding(
-                        padding: EdgeInsets.only(
-                          left: 14.57.h,
-                          right: 30.h,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomImageView(
-                              imagePath: ImageConstant.imgMic,
-                              height: 24.h,
-                              width: 14.83.h,
-                              margin: EdgeInsets.fromLTRB(
-                                  14.57.h, 9.48999.h, 14.599998.h, 10.51001.h),
-                            ),
-                            CustomImageView(
-                              imagePath: ImageConstant.imgHighlightFrame,
-                              height: 44.h,
-                              width: 8.h,
-                            )
-                          ],
-                        ),
-                      ),
-                      prefixConstraints: BoxConstraints(
-                        maxHeight: 44.h,
-                      ),
-                      suffix: Container(
-                        padding: EdgeInsets.all(10.h),
-                        margin: EdgeInsets.only(left: 30.h),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            20.h,
-                          ),
-                          gradient: LinearGradient(
-                            begin: Alignment(0.5, 1),
-                            end: Alignment(0.5, 0),
-                            colors: [
-                              theme.colorScheme.primary,
-                              theme.colorScheme.primary.withValues(
-                                alpha: 0,
-                              )
-                            ],
-                          ),
-                        ),
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgPaperplanefill1,
-                          height: 22.h,
-                          width: 22.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      suffixConstraints: BoxConstraints(
-                        maxHeight: 44.h,
-                      ),
-                    );
-                  },
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 20.h,
-                    vertical: 4.h,
+            Transform.translate(
+              offset: const Offset(0, -25),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/ai_button.png',
+                    width: 118.667,
+                    height: 36,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                    isAntiAlias: true,
                   ),
-                  decoration: AppDecoration.viewsRecessedMaterialView.copyWith(
-                    borderRadius: BorderRadiusStyle.roundedBorder24,
+                  Positioned.fill(
+                    top: -22,
+                    bottom: -22,
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
                   ),
-                  width: double.maxFinite,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomImageView(
-                        imagePath: ImageConstant.imgHouseFill1Pink100,
-                        height: 14.h,
-                        width: 18.h,
-                        margin: EdgeInsets.only(left: 12.h),
-                      ),
-                      Container(
-                        width: 40.h,
-                        margin: EdgeInsets.only(left: 2.h),
-                        child: Text(
-                          "lbl_home".tr,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.labelLargePink100,
-                        ),
-                      ),
-                      Spacer(),
-                      Card(
-                        clipBehavior: Clip.antiAlias,
-                        elevation: 0,
-                        margin: EdgeInsets.zero,
-                        color: theme.colorScheme.onPrimary.withValues(
-                          alpha: 0.18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(
-                            width: 0.5.h,
-                          ),
-                          borderRadius: BorderRadiusStyle.circleBorder18,
-                        ),
-                        child: Container(
-                          height: 36.h,
-                          width: 120.h,
-                          decoration: AppDecoration.outline1.copyWith(
-                            borderRadius: BorderRadiusStyle.circleBorder18,
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              CustomImageView(
-                                imagePath: ImageConstant.imgImage3,
-                                height: 36.h,
-                                width: double.maxFinite,
-                              ),
-                              CustomImageView(
-                                imagePath: ImageConstant.imgBlurS36x118,
-                                height: 36.h,
-                                width: double.maxFinite,
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      CustomImageView(
-                        imagePath: ImageConstant.imgThumbsUpPink100,
-                        height: 16.h,
-                        width: 18.h,
-                        margin: EdgeInsets.only(left: 20.h),
-                      ),
-                      Container(
-                        width: 66.h,
-                        margin: EdgeInsets.only(left: 2.h),
-                        child: Text(
-                          "lbl_little_lifts".tr,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.labelLargeOnPrimary13,
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildStackhelp(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        height: 162.h,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 4,
-                  sigmaY: 4,
-                ),
-                child: Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                  decoration: AppDecoration.outline2,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomAppBar(
-                        height: 26.h,
-                        actions: [
-                          AppbarTrailingButtonOne(
-                            margin: EdgeInsets.only(right: 27.h),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Text(
-                "msg_how_are_you_feeling2".tr,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: CustomTextStyles.headlineLargeSFPro.copyWith(
-                  height: 1.19,
-                ),
-              ),
-            )
           ],
         ),
       ),

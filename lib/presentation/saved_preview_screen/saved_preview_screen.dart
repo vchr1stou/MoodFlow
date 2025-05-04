@@ -8,6 +8,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import 'models/saved_preview_model.dart';
 import 'provider/saved_preview_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SavedPreviewScreen extends StatefulWidget {
   const SavedPreviewScreen({Key? key}) : super(key: key);
@@ -117,7 +118,7 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_saved".tr,
+        text: "lbl_saved".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -143,14 +144,14 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 6.h),
                   child: Text(
-                    "msg_italian_carbonara".tr,
+                    "msg_italian_carbonara".tr(),
                     style: CustomTextStyles.titleLargeRobotoOnPrimarySemiBold23,
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 6.h),
                   child: Text(
-                    "msg_20_mins_4_portions".tr,
+                    "msg_20_mins_4_portions".tr(),
                     style: CustomTextStyles.labelLargeRobotoOnPrimary13,
                   ),
                 ),
@@ -158,7 +159,7 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 6.h),
                   child: Text(
-                    "lbl_about".tr,
+                    "lbl_about".tr(),
                     style: CustomTextStyles.labelLargeRobotoOnPrimary13,
                   ),
                 ),
@@ -166,7 +167,7 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                 Padding(
                   padding: EdgeInsets.only(left: 6.h),
                   child: Text(
-                    "msg_imagine_a_twirl".tr,
+                    "msg_imagine_a_twirl".tr(),
                     maxLines: 6,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyles.labelMediumRobotoOnPrimarySemiBold
@@ -183,7 +184,7 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                       CustomElevatedButton(
                         height: 42.h,
                         width: 120.h,
-                        text: "lbl_get_the_recipe".tr,
+                        text: "lbl_get_the_recipe".tr(),
                         leftIcon: Container(
                           margin: EdgeInsets.only(right: 8.h),
                           child: CustomImageView(
@@ -201,7 +202,7 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                       CustomElevatedButton(
                         height: 42.h,
                         width: 78.h,
-                        text: "lbl_saved".tr,
+                        text: "lbl_saved".tr(),
                         margin: EdgeInsets.only(left: 10.h),
                         leftIcon: Container(
                           margin: EdgeInsets.only(right: 2.h),

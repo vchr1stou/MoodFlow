@@ -6,6 +6,7 @@ import '../log_screen_step_2_negative_page/log_screen_step_2_negative_page.dart'
 import 'logscreenstep_tab2_page.dart';
 import 'models/log_screen_step_3_no_positive_model.dart';
 import 'provider/log_screen_step_3_no_positive_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogScreenStep3NoPositiveScreen extends StatefulWidget {
   const LogScreenStep3NoPositiveScreen({Key? key})
@@ -53,12 +54,12 @@ class LogScreenStep3NoPositiveScreenState
               mainAxisSize: MainAxisSize.max,
               children: [
                 Text(
-                  "msg_select_intensivity".tr,
+                  "msg_select_intensivity".tr(),
                   style: theme.textTheme.headlineSmall,
                 ),
                 SizedBox(height: 6.h),
                 Text(
-                  "msg_is_your_mood_just".tr,
+                  "msg_is_your_mood_just".tr(),
                   style: CustomTextStyles.labelMediumOnPrimary,
                 ),
                 SizedBox(height: 10.h),
@@ -140,7 +141,7 @@ class LogScreenStep3NoPositiveScreenState
                             width: 90.h,
                             padding: EdgeInsets.symmetric(horizontal: 16.h),
                             child: Text(
-                              "lbl_positive".tr,
+                              "lbl_positive".tr(),
                             ),
                           ),
                         ),
@@ -150,7 +151,7 @@ class LogScreenStep3NoPositiveScreenState
                             width: 98.h,
                             padding: EdgeInsets.symmetric(horizontal: 16.h),
                             child: Text(
-                              "lbl_negative".tr,
+                              "lbl_negative".tr(),
                             ),
                           ),
                         )

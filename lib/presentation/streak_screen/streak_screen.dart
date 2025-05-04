@@ -18,7 +18,9 @@ class StreakScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => StreakProvider(),
-      child: StreakScreen(),
+      child: Builder(
+        builder: (context) => StreakScreen(),
+      ),
     );
   }
 }
@@ -64,11 +66,11 @@ class StreakScreenState extends State<StreakScreen> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: "msg_a_streak_is_your".tr,
+                              text: "A streak is your",
                               style: CustomTextStyles.titleSmallRoboto14,
                             ),
                             TextSpan(
-                              text: "msg_each_day_you".tr,
+                              text: "Each day you",
                               style: CustomTextStyles.titleMediumOnPrimary,
                             ),
                           ],
@@ -83,7 +85,7 @@ class StreakScreenState extends State<StreakScreen> {
                     SizedBox(height: 16.h),
                     CustomOutlinedButton(
                       height: 50.h,
-                      text: "msg_quick_7_hours".tr,
+                      text: "Quick 7 hours",
                       margin: EdgeInsets.symmetric(horizontal: 30.h),
                       buttonStyle: CustomButtonStyles.none,
                       decoration: CustomButtonStyles.outlineTL24Decoration,
@@ -136,11 +138,11 @@ class StreakScreenState extends State<StreakScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "lbl_longest_streak".tr,
+                        "Longest streak",
                         style: CustomTextStyles.labelLargeRoboto,
                       ),
                       Text(
-                        "lbl_152_days".tr,
+                        "152 days",
                         style: CustomTextStyles.labelLargeRobotoMedium,
                       ),
                     ],
@@ -165,13 +167,13 @@ class StreakScreenState extends State<StreakScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "lbl_current_streak".tr,
+                        "Current streak",
                         style: CustomTextStyles.labelLargeRoboto,
                       ),
                       Align(
                         alignment: Alignment.center,
                         child: Text(
-                          "lbl_7_days".tr,
+                          "7 days",
                           style: CustomTextStyles.labelLargeRobotoMedium,
                         ),
                       ),

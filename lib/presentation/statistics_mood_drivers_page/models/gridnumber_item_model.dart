@@ -9,9 +9,9 @@ class GridnumberItemModel {
     this.exercise,
     this.id,
   }) {
-    number = number ?? "lbl_20".tr;
+    number = number ?? "lbl_20";
     image = image ?? ImageConstant.imgFigurerun1;
-    exercise = exercise ?? "lbl_exercise".tr;
+    exercise = exercise ?? "lbl_exercise";
     id = id ?? "";
   }
 

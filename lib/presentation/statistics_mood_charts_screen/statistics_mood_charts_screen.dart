@@ -18,7 +18,9 @@ class StatisticsMoodChartsScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => StatisticsMoodChartsProvider(),
-      child: StatisticsMoodChartsScreen(),
+      child: Builder(
+        builder: (context) => StatisticsMoodChartsScreen(),
+      ),
     );
   }
 }
@@ -55,7 +57,7 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
                 Padding(
                   padding: EdgeInsets.only(left: 6.h),
                   child: Text(
-                    "lbl_statistics".tr,
+                    "Statistics",
                     style: theme.textTheme.displaySmall,
                   ),
                 ),
@@ -155,11 +157,11 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
       height: 28.h,
       leadingWidth: 20.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgChevron,
+        imagePath: 'assets/images/chevronl.svg',
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_back".tr,
+        text: "Back",
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -222,7 +224,7 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
               child: Container(
                 width: 126.h,
                 padding: EdgeInsets.symmetric(horizontal: 16.h),
-                child: Text("lbl_mood_charts".tr),
+                child: Text("Mood Charts"),
               ),
             ),
             Tab(
@@ -230,7 +232,7 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
               child: Container(
                 width: 130.h,
                 padding: EdgeInsets.symmetric(horizontal: 16.h),
-                child: Text("lbl_mood_drivers".tr),
+                child: Text("Mood Drivers"),
               ),
             )
           ],

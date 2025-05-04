@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -6,6 +7,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_change_pin_2nd_step_model.dart';
 import 'provider/profile_change_pin_2nd_step_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileChangePin2ndStepScreen extends StatefulWidget {
   const ProfileChangePin2ndStepScreen({Key? key}) : super(key: key);
@@ -56,14 +58,14 @@ class ProfileChangePin2ndStepScreenState
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    "lbl_change_pin".tr,
+                    "lbl_change_pin".tr(),
                     style: theme.textTheme.headlineLarge,
                   ),
                   SizedBox(height: 4.h),
                   SizedBox(
                     width: 148.h,
                     child: Text(
-                      "msg_now_set_a_new_pin".tr,
+                      "msg_now_set_a_new_pin".tr(),
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium,
@@ -74,7 +76,7 @@ class ProfileChangePin2ndStepScreenState
                   SizedBox(height: 22.h),
                   CustomOutlinedButton(
                     width: 182.h,
-                    text: "lbl_set_new_pin".tr,
+                    text: "lbl_set_new_pin".tr(),
                     buttonStyle: CustomButtonStyles.none,
                     decoration: CustomButtonStyles.outlineTL241Decoration,
                   ),
@@ -114,7 +116,7 @@ class ProfileChangePin2ndStepScreenState
         children: [
           SizedBox(height: 6.h),
           Text(
-            "lbl4".tr,
+            "lbl4".tr(),
             style: theme.textTheme.displayMedium,
           ),
         ],

@@ -9,6 +9,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/logintwo_model.dart';
 import 'provider/logintwo_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LogintwoScreen extends StatefulWidget {
   const LogintwoScreen({Key? key})
@@ -81,12 +82,12 @@ class LogintwoScreenState extends State<LogintwoScreen> {
                                       right: 8.h,
                                     ),
                                     child: Text(
-                                      "msg_we_re_glad_you_re".tr,
+                                      "msg_we_re_glad_you_re".tr(),
                                       style: theme.textTheme.headlineLarge,
                                     ),
                                   ),
                                   Text(
-                                    "msg_let_s_set_up_your".tr,
+                                    "msg_let_s_set_up_your".tr(),
                                     style: CustomTextStyles
                                         .titleLargeRobotoOnPrimaryContainer,
                                   ),
@@ -146,7 +147,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
           Padding(
             padding: EdgeInsets.only(left: 4.h),
             child: Text(
-              "lbl_name".tr,
+              "lbl_name".tr(),
               style: CustomTextStyles.titleMediumRobotoWhiteA700,
             ),
           ),
@@ -155,7 +156,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
             builder: (context, nametwoController, child) {
               return CustomTextFormField(
                 controller: nametwoController,
-                hintText: "lbl_john_appleseed".tr,
+                hintText: "lbl_john_appleseed".tr(),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 18.h,
                   vertical: 10.h,
@@ -179,7 +180,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
           Padding(
             padding: EdgeInsets.only(left: 4.h),
             child: Text(
-              "lbl_pronoums".tr,
+              "lbl_pronoums".tr(),
               style: CustomTextStyles.titleMediumRobotoWhiteA700,
             ),
           ),
@@ -198,7 +199,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
                 SizedBox(
                   width: 176.h,
                   child: Text(
-                    "msg_select_your_pronouns".tr,
+                    "msg_select_your_pronouns".tr(),
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyles.titleMediumGray70001,
                   ),
@@ -227,7 +228,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
           Padding(
             padding: EdgeInsets.only(left: 4.h),
             child: Text(
-              "lbl_email".tr,
+              "lbl_email".tr(),
               style: CustomTextStyles.titleMediumRobotoWhiteA700,
             ),
           ),
@@ -236,7 +237,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
             builder: (context, emailthreeController, child) {
               return CustomTextFormField(
                 controller: emailthreeController,
-                hintText: "msg_johnappleseed_exaple_com".tr,
+                hintText: "msg_johnappleseed_exaple_com".tr(),
                 textInputType: TextInputType.emailAddress,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 18.h,
@@ -245,7 +246,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
                 validator: (value) {
                   if (value == null ||
                       (!isValidEmail(value, isRequired: true))) {
-                    return "err_msg_please_enter_valid_email".tr;
+                    return "err_msg_please_enter_valid_email".tr();
                   }
                   return null;
                 },
@@ -268,7 +269,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
           Padding(
             padding: EdgeInsets.only(left: 4.h),
             child: Text(
-              "lbl_password".tr,
+              "lbl_password".tr(),
               style: CustomTextStyles.titleMediumRobotoWhiteA700,
             ),
           ),
@@ -323,7 +324,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
           Padding(
             padding: EdgeInsets.only(left: 4.h),
             child: Text(
-              "msg_confirm_password".tr,
+              "msg_confirm_password".tr(),
               style: CustomTextStyles.titleMediumRobotoWhiteA700,
             ),
           ),
@@ -381,7 +382,7 @@ class LogintwoScreenState extends State<LogintwoScreen> {
           CustomOutlinedButton(
             height: 48.h,
             width: 108.h,
-            text: "lbl_next".tr,
+            text: "lbl_next".tr(),
             buttonStyle: CustomButtonStyles.none,
             decoration: CustomButtonStyles.outlineDecoration,
             buttonTextStyle:
@@ -395,6 +396,6 @@ class LogintwoScreenState extends State<LogintwoScreen> {
 
   /// Navigates to the previous screen.
   onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBack();
+    NavigatorService.goBack(context);
   }
 }

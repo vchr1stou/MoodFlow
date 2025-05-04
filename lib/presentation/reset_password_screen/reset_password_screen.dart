@@ -9,6 +9,7 @@ import '../../widgets/custom_floating_text_field.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/reset_password_model.dart';
 import 'provider/reset_password_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({Key? key}) : super(key: key);
@@ -57,14 +58,14 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         children: [
                           Center(
                             child: Text(
-                              "lbl_reset_password".tr,
+                              "Reset Password",
                               style: CustomTextStyles.displayMediumWhiteA700,
                             ),
                           ),
                           SizedBox(height: 6.h),
                           Center(
                             child: Text(
-                              "msg_enter_your_new_password".tr,
+                              AppStrings.enterYourNewPassword,
                               style: CustomTextStyles.titleMediumSemiBold16,
                             ),
                           ),
@@ -72,7 +73,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           Padding(
                             padding: EdgeInsets.only(left: 6.h),
                             child: Text(
-                              "msg_enter_your_new_password2".tr,
+                              AppStrings.enterYourNewPassword2,
                               style: CustomTextStyles.titleMediumWhiteA700,
                             ),
                           ),
@@ -86,10 +87,10 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               builder: (context, controller, _) {
                                 return CustomFloatingTextField(
                                   controller: controller,
-                                  labelText: "lbl".tr,
+                                  labelText: "•••••••",
                                   labelStyle: CustomTextStyles
                                       .displayMediumSFProGray700,
-                                  hintText: "lbl".tr,
+                                  hintText: "lbl".tr(),
                                   textInputType: TextInputType.visiblePassword,
                                   obscureText: true,
                                   contentPadding: EdgeInsets.symmetric(
@@ -99,7 +100,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                         !isValidPassword(value,
                                             isRequired: true)) {
                                       return "err_msg_please_enter_valid_password"
-                                          .tr;
+                                          .tr();
                                     }
                                     return null;
                                   },
@@ -111,7 +112,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           Padding(
                             padding: EdgeInsets.only(left: 6.h),
                             child: Text(
-                              "msg_re_enter_your_new".tr,
+                              "msg_re_enter_your_new".tr(),
                               style: CustomTextStyles.titleMediumWhiteA700,
                             ),
                           ),
@@ -125,10 +126,10 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               builder: (context, controller, _) {
                                 return CustomFloatingTextField(
                                   controller: controller,
-                                  labelText: "lbl".tr,
+                                  labelText: "lbl".tr(),
                                   labelStyle: CustomTextStyles
                                       .displayMediumSFProGray700,
-                                  hintText: "lbl".tr,
+                                  hintText: "lbl".tr(),
                                   textInputType: TextInputType.visiblePassword,
                                   textInputAction: TextInputAction.done,
                                   obscureText: true,
@@ -139,7 +140,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                         !isValidPassword(value,
                                             isRequired: true)) {
                                       return "err_msg_please_enter_valid_password"
-                                          .tr;
+                                          .tr();
                                     }
                                     return null;
                                   },
@@ -149,7 +150,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           SizedBox(height: 30.h),
                           CustomOutlinedButton(
-                            text: "lbl_continue".tr,
+                            text: "lbl_continue".tr(),
                             margin: EdgeInsets.symmetric(horizontal: 62.h),
                             buttonStyle: CustomButtonStyles.none,
                             decoration:
@@ -163,7 +164,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           CustomElevatedButton(
                             height: 42.h,
                             width: 78.h,
-                            text: "lbl_save".tr,
+                            text: "lbl_save".tr(),
                             margin: EdgeInsets.only(left: 8.h),
                             leftIcon: Container(
                               margin: EdgeInsets.only(right: 2.h),

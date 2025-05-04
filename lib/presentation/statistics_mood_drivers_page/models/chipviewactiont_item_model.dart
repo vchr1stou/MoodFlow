@@ -7,7 +7,7 @@ class ChipviewactiontItemModel {
     this.actiontwoOne,
     this.isSelected,
   }) {
-    actiontwoOne = actiontwoOne ?? "lbl_exercise".tr;
+    actiontwoOne = actiontwoOne ?? "lbl_exercise";
     isSelected = isSelected ?? false;
   }
 

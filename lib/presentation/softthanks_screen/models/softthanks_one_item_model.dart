@@ -1,4 +1,6 @@
-import '../../../core/app_export.dart';
+import 'package:flutter/material.dart';
+import '../../../../core/app_export.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [softthanks_one_item_widget] screen.
 /// It represents a single gratitude item in the soft thanks list.
@@ -8,7 +10,7 @@ class SoftthanksOneItemModel {
     this.thewaythe,
     this.id,
   }) {
-    thewaythe = thewaythe ?? "msg_the_way_the_sunlight".tr;
+    thewaythe = thewaythe ?? "msg_the_way_the_sunlight".tr();
     id = id ?? "";
   }
 

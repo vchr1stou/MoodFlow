@@ -3,15 +3,16 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../../core/app_export.dart';
 import 'chart_one_chart_model.dart';
 import 'segmented_item_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// This class is used in the [statisticsmood_tab_page] screen.
 // ignore_for_file: must_be_immutable
 class StatisticsmoodTabModel {
   List<SegmentedItemModel> segmentedItemList = [
-    SegmentedItemModel(buttononeOne: "lbl_past_week".tr),
-    SegmentedItemModel(buttononeOne: "lbl_past_month".tr),
-    SegmentedItemModel(buttononeOne: "lbl_all_time".tr),
-    SegmentedItemModel(buttononeOne: "lbl_custom".tr),
+    SegmentedItemModel(buttononeOne: "lbl_past_week".tr()),
+    SegmentedItemModel(buttononeOne: "lbl_past_month".tr()),
+    SegmentedItemModel(buttononeOne: "lbl_all_time".tr()),
+    SegmentedItemModel(buttononeOne: "lbl_custom".tr()),
   ];
 
   List<ChartOneChartModel> chartOneChartModelObj = [

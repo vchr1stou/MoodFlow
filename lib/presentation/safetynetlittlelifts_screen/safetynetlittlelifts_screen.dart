@@ -69,7 +69,7 @@ class SafetynetlittleliftsScreenState
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "Little Lifts",
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -94,7 +94,7 @@ class SafetynetlittleliftsScreenState
             child: Container(
               margin: EdgeInsets.symmetric(vertical: 4.h, horizontal: 10.h),
               child: Text(
-                "msg_sometimes_all_you".tr,
+                AppStrings.sometimesAllYou,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
                 style: CustomTextStyles.titleMediumSecondaryContainer.copyWith(
@@ -160,7 +160,7 @@ class SafetynetlittleliftsScreenState
         builder: (context, controller, child) {
           return CustomTextFormField(
             controller: controller,
-            hintText: "lbl_ask_me_anything".tr,
+            hintText: "Ask me anything",
             textInputAction: TextInputAction.done,
             prefix: Padding(
               padding: EdgeInsets.symmetric(horizontal: 14.57.h),

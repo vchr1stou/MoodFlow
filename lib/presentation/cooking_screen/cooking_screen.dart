@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -69,7 +70,7 @@ class CookingScreenState extends State<CookingScreen> {
                         builder: (context, searchController, child) {
                           return CustomTextFormField(
                             controller: searchController,
-                            hintText: "lbl_ask_me_anything".tr,
+                            hintText: "lbl_ask_me_anything".tr(),
                             textInputAction: TextInputAction.done,
                             prefix: Padding(
                               padding: EdgeInsets.only(
@@ -144,7 +145,7 @@ class CookingScreenState extends State<CookingScreen> {
         margin: EdgeInsets.only(left: 8.h),
       ),
       title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr,
+        text: "lbl_little_lifts".tr(),
         margin: EdgeInsets.only(left: 10.h),
       ),
     );
@@ -169,7 +170,7 @@ class CookingScreenState extends State<CookingScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              "msg_a_warm_kitchen".tr,
+              "msg_a_warm_kitchen".tr(),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: CustomTextStyles.titleSmallRobotoSecondaryContainer
@@ -248,14 +249,14 @@ class CookingScreenState extends State<CookingScreen> {
               Padding(
                 padding: EdgeInsets.only(left: 6.h),
                 child: Text(
-                  "msg_italian_carbonara".tr,
+                  "msg_italian_carbonara".tr(),
                   style: CustomTextStyles.titleLargeRobotoOnPrimarySemiBold23,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(left: 6.h),
                 child: Text(
-                  "msg_20_mins_4_portions".tr,
+                  "msg_20_mins_4_portions".tr(),
                   style: CustomTextStyles.labelLargeRobotoOnPrimary13,
                 ),
               ),
@@ -263,7 +264,7 @@ class CookingScreenState extends State<CookingScreen> {
               Padding(
                 padding: EdgeInsets.only(left: 6.h),
                 child: Text(
-                  "lbl_about".tr,
+                  "lbl_about".tr(),
                   style: CustomTextStyles.labelLargeRobotoOnPrimary13,
                 ),
               ),
@@ -271,7 +272,7 @@ class CookingScreenState extends State<CookingScreen> {
               Padding(
                 padding: EdgeInsets.only(left: 6.h),
                 child: Text(
-                  "msg_imagine_a_twirl".tr,
+                  "msg_imagine_a_twirl".tr(),
                   maxLines: 6,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyles.labelMediumRobotoOnPrimarySemiBold
@@ -285,7 +286,7 @@ class CookingScreenState extends State<CookingScreen> {
                   CustomElevatedButton(
                     height: 42.h,
                     width: 120.h,
-                    text: "lbl_get_the_recipe".tr,
+                    text: "lbl_get_the_recipe".tr(),
                     leftIcon: Container(
                       margin: EdgeInsets.only(right: 8.h),
                       child: CustomImageView(
@@ -304,7 +305,7 @@ class CookingScreenState extends State<CookingScreen> {
                   CustomElevatedButton(
                     height: 42.h,
                     width: 78.h,
-                    text: "lbl_save".tr,
+                    text: "lbl_save".tr(),
                     leftIcon: Container(
                       margin: EdgeInsets.only(right: 2.h),
                       child: CustomImageView(
