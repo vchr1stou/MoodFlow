@@ -89,111 +89,119 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                 ),
               ),
             ),
-            // Bottom navigation bar
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
-                ),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Transform.translate(
-                      offset: const Offset(0, -23),
-                      child: Stack(
-                        children: [
-                          SvgPicture.asset(
-                            'assets/images/bottom_bar_little_lifts_pressed.svg',
-                            fit: BoxFit.fitWidth,
-                          ),
-                          // Home navigation
-                          Positioned(
-                            left: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 250,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  opaque: false,
-                                  pageBuilder: (context, animation, secondaryAnimation) =>
-                                      HomescreenScreen.builder(context),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: ScaleTransition(
-                                        scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                                          CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOut,
-                                          ),
-                                        ),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Little Lifts section (no navigation)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 250,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                            ),
-                          ),
-                        ],
-                      ),
+            // Bottom navigation bar - only show if not on breathing screen
+            Builder(
+              builder: (context) {
+                final currentRoute = ModalRoute.of(context)?.settings.name;
+                if (currentRoute == AppRoutes.breathingmainScreen) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
                     ),
-                    // AI button
-                    Transform.translate(
-                      offset: const Offset(0, -25),
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          PageRouteBuilder(
-                            opaque: false,
-                            pageBuilder: (context, animation, secondaryAnimation) =>
-                                AiScreen.builder(context),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: ScaleTransition(
-                                  scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeOut,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Transform.translate(
+                          offset: const Offset(0, -23),
+                          child: Stack(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/bottom_bar_little_lifts_pressed.svg',
+                                fit: BoxFit.fitWidth,
+                              ),
+                              // Home navigation
+                              Positioned(
+                                left: 0,
+                                top: 0,
+                                bottom: 0,
+                                width: 250,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => Navigator.of(context).push(
+                                    PageRouteBuilder(
+                                      opaque: false,
+                                      pageBuilder: (context, animation, secondaryAnimation) =>
+                                          HomescreenScreen.builder(context),
+                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: ScaleTransition(
+                                            scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                              CurvedAnimation(
+                                                parent: animation,
+                                                curve: Curves.easeOut,
+                                              ),
+                                            ),
+                                            child: child,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                  child: child,
                                 ),
-                              );
-                            },
+                              ),
+                              // Little Lifts section (no navigation)
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                                width: 250,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Image.asset(
-                          'assets/images/ai_button.png',
-                          width: 118.667,
-                          height: 36,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                          isAntiAlias: true,
+                        // AI button
+                        Transform.translate(
+                          offset: const Offset(0, -25),
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(context).push(
+                              PageRouteBuilder(
+                                opaque: false,
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    AiScreen.builder(context),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOut,
+                                        ),
+                                      ),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            child: Image.asset(
+                              'assets/images/ai_button.png',
+                              width: 118.667,
+                              height: 36,
+                              fit: BoxFit.contain,
+                              filterQuality: FilterQuality.high,
+                              isAntiAlias: true,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -210,7 +218,15 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
       case AppRoutes.meditationScreen:
         return MeditationScreen.builder(context);
       case AppRoutes.breathingmainScreen:
-        return BreathingmainScreen.builder(context);
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: MaterialApp(
+            home: BreathingmainScreen.builder(context),
+            theme: ThemeData(
+              scaffoldBackgroundColor: Colors.transparent,
+            ),
+          ),
+        );
       case AppRoutes.moviesScreen:
         return MoviesScreen.builder(context);
       case AppRoutes.musicScreen:

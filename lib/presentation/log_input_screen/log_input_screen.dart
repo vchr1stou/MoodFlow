@@ -10,7 +10,7 @@ import '../homescreen_screen/homescreen_screen.dart';
 import '../log_input_colors_screen/log_input_colors_screen.dart';
 import '../history_empty_screen/history_empty_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../ai_screen/ai_screen.dart';
+import '../ai_screen_text/ai_screen_text.dart';
 
 class LogInputScreen extends StatefulWidget {
   final String source;
@@ -194,7 +194,7 @@ class LogInputScreenState extends State<LogInputScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AiScreen.builder(context),
+                        builder: (context) => AiScreenText.builder(context),
                       ),
                     );
                   },

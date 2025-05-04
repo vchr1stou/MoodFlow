@@ -33,8 +33,10 @@ class BreathingdoneScreenState extends State<BreathingdoneScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBody: false,
+      extendBodyBehindAppBar: false,
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
       appBar: _buildAppbar(context),
       body: Container(
         width: double.maxFinite,

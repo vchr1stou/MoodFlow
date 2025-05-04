@@ -446,7 +446,12 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 44.32,
               iconHeight: 39,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.breathingmainScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => BreathingmainScreen.builder(context),
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),

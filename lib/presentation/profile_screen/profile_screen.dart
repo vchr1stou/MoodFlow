@@ -7,6 +7,7 @@ import 'models/profile_model.dart';
 import 'models/profile_one_item_model.dart';
 import 'provider/profile_provider.dart';
 import 'widgets/profile_one_item_widget.dart';
+import '../../routes/app_routes.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -64,7 +65,27 @@ class ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // All content boxes removed
+                        SizedBox(height: 20.v),
+                        // Dummy button to navigate to welcome screen
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, AppRoutes.welcomeScreen);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.v),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Go to Welcome Screen',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16.fSize,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

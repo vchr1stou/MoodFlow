@@ -13,6 +13,8 @@ import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
+import '../log_input_screen/log_input_screen.dart';
+import '../../core/app_export.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -156,18 +158,18 @@ class _GlowEffectState extends State<GlowEffect> with SingleTickerProviderStateM
   }
 }
 
-class AiScreen extends StatefulWidget {
-  const AiScreen({Key? key}) : super(key: key);
+class AiScreenText extends StatefulWidget {
+  const AiScreenText({Key? key}) : super(key: key);
 
   @override
-  AiScreenState createState() => AiScreenState();
+  AiScreenTextState createState() => AiScreenTextState();
 
   static Widget builder(BuildContext context) {
-    return const AiScreen();
+    return const AiScreenText();
   }
 }
 
-class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin {
+class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderStateMixin {
   final UserService _userService = UserService();
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -405,7 +407,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
           // User greeting text
           if (!_showChat && !_isTyping) 
             Positioned(
-              top: 120,
+              top: 110,
               left: 0,
               right: 0,
               child: Center(
@@ -475,173 +477,35 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                 ),
               ),
             ),
-          // Text input field
+          // Close Button (moved to the end to ensure it's on top)
           Positioned(
-            bottom: _isTyping ? keyboardPosition : defaultPosition,
-            left: 0,
-            right: 0,
-            child: Center(
+            top: 65.h,
+            right: 25.h,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 35,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
-                  if (!_isTyping) {
-                    setState(() {
-                      _isTyping = true;
-                    });
-                    _focusNode.requestFocus();
-                  }
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LogInputScreen.builder(context),
+                    ),
+                  );
                 },
-                child: Container(
-                  width: 372,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: -1,
-                        blurRadius: 30,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      // Text box background
-                      Center(
-                        child: SvgPicture.asset(
-                          'assets/images/text_box.svg',
-                          width: 372,
-                          height: 44,
-                          fit: BoxFit.contain,
-                          alignment: Alignment.center,
-                        ),
-                      ),
-                      // Mic Button with animation
-                      Positioned(
-                        left: 30,
-                        top: (44 - 28) / 2,
-                        child: GestureDetector(
-                          onTap: _listen,
-                          child: Stack(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/mic_button.svg',
-                                width: 28,
-                                height: 28,
-                                fit: BoxFit.contain,
-                              ),
-                              if (_isListening)
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: AnimatedBuilder(
-                                      animation: _breathingAnimation,
-                                      builder: (context, child) {
-                                        return Container(
-                                          width: 28,
-                                          height: 28,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Color(0xE2917D),
-                                              width: 1.5 * _breathingAnimation.value,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Color(0xE2917D).withOpacity(0.5),
-                                                blurRadius: 4.0 * _breathingAnimation.value,
-                                                spreadRadius: 1.0 * _breathingAnimation.value,
-                                              )
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Send Button
-                      Positioned(
-                        right: 13,
-                        top: 1,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (_textController.text.trim().isNotEmpty) {
-                              _sendMessage();
-                              _focusNode.unfocus();
-                              setState(() {
-                                _isTyping = false;
-                              });
-                            }
-                          },
-                          child: SvgPicture.asset(
-                            'assets/images/send_button.svg',
-                            width: 49,
-                            height: 49,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      // Text input field
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: _isTyping
-                            ? TextField(
-                                controller: _textController,
-                                focusNode: _focusNode,
-                                textAlignVertical: TextAlignVertical.center,
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.75),
-                                  height: 1.0,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.only(left: 65, top: 12),
-                                  hintText: '',
-                                  isDense: true,
-                                  isCollapsed: true,
-                                ),
-                                onSubmitted: (text) {
-                                  _sendMessage();
-                                  _focusNode.unfocus();
-                                },
-                              )
-                            : Container(),
-                      ),
-                      // Static text overlay
-                      if (!_isTyping)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 65),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                _textController.text.isEmpty ? 'Ask me anything' : _textController.text,
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.75),
-                                  height: 1.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                child: SvgPicture.asset(
+                  'assets/images/close_button.svg',
+                  width: 39.h,
+                  height: 39.h,
                 ),
               ),
             ),
@@ -659,100 +523,179 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
           alignment: Alignment.bottomCenter,
           children: [
             Transform.translate(
-              offset: const Offset(0, -23),
+              offset: const Offset(0, 350),
               child: Stack(
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/bottom_bar_ai.svg',
-                    fit: BoxFit.fitWidth,
-                  ),
-                  // Left side - Home navigation
+                  // Text input field
                   Positioned(
                     left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: 250,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).push(
-                        PageRouteBuilder(
-                          opaque: false,
-                          pageBuilder: (context, animation, secondaryAnimation) =>
-                              HomescreenScreen.builder(context),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: ScaleTransition(
-                                scale: Tween<double>(begin: 0.95, end: 1.0)
-                                    .animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOut,
-                                  ),
-                                ),
-                                child: child,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Right side - Little Lifts navigation
-                  Positioned(
                     right: 0,
                     top: 0,
                     bottom: 0,
-                    width: 250,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).push(
-                        PageRouteBuilder(
-                          opaque: false,
-                          pageBuilder: (context, animation, secondaryAnimation) =>
-                              LittleLiftsScreen.builder(context),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: ScaleTransition(
-                                scale: Tween<double>(begin: 0.95, end: 1.0)
-                                    .animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOut,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (!_isTyping) {
+                            setState(() {
+                              _isTyping = true;
+                            });
+                            _focusNode.requestFocus();
+                          }
+                        },
+                        child: Container(
+                          width: 372,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                spreadRadius: -1,
+                                blurRadius: 30,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              // Text box background
+                              Center(
+                                child: SvgPicture.asset(
+                                  'assets/images/text_box.svg',
+                                  width: 372,
+                                  height: 44,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                ),
+                              ),
+                              // Mic Button with animation
+                              Positioned(
+                                left: 20,
+                                top: (44 - 28) / 2,
+                                child: GestureDetector(
+                                  onTap: _listen,
+                                  child: Stack(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/mic_button.svg',
+                                        width: 28,
+                                        height: 28,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      if (_isListening)
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: AnimatedBuilder(
+                                              animation: _breathingAnimation,
+                                              builder: (context, child) {
+                                                return Container(
+                                                  width: 28,
+                                                  height: 28,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                      color: Color(0xE2917D),
+                                                      width: 1.5 * _breathingAnimation.value,
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Color(0xE2917D).withOpacity(0.5),
+                                                        blurRadius: 4.0 * _breathingAnimation.value,
+                                                        spreadRadius: 1.0 * _breathingAnimation.value,
+                                                      )
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                                child: child,
                               ),
-                            );
-                          },
+                              // Send Button
+                              Positioned(
+                                right: 1.5,
+                                top: 1,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    if (_textController.text.trim().isNotEmpty) {
+                                      _sendMessage();
+                                      _focusNode.unfocus();
+                                      setState(() {
+                                        _isTyping = false;
+                                      });
+                                    }
+                                  },
+                                  child: SvgPicture.asset(
+                                    'assets/images/send_button.svg',
+                                    width: 49,
+                                    height: 49,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                              // Text input field
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                                child: _isTyping
+                                    ? TextField(
+                                        controller: _textController,
+                                        focusNode: _focusNode,
+                                        textAlignVertical: TextAlignVertical.center,
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                          height: 1.0,
+                                        ),
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.only(left: 65, top: 12),
+                                          hintText: '',
+                                          isDense: true,
+                                          isCollapsed: true,
+                                        ),
+                                        onSubmitted: (text) {
+                                          _sendMessage();
+                                          _focusNode.unfocus();
+                                        },
+                                      )
+                                    : Container(),
+                              ),
+                              // Static text overlay
+                              if (!_isTyping)
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  top: -2,
+                                  bottom: 0,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(left: 57),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        _textController.text.isEmpty ? 'Ask me anything' : _textController.text,
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                          height: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Transform.translate(
-              offset: const Offset(0, -25),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/ai_button.png',
-                    width: 118.667,
-                    height: 36,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                    isAntiAlias: true,
-                  ),
-                  Positioned.fill(
-                    top: -22,
-                    bottom: -22,
-                    child: Container(
-                      color: Colors.transparent,
                     ),
                   ),
                 ],
@@ -763,4 +706,4 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
       ),
     );
   }
-}
+} 
