@@ -25,6 +25,7 @@ import '../statistics_mood_charts_screen/statistics_mood_charts_screen.dart';
 import '../log_input_screen/log_input_screen.dart';
 import '../little_lifts_screen/little_lifts_screen.dart';
 import '../ai_screen/ai_screen.dart';
+import '../inhale_screen/inhale_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'models/homescreen_model.dart';
@@ -279,7 +280,10 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => BreathingmainScreen.builder(context),
+                            builder: (context) => InhaleScreen.builder(context),
+                            settings: RouteSettings(
+                              arguments: {'duration': 1},
+                            ),
                           ),
                         );
                       },

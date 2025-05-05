@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
-import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_outlined_button.dart';
-import 'models/breathingdone_model.dart';
-import 'provider/breathingdone_provider.dart';
-import 'package:easy_localization/easy_localization.dart';
+import '../breathingmain_screen/breathingmain_screen.dart';
+import '../homescreen_screen/homescreen_screen.dart';
 
 class BreathingdoneScreen extends StatefulWidget {
   const BreathingdoneScreen({Key? key})
@@ -17,10 +15,7 @@ class BreathingdoneScreen extends StatefulWidget {
   @override
   BreathingdoneScreenState createState() => BreathingdoneScreenState();
   static Widget builder(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => BreathingdoneProvider(),
-      child: const BreathingdoneScreen(),
-    );
+    return const BreathingdoneScreen();
   }
 }
 
@@ -37,68 +32,89 @@ class BreathingdoneScreenState extends State<BreathingdoneScreen> {
       extendBodyBehindAppBar: false,
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
-      appBar: _buildAppbar(context),
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed4001,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: SafeArea(
-          child: Container(
-            margin: EdgeInsets.only(top: 56.h),
-            padding: EdgeInsets.symmetric(vertical: 126.h),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 18.h),
-                CustomImageView(
-                  imagePath: ImageConstant.imgScreenshot20250329,
-                  height: 160.h,
-                  width: 150.h,
+          child: Column(
+            children: [
+              SizedBox(height: 209),
+              Image.asset(
+                'assets/images/breathing.png',
+                width: 148,
+                height: 160,
+                fit: BoxFit.contain,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Well Done',
+                style: GoogleFonts.roboto(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  height: 22/40,
                 ),
-                Text(
-                  "lbl_well_done".tr(),
-                  style: CustomTextStyles.displayMediumOnPrimaryContainer,
+              ),
+              SizedBox(height: 18),
+              Text(
+                'The world can wait. You just chose you.',
+                style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: -0.41,
+                  height: 22/20,
                 ),
-                Text(
-                  "msg_the_world_can_wait".tr(),
-                  style: CustomTextStyles
-                      .titleLargeRobotoOnPrimaryContainerSemiBold_1,
+              ),
+              SizedBox(height: 200),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => HomescreenScreen.builder(context),
+                    ),
+                    (route) => false,
+                  );
+                },
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/return_breathing.svg',
+                      width: 128.67,
+                      height: 46,
+                      fit: BoxFit.contain,
+                    ),
+                    Positioned(
+                      top: -5,
+                      bottom: 0,
+                      left: 0,
+                      right: 1,
+                      child: Center(
+                        child: Text(
+                          'Return',
+                          style: GoogleFonts.roboto(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                CustomOutlinedButton(
-                  width: 118.h,
-                  text: "lbl_return".tr(),
-                  buttonStyle: CustomButtonStyles.none,
-                  decoration: CustomButtonStyles.outlineTL18Decoration,
-                )
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
-  }
-
-  /// Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 46.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgArrowLeft,
-        margin: EdgeInsets.only(
-          left: 16.h,
-          top: 13.h,
-          bottom: 13.h,
-        ),
-        onTap: () {
-          onTapArrowleftone(context);
-        },
-      ),
-    );
-  }
-
-  /// Navigates to the previous screen.
-  onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBackWithoutContext();
   }
 }
