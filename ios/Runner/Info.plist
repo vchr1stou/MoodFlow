@@ -93,5 +93,13 @@
 	<false/>
 	<key>NSContactsUsageDescription</key>
 	<string>This app needs access to contacts to add trusted contacts</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location to show your current position on the map</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location to show your current position on the map</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
+	<key>GMSApiKey</key>
+	<string>1d6f85bbf22e1720dfd3c266b6249c77ba55b0c0</string>
 </dict>
 </plist>

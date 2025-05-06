@@ -101,22 +101,31 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                   ),
                   Container(
                     height: 250,
-                    child: CupertinoDatePicker(
-                      initialDateTime: DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month,
-                        DateTime.now().day,
-                        _quoteTime.hour,
-                        _quoteTime.minute,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        textTheme: CupertinoTextThemeData(
+                          dateTimePickerTextStyle: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      mode: CupertinoDatePickerMode.time,
-                      use24hFormat: true,
-                      onDateTimeChanged: (DateTime newDateTime) {
-                        setState(() {
-                          _quoteTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
-                          _isAddingReminder = false;
-                        });
-                      },
+                      child: CupertinoDatePicker(
+                        initialDateTime: DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                          _quoteTime.hour,
+                          _quoteTime.minute,
+                        ),
+                        mode: CupertinoDatePickerMode.time,
+                        use24hFormat: true,
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          setState(() {
+                            _quoteTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
+                            _isAddingReminder = false;
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -180,19 +189,28 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                   ),
                   Container(
                     height: 250,
-                    child: CupertinoDatePicker(
-                      initialDateTime: DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month,
-                        DateTime.now().day,
-                        provider.dailyCheckInTimes[index].hour,
-                        provider.dailyCheckInTimes[index].minute,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        textTheme: CupertinoTextThemeData(
+                          dateTimePickerTextStyle: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      mode: CupertinoDatePickerMode.time,
-                      use24hFormat: true,
-                      onDateTimeChanged: (DateTime newDateTime) {
-                        selectedTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
-                      },
+                      child: CupertinoDatePicker(
+                        initialDateTime: DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                          provider.dailyCheckInTimes[index].hour,
+                          provider.dailyCheckInTimes[index].minute,
+                        ),
+                        mode: CupertinoDatePickerMode.time,
+                        use24hFormat: true,
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          selectedTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
+                        },
+                      ),
                     ),
                   ),
                 ],

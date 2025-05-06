@@ -12,6 +12,7 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../emoji_log_two_screen/emoji_log_two_screen.dart';
 import '../log_input_screen/log_input_screen.dart';
+import '../log_screen/log_screen.dart';
 
 import 'models/emoji_log_one_model.dart';
 import 'provider/emoji_log_one_provider.dart';
@@ -315,13 +316,12 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                                         matchesTextTopOffset),
                                     child: GestureDetector(
                                       onTap: () {
-                                        // Show debug image when tapped
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => Dialog(
-                                            child: Image.asset(
-                                              'assets/images/debug.png',
-                                              fit: BoxFit.contain,
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => LogScreen.builder(
+                                              context,
+                                              feeling: "Heavy 😔",
                                             ),
                                           ),
                                         );

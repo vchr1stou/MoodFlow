@@ -9,6 +9,7 @@ import '../../core/app_export.dart';
 import '../emoji_log_five_screen/emoji_log_five_screen.dart';
 import '../emoji_log_three_screen/emoji_log_three_screen.dart';
 import '../log_input_screen/log_input_screen.dart';
+import '../log_screen/log_screen.dart';
 import 'models/emoji_log_four_model.dart';
 import 'provider/emoji_log_four_provider.dart';
 
@@ -315,13 +316,12 @@ class EmojiLogFourScreenState extends State<EmojiLogFourScreen>
                                         matchesTextTopOffset),
                                     child: GestureDetector(
                                       onTap: () {
-                                        // Show debug image when tapped
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => Dialog(
-                                            child: Image.asset(
-                                              'assets/images/debug.png',
-                                              fit: BoxFit.contain,
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => LogScreen.builder(
+                                              context,
+                                              feeling: "Light 😀",
                                             ),
                                           ),
                                         );

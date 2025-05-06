@@ -100,104 +100,145 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
-                    ),
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        Transform.translate(
-                          offset: const Offset(0, -23),
-                          child: Stack(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/bottom_bar_little_lifts_pressed.svg',
-                                fit: BoxFit.fitWidth,
-                              ),
-                              // Home navigation
-                              Positioned(
-                                left: 0,
-                                top: 0,
-                                bottom: 0,
-                                width: 250,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => Navigator.of(context).push(
-                                    PageRouteBuilder(
-                                      opaque: false,
-                                      pageBuilder: (context, animation, secondaryAnimation) =>
-                                          HomescreenScreen.builder(context),
-                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                        return FadeTransition(
-                                          opacity: animation,
-                                          child: ScaleTransition(
-                                            scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                                              CurvedAnimation(
-                                                parent: animation,
-                                                curve: Curves.easeOut,
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (details) {
+                      if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+                        // Swiped left
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            opaque: false,
+                            pageBuilder: (context, animation, secondaryAnimation) =>
+                                HomescreenScreen.builder(context),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: ScaleTransition(
+                                  scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOut,
+                                    ),
+                                  ),
+                                  child: child,
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
+                      ),
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          Transform.translate(
+                            offset: const Offset(0, -23),
+                            child: Stack(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/bottom_bar_little_lifts_pressed.svg',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                                // Home navigation
+                                Positioned(
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: 250,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => Navigator.of(context).push(
+                                      PageRouteBuilder(
+                                        opaque: false,
+                                        pageBuilder: (context, animation, secondaryAnimation) =>
+                                            HomescreenScreen.builder(context),
+                                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: ScaleTransition(
+                                              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                                CurvedAnimation(
+                                                  parent: animation,
+                                                  curve: Curves.easeOut,
+                                                ),
                                               ),
+                                              child: child,
                                             ),
-                                            child: child,
-                                          ),
-                                        );
-                                      },
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              // Little Lifts section (no navigation)
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                                width: 250,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
+                                // Little Lifts section (no navigation)
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: 250,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        // AI button
-                        Transform.translate(
-                          offset: const Offset(0, -25),
-                          child: GestureDetector(
-                            onTap: () => Navigator.of(context).push(
-                              PageRouteBuilder(
-                                opaque: false,
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    AiScreen.builder(context),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                                        CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves.easeOut,
-                                        ),
+                          // AI button
+                          Transform.translate(
+                            offset: const Offset(0, -25),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/ai_button.png',
+                                  width: 118.667,
+                                  height: 36,
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                  isAntiAlias: true,
+                                ),
+                                Positioned.fill(
+                                  top: -22,
+                                  bottom: -22,
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.of(context).push(
+                                      PageRouteBuilder(
+                                        opaque: false,
+                                        pageBuilder: (context, animation, secondaryAnimation) =>
+                                            AiScreen.builder(context),
+                                        transitionsBuilder:
+                                            (context, animation, secondaryAnimation, child) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: ScaleTransition(
+                                              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                                CurvedAnimation(
+                                                  parent: animation,
+                                                  curve: Curves.easeOut,
+                                                ),
+                                              ),
+                                              child: child,
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      child: child,
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
-                            child: Image.asset(
-                              'assets/images/ai_button.png',
-                              width: 118.667,
-                              height: 36,
-                              fit: BoxFit.contain,
-                              filterQuality: FilterQuality.high,
-                              isAntiAlias: true,
+                                    child: Container(
+                                      color: Colors.transparent,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
