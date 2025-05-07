@@ -9,7 +9,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   url_launcher: ^6.1.14
-  http: ^1.1.0
+  http: ^1.2.0
   cached_network_image: ^3.4.0
   flutter_svg: ^2.0.16
   provider: ^6.1.2
@@ -24,7 +24,7 @@ dependencies:
   responsive_grid_list: ^1.4.0
   flutter_screenutil: ^5.9.0
   fl_chart: ^0.66.2
-  google_fonts: ^6.1.0
+  google_fonts: ^5.0.0
   sizer: ^2.0.15
   flutter_launcher_icons: ^0.14.3
   glassmorphism: ^3.0.0
@@ -43,6 +43,9 @@ dependencies:
   chat_bubbles: ^1.6.0
   google_maps_flutter: ^2.5.3
   geolocator: ^10.1.0
+  google_maps_flutter_web: ^0.5.4+3
+  google_places_flutter: ^2.0.6
+  flutter_typeahead: ^5.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

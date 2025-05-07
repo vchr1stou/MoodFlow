@@ -94,12 +94,12 @@
 	<key>NSContactsUsageDescription</key>
 	<string>This app needs access to contacts to add trusted contacts</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location to show your current position on the map</string>
+	<string>MoodFlow needs access to location to show your current position on the map and help you log your mood at specific places.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to location to show your current position on the map</string>
+	<string>MoodFlow needs access to location to show your current position on the map and help you log your mood at specific places.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>GMSApiKey</key>
-	<string>1d6f85bbf22e1720dfd3c266b6249c77ba55b0c0</string>
+	<string>AIzaSyDohu3J9jw0lUyUswNP3PxiKzXKJJQJvNk</string>
 </dict>
 </plist>
