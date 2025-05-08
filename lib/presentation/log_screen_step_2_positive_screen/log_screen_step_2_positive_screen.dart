@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../log_screen/log_screen.dart';
+import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
+import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dart';
 
 class LogScreenStep2PositiveScreen extends StatefulWidget {
   const LogScreenStep2PositiveScreen({Key? key}) : super(key: key);
@@ -18,6 +20,20 @@ class LogScreenStep2PositiveScreen extends StatefulWidget {
 
 class LogScreenStep2PositiveScreenState
     extends State<LogScreenStep2PositiveScreen> {
+  // Add a Set to track selected button indices
+  final Set<int> selectedButtons = {};
+
+  // Helper method to toggle button state
+  void toggleButton(int index) {
+    setState(() {
+      if (selectedButtons.contains(index)) {
+        selectedButtons.remove(index);
+      } else {
+        selectedButtons.add(index);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,6 +50,7 @@ class LogScreenStep2PositiveScreenState
           ),
         ),
         child: Stack(
+          fit: StackFit.expand,
           children: [
             // Background blur overlay
             Positioned.fill(
@@ -41,316 +58,1178 @@ class LogScreenStep2PositiveScreenState
                 filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                 child: Container(
                   color: Color(0xFF808080).withOpacity(0.2),
-                          ),
-                        ),
-                      ),
+                ),
+              ),
+            ),
             // Content
             SafeArea(
               top: false,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: 97.h),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              "Select Feelings",
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+              child: GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  if (details.primaryVelocity! < 0) { // Swipe from right to left
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LogScreenStep2NegativePage.builder(context),
+                      ),
+                    );
+                  }
+                },
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 97.h),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                "Select Feelings",
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 3.h),
-                            Text(
-                              "No feeling is too big or too small — if it speaks to your soul, tap it!",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                              SizedBox(height: 3.h),
+                              Text(
+                                "No feeling is too big or too small — if it speaks to your soul, tap it!",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 10.h),
-                            SvgPicture.asset(
-                              'assets/images/positive-selected.svg',
-                              width: 276.h,
-                              height: 44.h,
-                            ),
-                            SizedBox(height: 25.h),
-                            Stack(
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/images/positive_box.svg',
-                                  width: 364.h,
-                                  height: 566.h,
+                              SizedBox(height: 10.h),
+                              SizedBox(
+                                width: 276.h,
+                                height: 44.h,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Positioned.fill(
+                                      child: SvgPicture.asset(
+                                        'assets/images/positive-selected.svg',
+                                        width: 276.h,
+                                        height: 44.h,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      left: 38.h,
+                                      top: 11.h,
+                                      child: Text(
+                                        "Positive",
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white.withOpacity(0.96),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      left: 170.h,
+                                      top: 11.h,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => LogScreenStep2NegativePage.builder(context),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          "Negative",
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white.withOpacity(0.8),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                // First row
-                                Positioned(
-                                  top: 10.h,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                              ),
+                              SizedBox(height: 25.h),
+                              Stack(
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/positive_box.svg',
+                                    width: 364.h,
+                                    height: 486.h,
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // First row
+                                  Positioned(
+                                    top: 14.4.h,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(0),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(0)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(0),
+                                            child: Center(
+                                              child: Text(
+                                                'Calm',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(1),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(1)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(1),
+                                            child: Center(
+                                              child: Text(
+                                                'Confident',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Second row
-                                Positioned(
-                                  top: 10.h + 36.h + 10.h,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(2),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(2)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(2),
+                                            child: Center(
+                                              child: Text(
+                                                'Eager',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + 36.h + 10.h,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Second row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h),
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(3),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(3)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(3),
+                                            child: Center(
+                                              child: Text(
+                                                'Ecstatic',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + 36.h + 10.h,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h),
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(4),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(4)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(4),
+                                            child: Center(
+                                              child: Text(
+                                                'Engaged',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Third row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 2,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h),
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(5),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(5)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(5),
+                                            child: Center(
+                                              child: Text(
+                                                'Excited',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 2,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Third row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 2,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(6),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(6)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(6),
+                                            child: Center(
+                                              child: Text(
+                                                'Grateful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 2,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 2,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(7),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(7)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(7),
+                                            child: Center(
+                                              child: Text(
+                                                'Happy',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Fourth row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 3,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 2,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(8),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(8)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(8),
+                                            child: Center(
+                                              child: Text(
+                                                'Hopeful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 3,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Fourth row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 3,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(9),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(9)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(9),
+                                            child: Center(
+                                              child: Text(
+                                                'Motivated',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 3,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 3,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(10),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(10)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(10),
+                                            child: Center(
+                                              child: Text(
+                                                'Optimistic',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Fifth row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 4,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 3,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(11),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(11)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(11),
+                                            child: Center(
+                                              child: Text(
+                                                'Peaceful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 4,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Fifth row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 4,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(12),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(12)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(12),
+                                            child: Center(
+                                              child: Text(
+                                                'Proud',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 4,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 4,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(13),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(13)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(13),
+                                            child: Center(
+                                              child: Text(
+                                                'Relaxed',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Sixth row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 5,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 4,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(14),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(14)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(14),
+                                            child: Center(
+                                              child: Text(
+                                                'Satisfied',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 5,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Sixth row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 5,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(15),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(15)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(15),
+                                            child: Center(
+                                              child: Text(
+                                                'Cheerful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 5,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 5,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(16),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(16)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(16),
+                                            child: Center(
+                                              child: Text(
+                                                'Playful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Seventh row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 6,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 5,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(17),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(17)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(17),
+                                            child: Center(
+                                              child: Text(
+                                                'Refreshed',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 6,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Seventh row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 6,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(18),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(18)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(18),
+                                            child: Center(
+                                              child: Text(
+                                                'Energized',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 6,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 6,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(19),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(19)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(19),
+                                            child: Center(
+                                              child: Text(
+                                                'Joyful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Eighth row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 7,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 6,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(20),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(20)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(20),
+                                            child: Center(
+                                              child: Text(
+                                                'Lively',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 7,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Eighth row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 7,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(21),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(21)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(21),
+                                            child: Center(
+                                              child: Text(
+                                                'Satisfied',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 7,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 7,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(22),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(22)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(22),
+                                            child: Center(
+                                              child: Text(
+                                                'Content',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                // Ninth row
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 8,
-                                  left: 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 7,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(23),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(23)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(23),
+                                            child: Center(
+                                              child: Text(
+                                                'Grateful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 8,
-                                  left: 10.h + 108.h + 10.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  // Ninth row
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 8,
+                                    left: 8.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(24),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(24)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(24),
+                                            child: Center(
+                                              child: Text(
+                                                'Lively',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 10.h + (36.h + 10.h) * 8,
-                                  left: 364.h - 10.h - 108.h,
-                                  child: SvgPicture.asset(
-                                    'assets/images/positive_button.svg',
-                                    width: 108.h,
-                                    height: 36.h,
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 8,
+                                    left: 127.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(25),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(25)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(25),
+                                            child: Center(
+                                              child: Text(
+                                                'Thrilled',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 20.h),
-                            // Your content will go here
-                          ],
+                                  Positioned(
+                                    top: 14.4.h + (38.h + 14.4.h) * 8,
+                                    left: 245.5.h,
+                                    child: Stack(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () => toggleButton(26),
+                                          child: SvgPicture.asset(
+                                            selectedButtons.contains(26)
+                                                ? 'assets/images/positive_button_2.svg'
+                                                : 'assets/images/positive_button.svg',
+                                            width: 110.h,
+                                            height: 38.h,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 6.h,
+                                          left: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () => toggleButton(26),
+                                            child: Center(
+                                              child: Text(
+                                                'Wonderful',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Next button with absolute positioning
+            Positioned(
+              right: 12.h,
+              bottom: 50.h,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LogScreenStep3PositiveScreen.builder(context),
+                        ),
+                      );
+                    },
+                    child: SvgPicture.asset(
+                      'assets/images/next_log.svg',
+                      width: 142.h,
+                      height: 42.h,
+                    ),
+                  ),
+                  Positioned(
+                    top: 8.h,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LogScreenStep3PositiveScreen.builder(context),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Next",
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -368,7 +1247,7 @@ class LogScreenStep2PositiveScreenState
       leading: Row(
         children: [
           GestureDetector(
-        onTap: () {
+            onTap: () {
               Navigator.pop(context);
             },
             child: Padding(
