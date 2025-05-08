@@ -21,6 +21,7 @@ import 'core/utils/root_bundle_asset_loader.dart';
 import 'services/auth_service.dart';
 import 'services/auth_persistence_service.dart';
 import 'presentation/homescreen_screen/homescreen_screen.dart';
+import 'core/services/storage_service.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -31,6 +32,7 @@ Future<void> main() async {
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await EasyLocalization.ensureInitialized();
+  await StorageService.init();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

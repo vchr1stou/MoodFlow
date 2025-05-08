@@ -22,6 +22,22 @@ class LogScreenStep2PositiveScreenState
     extends State<LogScreenStep2PositiveScreen> {
   // Add a Set to track selected button indices
   final Set<int> selectedButtons = {};
+  List<String> selectedFeelings = [];
+  
+  // Static variable to store selected positive feelings
+  static List<String> selectedPositiveFeelings = [];
+  
+  // Static variable to store selected button indices
+  static Set<int> storedSelectedButtons = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize selectedButtons from stored values
+    selectedButtons.addAll(storedSelectedButtons);
+    // Update the static variable
+    selectedPositiveFeelings = getSelectedFeelings();
+  }
 
   // Helper method to toggle button state
   void toggleButton(int index) {
@@ -31,7 +47,43 @@ class LogScreenStep2PositiveScreenState
       } else {
         selectedButtons.add(index);
       }
+      // Update the static variables
+      storedSelectedButtons = Set.from(selectedButtons);
+      selectedPositiveFeelings = getSelectedFeelings();
     });
+  }
+
+  // Helper method to get selected feelings
+  List<String> getSelectedFeelings() {
+    List<String> feelings = [];
+    if (selectedButtons.contains(0)) feelings.add('Calm');
+    if (selectedButtons.contains(1)) feelings.add('Confident');
+    if (selectedButtons.contains(2)) feelings.add('Eager');
+    if (selectedButtons.contains(3)) feelings.add('Ecstatic');
+    if (selectedButtons.contains(4)) feelings.add('Engaged');
+    if (selectedButtons.contains(5)) feelings.add('Excited');
+    if (selectedButtons.contains(6)) feelings.add('Grateful');
+    if (selectedButtons.contains(7)) feelings.add('Happy');
+    if (selectedButtons.contains(8)) feelings.add('Hopeful');
+    if (selectedButtons.contains(9)) feelings.add('Motivated');
+    if (selectedButtons.contains(10)) feelings.add('Optimistic');
+    if (selectedButtons.contains(11)) feelings.add('Peaceful');
+    if (selectedButtons.contains(12)) feelings.add('Proud');
+    if (selectedButtons.contains(13)) feelings.add('Relaxed');
+    if (selectedButtons.contains(14)) feelings.add('Satisfied');
+    if (selectedButtons.contains(15)) feelings.add('Cheerful');
+    if (selectedButtons.contains(16)) feelings.add('Playful');
+    if (selectedButtons.contains(17)) feelings.add('Refreshed');
+    if (selectedButtons.contains(18)) feelings.add('Energized');
+    if (selectedButtons.contains(19)) feelings.add('Joyful');
+    if (selectedButtons.contains(20)) feelings.add('Lively');
+    if (selectedButtons.contains(21)) feelings.add('Satisfied');
+    if (selectedButtons.contains(22)) feelings.add('Content');
+    if (selectedButtons.contains(23)) feelings.add('Grateful');
+    if (selectedButtons.contains(24)) feelings.add('Lively');
+    if (selectedButtons.contains(25)) feelings.add('Thrilled');
+    if (selectedButtons.contains(26)) feelings.add('Wonderful');
+    return feelings;
   }
 
   @override
@@ -67,10 +119,32 @@ class LogScreenStep2PositiveScreenState
               child: GestureDetector(
                 onHorizontalDragEnd: (details) {
                   if (details.primaryVelocity! < 0) { // Swipe from right to left
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => LogScreenStep2NegativePage.builder(context),
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep2NegativePage.builder(context),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                          );
+                          var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                          );
+                          return FadeTransition(
+                            opacity: fadeAnimation,
+                            child: ScaleTransition(
+                              scale: scaleAnimation,
+                              child: child,
+                            ),
+                          );
+                        },
+                        transitionDuration: Duration(milliseconds: 400),
                       ),
                     );
                   }
@@ -136,10 +210,32 @@ class LogScreenStep2PositiveScreenState
                                       top: 11.h,
                                       child: GestureDetector(
                                         onTap: () {
-                                          Navigator.push(
+                                          Navigator.pushReplacement(
                                             context,
-                                            MaterialPageRoute(
-                                              builder: (context) => LogScreenStep2NegativePage.builder(context),
+                                            PageRouteBuilder(
+                                              pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep2NegativePage.builder(context),
+                                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                                  CurvedAnimation(
+                                                    parent: animation,
+                                                    curve: Curves.easeInOut,
+                                                  ),
+                                                );
+                                                var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                                  CurvedAnimation(
+                                                    parent: animation,
+                                                    curve: Curves.easeInOut,
+                                                  ),
+                                                );
+                                                return FadeTransition(
+                                                  opacity: fadeAnimation,
+                                                  child: ScaleTransition(
+                                                    scale: scaleAnimation,
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                              transitionDuration: Duration(milliseconds: 400),
                                             ),
                                           );
                                         },
@@ -1197,7 +1293,9 @@ class LogScreenStep2PositiveScreenState
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LogScreenStep3PositiveScreen.builder(context),
+                          builder: (context) => LogScreenStep3PositiveScreen(
+                            selectedFeelings: getSelectedFeelings(),
+                          ),
                         ),
                       );
                     },
@@ -1214,7 +1312,9 @@ class LogScreenStep2PositiveScreenState
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LogScreenStep3PositiveScreen.builder(context),
+                            builder: (context) => LogScreenStep3PositiveScreen(
+                              selectedFeelings: getSelectedFeelings(),
+                            ),
                           ),
                         );
                       },
@@ -1248,7 +1348,34 @@ class LogScreenStep2PositiveScreenState
         children: [
           GestureDetector(
             onTap: () {
-              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => LogScreen.builder(context),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: ScaleTransition(
+                        scale: scaleAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  transitionDuration: Duration(milliseconds: 400),
+                ),
+              );
             },
             child: Padding(
               padding: EdgeInsets.only(left: 16.h, top: 10.h),

@@ -37,6 +37,7 @@ import 'models/log_model.dart';
 import 'models/log_screen_one_item_model.dart';
 import 'provider/log_provider.dart';
 import 'widgets/log_screen_one_item_widget.dart';
+import 'services/storage_service.dart';
 
 class PlacePrediction {
   final String description;
@@ -75,7 +76,8 @@ class LogScreen extends StatefulWidget {
 class LogScreenState extends State<LogScreen> {
   late DateTime _selectedDate;
   Set<int> toggledIcons = {};
-  List<Contact> selectedContacts = [];
+  List<String> selectedContacts = [];
+  String? selectedLocation;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   double nextButtonTop = 229.h + 10.h + 30.h + 10.h + 76.h + 10.h + 30.h + 10.h + 76.h + 18.h;
   double nextTextTop = 0.h;
@@ -95,6 +97,7 @@ class LogScreenState extends State<LogScreen> {
     _selectedDate = DateTime.now();
     _requestContactPermission();
     _requestLocationPermission();
+    _loadSavedData();
   }
 
   Future<void> _requestContactPermission() async {
@@ -641,6 +644,8 @@ class LogScreenState extends State<LogScreen> {
                                       ),
                                     );
                                   });
+                                  // Save coordinates
+                                  StorageService.saveLocationCoordinates(position.latitude, position.longitude);
                                 },
                                 myLocationEnabled: true,
                                 myLocationButtonEnabled: true,
@@ -754,9 +759,9 @@ class LogScreenState extends State<LogScreen> {
                             children: [
                               ...contacts.map((contact) => GestureDetector(
                                 onTap: () {
-                                  if (!selectedContacts.any((c) => c.displayName == contact.displayName)) {
+                                  if (!selectedContacts.contains(contact.displayName)) {
                                     setState(() {
-                                      selectedContacts.add(contact);
+                                      selectedContacts.add(contact.displayName);
                                     });
                                     Navigator.pop(context);
                                   } else {
@@ -825,6 +830,8 @@ class LogScreenState extends State<LogScreen> {
       } else {
         toggledIcons.add(index);
       }
+      // Save toggled icons
+      StorageService.saveToggledIcons(toggledIcons);
     });
   }
 
@@ -1126,7 +1133,7 @@ class LogScreenState extends State<LogScreen> {
                                                             return Padding(
                                                               padding: EdgeInsets.only(right: 8.h),
                                                               child: Dismissible(
-                                                                key: Key(contact.displayName ?? 'contact_$index'),
+                                                                key: Key(contact),
                                                                 direction: DismissDirection.up,
                                                                 dismissThresholds: const {
                                                                   DismissDirection.up: 0.15,
@@ -1154,49 +1161,27 @@ class LogScreenState extends State<LogScreen> {
                                                                 },
                                                                 onDismissed: (direction) {
                                                                   setState(() {
-                                                                    selectedContacts.removeAt(index);
+                                                                    selectedContacts.remove(contact);
                                                                   });
                                                                 },
                                                                 child: AnimatedContainer(
                                                                   duration: Duration(milliseconds: 150),
                                                                   curve: Curves.easeOut,
                                                                   child: GestureDetector(
-                                                                    onTap: () => _replaceContact(index),
+                                                                    onTap: () => _onContactSelected(contact),
                                                                     child: Column(
                                                                       mainAxisSize: MainAxisSize.min,
                                                                       children: [
                                                                         AnimatedContainer(
                                                                           duration: Duration(milliseconds: 300),
                                                                           curve: Curves.easeInOutCubic,
-                                                                          child: contact.avatar != null
-                                                                              ? CircleAvatar(
-                                                                                  radius: 20.h,
-                                                                                  backgroundImage: MemoryImage(contact.avatar!),
-                                                                                )
-                                                                              : CircleAvatar(
-                                                                                  radius: 20.h,
-                                                                                  backgroundColor: Colors.white.withOpacity(0.2),
-                                                                                  child: Text(
-                                                                                    contact.displayName?.substring(0, 1).toUpperCase() ?? '?',
-                                                                                    style: TextStyle(
-                                                                                      color: Colors.white,
-                                                                                      fontSize: 16,
-                                                                                      fontWeight: FontWeight.bold,
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                        ),
-                                                                        SizedBox(height: 4.h),
-                                                                        AnimatedDefaultTextStyle(
-                                                                          duration: Duration(milliseconds: 300),
-                                                                          curve: Curves.easeInOutCubic,
-                                                                          style: TextStyle(
-                                                                            color: Colors.white,
-                                                                            fontSize: 10,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
                                                                           child: Text(
-                                                                            contact.displayName?.split(' ')[0] ?? 'Unknown',
+                                                                            contact,
+                                                                            style: TextStyle(
+                                                                              color: Colors.white,
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
                                                                           ),
                                                                         ),
                                                                       ],
@@ -1730,7 +1715,6 @@ class LogScreenState extends State<LogScreen> {
     final now = DateTime.now();
     final oneYearAgo = now.subtract(Duration(days: 365));
     
-    // Ensure selected date is within valid range
     if (_selectedDate.isBefore(oneYearAgo)) {
       _selectedDate = oneYearAgo;
     } else if (_selectedDate.isAfter(now)) {
@@ -1802,10 +1786,11 @@ class LogScreenState extends State<LogScreen> {
                         maximumDate: now,
                         minimumDate: oneYearAgo,
                         use24hFormat: true,
-                        onDateTimeChanged: (DateTime newDateTime) {
+                        onDateTimeChanged: (DateTime newDateTime) async {
                           setState(() {
                             _selectedDate = newDateTime;
                           });
+                          await StorageService.saveSelectedDateTime(newDateTime);
                         },
                       ),
                     ),
@@ -1851,119 +1836,23 @@ class LogScreenState extends State<LogScreen> {
     return months[month - 1];
   }
 
-  Future<void> _replaceContact(int index) async {
-    try {
-      final Iterable<Contact> contacts = await ContactsService.getContacts();
-      if (contacts.isNotEmpty) {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (context) => Container(
-            height: MediaQuery.of(context).size.height * 0.7,
-            decoration: BoxDecoration(
-              color: Color(0xFFBCBCBC).withOpacity(0.04),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFFBCBCBC).withOpacity(0.04),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 12.h),
-                      Container(
-                        width: 40.h,
-                        height: 4.h,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(2.h),
-                        ),
-                      ),
-                      SizedBox(height: 24.h),
-                      Text(
-                        "Replace Contact",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      SizedBox(height: 24.h),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ...contacts.map((newContact) => GestureDetector(
-                                onTap: () {
-                                  if (!selectedContacts.any((c) => c.displayName == newContact.displayName)) {
-                                    setState(() {
-                                      selectedContacts[index] = newContact;
-                                    });
-                                    Navigator.pop(context);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('This contact is already added')),
-                                    );
-                                  }
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.h),
-                                  child: Row(
-                                    children: [
-                                      if (newContact.avatar != null)
-                                        CircleAvatar(
-                                          radius: 20.h,
-                                          backgroundImage: MemoryImage(newContact.avatar!),
-                                        )
-                                      else
-                                        CircleAvatar(
-                                          radius: 20.h,
-                                          child: Text(
-                                            newContact.displayName?.substring(0, 1).toUpperCase() ?? '?',
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                        ),
-                                      SizedBox(width: 16.h),
-                                      Text(
-                                        newContact.displayName ?? 'Unknown',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: -0.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )),
-                              SizedBox(height: 24.h),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
+  Future<void> _onContactSelected(String contact) async {
+    setState(() {
+      if (selectedContacts.contains(contact)) {
+        selectedContacts.remove(contact);
+      } else {
+        selectedContacts.add(contact);
       }
-    } catch (e) {
-      print('Error replacing contact: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error replacing contact')),
-      );
-    }
+    });
+    await StorageService.saveSelectedContacts(selectedContacts);
+  }
+
+  void _onLocationSelected(String? location) {
+    if (location == null) return;
+    setState(() {
+      selectedLocation = location;
+    });
+    StorageService.saveSelectedLocation(location);
   }
 
   Future<List<PlacePrediction>> _getPlaces(String query) async {
@@ -1994,5 +1883,48 @@ class LogScreenState extends State<LogScreen> {
       return data['result'];
     }
     return null;
+  }
+
+  Future<void> _loadSavedData() async {
+    // Load saved date/time
+    final savedDateTime = await StorageService.getSelectedDateTime();
+    if (savedDateTime != null) {
+      setState(() {
+        _selectedDate = savedDateTime;
+      });
+    }
+
+    // Load saved toggled icons
+    final savedIcons = await StorageService.getToggledIcons();
+    setState(() {
+      toggledIcons = savedIcons;
+    });
+
+    // Load saved contacts
+    final savedContacts = await StorageService.getSelectedContacts();
+    setState(() {
+      selectedContacts = savedContacts;
+    });
+
+    // Load saved location
+    final savedLocation = await StorageService.getSelectedLocation();
+    final savedCoords = await StorageService.getLocationCoordinates();
+    if (savedCoords != null) {
+      setState(() {
+        _currentPosition = Position(
+          latitude: savedCoords['lat']!,
+          longitude: savedCoords['lng']!,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+        );
+        _locationName = savedLocation;
+      });
+    }
   }
 }
