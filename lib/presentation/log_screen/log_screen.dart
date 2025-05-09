@@ -26,6 +26,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../log_input_screen/log_input_screen.dart';
+import '../log_input_colors_screen/log_input_colors_screen.dart';
 import '../emoji_log_one_screen/emoji_log_one_screen.dart';
 import '../emoji_log_two_screen/emoji_log_two_screen.dart';
 import '../emoji_log_three_screen/emoji_log_three_screen.dart';
@@ -1540,7 +1541,14 @@ class LogScreenState extends State<LogScreen> {
               final savedMoodSource = StorageService.getMoodSource();
               print('Navigating back with saved mood source: $savedMoodSource');
               
-              if (savedMoodSource != null) {
+              if (widget.source == 'colorscreen') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LogInputColorsScreen.builder(context),
+                  ),
+                );
+              } else if (savedMoodSource != null) {
                 switch (savedMoodSource) {
                   case 'emoji_one':
                     Navigator.pushReplacement(
