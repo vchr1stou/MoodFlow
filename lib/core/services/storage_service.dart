@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:contacts_service/contacts_service.dart';
 
@@ -14,6 +15,7 @@ class StorageService {
   static const String _negativeIntensityKey = 'negative_intensity';
   static const String _currentMoodKey = 'current_mood';
   static const String _moodSourceKey = 'mood_source';
+  static const String _mapScreenshotKey = 'map_screenshot';
 
   static late SharedPreferences _prefs;
 
@@ -175,6 +177,22 @@ class StorageService {
     return null;
   }
 
+  // Map Screenshot
+  static Future<void> saveMapScreenshot(Uint8List screenshot) async {
+    await _prefs.setString(_mapScreenshotKey, base64Encode(screenshot));
+  }
+
+  static Future<Uint8List?> getMapScreenshot() async {
+    final String? screenshotStr = _prefs.getString(_mapScreenshotKey);
+    if (screenshotStr == null) return null;
+    try {
+      return base64Decode(screenshotStr);
+    } catch (e) {
+      print('Error decoding map screenshot: $e');
+      return null;
+    }
+  }
+
   // Clear all data
   static Future<void> clearAll() async {
     await _prefs.remove(_dateTimeKey);
@@ -188,5 +206,6 @@ class StorageService {
     await _prefs.remove(_negativeIntensityKey);
     await _prefs.remove(_currentMoodKey);
     await _prefs.remove(_moodSourceKey);
+    await _prefs.remove(_mapScreenshotKey);
   }
 } 

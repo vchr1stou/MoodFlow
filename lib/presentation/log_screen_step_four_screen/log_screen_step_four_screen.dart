@@ -41,10 +41,16 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
 
   Future<void> _loadSelectedTrack() async {
     final track = await StorageService.getSelectedTrack();
-    if (track != null) {
+    if (track != null && track.isNotEmpty && track['name'] != null) {
       setState(() {
         _selectedTrack = track;
       });
+    } else {
+      setState(() {
+        _selectedTrack = null;
+      });
+      // Clear any empty track data
+      await StorageService.saveSelectedTrack({});
     }
   }
 
@@ -629,7 +635,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                 ),
                                 if (_selectedTrack == null)
                                   Positioned(
-                                    top: 27.h,
+                                    top: 25.h,
                                     child: GestureDetector(
                                       onTap: () async {
                                         await showModalBottomSheet(
@@ -642,6 +648,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                       },
                                       child: Center(
                                         child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             SvgPicture.asset(
                                               'assets/images/spotify_small.svg',

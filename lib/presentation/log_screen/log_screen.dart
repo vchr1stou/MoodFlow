@@ -99,8 +99,7 @@ class LogScreenState extends State<LogScreen> {
     super.initState();
     _selectedDate = DateTime.now();
     _requestContactPermission();
-    _requestLocationPermission();
-    _loadSelectedContacts(); // Load saved contacts
+    _loadSavedData(); // Load saved contacts
   }
 
   Future<void> _saveCurrentMood() async {
@@ -117,14 +116,14 @@ class LogScreenState extends State<LogScreen> {
     }
   }
 
-  Future<void> _requestLocationPermission() async {
+  Future<bool> _requestLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
 
     // Check if location services are enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Location services are not enabled, show dialog to enable them
+      // Show dialog to enable location services
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -160,7 +159,7 @@ class LogScreenState extends State<LogScreen> {
           );
         },
       );
-      return;
+      return false;
     }
 
     // Check location permission
@@ -203,7 +202,7 @@ class LogScreenState extends State<LogScreen> {
             );
           },
         );
-        return;
+        return false;
       }
     }
 
@@ -243,11 +242,10 @@ class LogScreenState extends State<LogScreen> {
           );
         },
       );
-      return;
+      return false;
     }
 
-    // If we get here, permissions are granted and we can proceed
-    _getCurrentLocation();
+    return true;
   }
 
   Future<void> _getCurrentLocation() async {
@@ -257,27 +255,32 @@ class LogScreenState extends State<LogScreen> {
         desiredAccuracy: LocationAccuracy.high,
       );
       print('Got position: ${position.latitude}, ${position.longitude}');
-      setState(() {
-        _currentPosition = position;
-      });
-      // Save coordinates when getting current location
-      await StorageService.saveLocationCoordinates(position.latitude, position.longitude);
-      if (_mapController != null) {
+      
+      // Only set current location if no markers exist (no selected location)
+      if (_markers.isEmpty) {
+        setState(() {
+          _currentPosition = position;
+          _markers.add(
+            Marker(
+              markerId: MarkerId('current_location'),
+              position: LatLng(position.latitude, position.longitude),
+              infoWindow: InfoWindow(title: 'Current Location'),
+            ),
+          );
+        });
+        
+        // Save coordinates only if no location was previously selected
+        await StorageService.saveLocationCoordinates(position.latitude, position.longitude);
+      }
+      
+      if (_mapController != null && _markers.isNotEmpty) {
         print('Animating camera to position');
         _mapController!.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
-              target: LatLng(position.latitude, position.longitude),
+              target: _markers.first.position,
               zoom: 15,
             ),
-          ),
-        );
-        _markers.clear();
-        _markers.add(
-          Marker(
-            markerId: MarkerId('current_location'),
-            position: LatLng(position.latitude, position.longitude),
-            infoWindow: InfoWindow(title: 'Current Location'),
           ),
         );
       }
@@ -289,36 +292,43 @@ class LogScreenState extends State<LogScreen> {
     }
   }
 
-  void _showLocationPicker() async {
-    if (_currentPosition == null) {
-      print('Current position is null, requesting permission');
-      _requestLocationPermission();
+  Future<void> _showLocationPicker() async {
+    // Request location permission when opening the picker
+    final permissionGranted = await _requestLocationPermission();
+    if (!permissionGranted) {
       return;
     }
 
-    // Reset all location-related state and saved data
-    setState(() {
-      _markers.clear();
-      _locationName = null;
-      selectedLocation = null;
-    });
-    
-    // Clear saved location data
-    await StorageService.saveSelectedLocation('');
-    await StorageService.saveLocationCoordinates(0.0, 0.0);
-
-    // Add current location marker by default
-    setState(() {
-      _markers.add(
-        Marker(
-          markerId: MarkerId('current_location'),
-          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          infoWindow: InfoWindow(title: 'Current Location'),
-        ),
+    // Get current location when opening the picker
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
       );
-    });
+      setState(() {
+        _currentPosition = position;
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: $e')),
+      );
+      return;
+    }
 
-    print('Showing location picker with position: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
+    // Reset location state only if no location was previously selected
+    if (_markers.isEmpty) {
+      setState(() {
+        _markers.clear();
+        _markers.add(
+          Marker(
+            markerId: MarkerId('current_location'),
+            position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            infoWindow: InfoWindow(title: 'Current Location'),
+          ),
+        );
+      });
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -364,67 +374,127 @@ class LogScreenState extends State<LogScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.h),
                     child: Container(
-                      height: 40.h,
-                      padding: EdgeInsets.symmetric(horizontal: 8.h),
+                      height: 48.h,
                       decoration: BoxDecoration(
-                        color: Color(0xFFBCBCBC).withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(32.h),
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(24.h),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.h,
+                        ),
                       ),
-                      child: TypeAheadField<PlacePrediction>(
-                        controller: _searchController,
-                        builder: (context, controller, focusNode) {
-                          return TextField(
-                            controller: controller,
-                            focusNode: focusNode,
-                            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                            decoration: InputDecoration(
-                              hintText: 'Search for a place...',
-                              hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                              prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 8.h),
-                            ),
-                          );
-                        },
-                        suggestionsCallback: (String pattern) async {
-                          if (pattern.length > 2) {
-                            return await _getPlaces(pattern);
-                          }
-                          return [];
-                        },
-                        itemBuilder: (context, PlacePrediction prediction) {
-                          return ListTile(
-                            leading: Icon(Icons.location_on, color: Colors.white.withOpacity(0.5)),
-                            title: Text(
-                              prediction.description,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: TypeAheadField<PlacePrediction>(
+                          builder: (context, controller, focusNode) {
+                            return TextField(
+                              controller: controller,
+                              focusNode: focusNode,
                               style: TextStyle(color: Colors.white),
-                            ),
-                          );
-                        },
-                        onSelected: (PlacePrediction prediction) async {
-                          _searchController.text = prediction.description;
-                          final placeDetails = await _getPlaceDetails(prediction.placeId);
-                          if (placeDetails != null) {
-                            final location = placeDetails['geometry']['location'];
-                            if (location != null) {
-                              setState(() {
-                                _markers.clear();
-                                _markers.add(
-                                  Marker(
-                                    markerId: MarkerId('selected_location'),
-                                    position: LatLng(location['lat'] ?? 0, location['lng'] ?? 0),
-                                    infoWindow: InfoWindow(title: prediction.description),
-                                  ),
-                                );
-                                _mapController?.animateCamera(
-                                  CameraUpdate.newLatLng(
-                                    LatLng(location['lat'] ?? 0, location['lng'] ?? 0),
-                                  ),
-                                );
-                              });
+                              decoration: InputDecoration(
+                                hintText: 'Search for a place...',
+                                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                                prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 11.h),
+                                isDense: true,
+                              ),
+                            );
+                          },
+                          suggestionsCallback: (String pattern) async {
+                            if (pattern.length >= 3) {
+                              return await _getPlaces(pattern);
                             }
-                          }
-                        },
+                            return [];
+                          },
+                          itemBuilder: (context, PlacePrediction prediction) {
+                            return ClipRRect(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFBCBCBC).withOpacity(0.04),
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.white.withOpacity(0.1),
+                                        width: 1.h,
+                                      ),
+                                    ),
+                                  ),
+                                  child: ListTile(
+                                    leading: Icon(
+                                      Icons.location_on,
+                                      color: Colors.white.withOpacity(0.5),
+                                    ),
+                                    title: Text(
+                                      prediction.description,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16.h,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16.h,
+                                      vertical: 8.h,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          decorationBuilder: (context, child) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(16.h),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFBCBCBC).withOpacity(0.04),
+                                    borderRadius: BorderRadius.circular(16.h),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.1),
+                                      width: 1.h,
+                                    ),
+                                  ),
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                          hideOnEmpty: true,
+                          hideOnLoading: true,
+                          onSelected: (PlacePrediction prediction) async {
+                            _searchController.text = prediction.description;
+                            final placeDetails = await _getPlaceDetails(prediction.placeId);
+                            if (placeDetails != null) {
+                              final location = placeDetails['geometry']['location'];
+                              if (location != null) {
+                                setState(() {
+                                  _markers.clear();
+                                  _markers.add(
+                                    Marker(
+                                      markerId: MarkerId('selected_location'),
+                                      position: LatLng(location['lat'] ?? 0, location['lng'] ?? 0),
+                                      infoWindow: InfoWindow(title: prediction.description),
+                                    ),
+                                  );
+                                  _locationName = prediction.description;
+                                });
+                                // Save the selected location coordinates
+                                await StorageService.saveLocationCoordinates(location['lat'], location['lng']);
+                                await StorageService.saveSelectedLocation(prediction.description);
+                                
+                                if (_mapController != null) {
+                                  _mapController!.animateCamera(
+                                    CameraUpdate.newLatLng(
+                                      LatLng(location['lat'] ?? 0, location['lng'] ?? 0),
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -433,25 +503,32 @@ class LogScreenState extends State<LogScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.h),
                     child: Container(
-                      height: 40.h,
-                      padding: EdgeInsets.symmetric(horizontal: 8.h),
+                      height: 48.h,
                       decoration: BoxDecoration(
-                        color: Color(0xFFBCBCBC).withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(32.h),
-                      ),
-                      child: TextField(
-                        style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                        decoration: InputDecoration(
-                          hintText: 'Enter location name',
-                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 8.h),
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(24.h),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.h,
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _locationName = value;
-                          });
-                        },
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: TextField(
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Enter location name',
+                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 11.h),
+                            isDense: true,
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _locationName = value;
+                            });
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -701,9 +778,54 @@ class LogScreenState extends State<LogScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_markers.isNotEmpty) {
-                              print('Location confirmed: \\${_markers.first.position.latitude}, \\${_markers.first.position.longitude}');
+                              final selectedMarker = _markers.first;
+                              // Save the selected location before closing
+                              await StorageService.saveLocationCoordinates(
+                                selectedMarker.position.latitude,
+                                selectedMarker.position.longitude
+                              );
+                              if (_locationName != null) {
+                                await StorageService.saveSelectedLocation(_locationName!);
+                              }
+                              
+                              // Capture the map area
+                              if (_mapController != null) {
+                                try {
+                                  // Wait for the map to settle
+                                  await Future.delayed(Duration(milliseconds: 500));
+                                  
+                                  // Take the screenshot
+                                  final Uint8List? screenshot = await _mapController!.takeSnapshot();
+                                  if (screenshot != null) {
+                                    setState(() {
+                                      _mapScreenshot = screenshot;
+                                    });
+                                    await StorageService.saveMapScreenshot(screenshot);
+                                  }
+                                } catch (e) {
+                                  print('Error capturing map screenshot: $e');
+                                }
+                              }
+
+                              // Update the preview map with the selected location
+                              setState(() {
+                                _markers.clear();
+                                _markers.add(
+                                  Marker(
+                                    markerId: MarkerId('selected_location'),
+                                    position: LatLng(
+                                      selectedMarker.position.latitude,
+                                      selectedMarker.position.longitude
+                                    ),
+                                    infoWindow: InfoWindow(
+                                      title: _locationName ?? 'Selected Location'
+                                    ),
+                                  ),
+                                );
+                              });
+
                               Navigator.pop(context);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -1272,115 +1394,144 @@ class LogScreenState extends State<LogScreen> {
                                                 borderRadius: BorderRadius.circular(32.h),
                                                 child: Stack(
                                                   children: [
-                                                    Container(
-                                                      width: 340.h,
-                                                      height: 76.h,
-                                                      child: GoogleMap(
-                                                        initialCameraPosition: CameraPosition(
-                                                          target: _markers.first.position,
-                                                          zoom: 15,
+                                                    if (_mapScreenshot != null)
+                                                      Container(
+                                                        width: 340.h,
+                                                        height: 76.h,
+                                                        decoration: BoxDecoration(
+                                                          image: DecorationImage(
+                                                            image: MemoryImage(_mapScreenshot!),
+                                                            fit: BoxFit.cover,
+                                                          ),
                                                         ),
-                                                        markers: _markers,
-                                                        mapType: MapType.normal,
-                                                        zoomControlsEnabled: false,
-                                                        mapToolbarEnabled: false,
-                                                        myLocationButtonEnabled: false,
-                                                        rotateGesturesEnabled: false,
-                                                        scrollGesturesEnabled: false,
-                                                        zoomGesturesEnabled: false,
-                                                        tiltGesturesEnabled: false,
-                                                        compassEnabled: false,
-                                                        onMapCreated: (GoogleMapController controller) {
-                                                          controller.setMapStyle('''[
-                                                            {
-                                                              "elementType": "geometry",
-                                                              "stylers": [{"color": "#242f3e"}]
-                                                            },
-                                                            {
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#746855"}]
-                                                            },
-                                                            {
-                                                              "elementType": "labels.text.stroke",
-                                                              "stylers": [{"color": "#242f3e"}]
-                                                            },
-                                                            {
-                                                              "featureType": "administrative.locality",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#d59563"}]
-                                                            },
-                                                            {
-                                                              "featureType": "poi",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#d59563"}]
-                                                            },
-                                                            {
-                                                              "featureType": "poi.park",
-                                                              "elementType": "geometry",
-                                                              "stylers": [{"color": "#263c3f"}]
-                                                            },
-                                                            {
-                                                              "featureType": "poi.park",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#6b9a76"}]
-                                                            },
-                                                            {
-                                                              "featureType": "road",
-                                                              "elementType": "geometry",
-                                                              "stylers": [{"color": "#38414e"}]
-                                                            },
-                                                            {
-                                                              "featureType": "road",
-                                                              "elementType": "geometry.stroke",
-                                                              "stylers": [{"color": "#212a37"}]
-                                                            },
-                                                            {
-                                                              "featureType": "road",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#9ca5b3"}]
-                                                            },
-                                                            {
-                                                              "featureType": "road.highway",
-                                                              "elementType": "geometry",
-                                                              "stylers": [{"color": "#746855"}]
-                                                            },
-                                                            {
-                                                              "featureType": "road.highway",
-                                                              "elementType": "geometry.stroke",
-                                                              "stylers": [{"color": "#1f2835"}]
-                                                            },
-                                                            {
-                                                              "featureType": "road.highway",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#f3d19c"}]
-                                                            },
-                                                            {
-                                                              "featureType": "transit",
-                                                              "elementType": "geometry",
-                                                              "stylers": [{"color": "#2f3948"}]
-                                                            },
-                                                            {
-                                                              "featureType": "transit.station",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#d59563"}]
-                                                            },
-                                                            {
-                                                              "featureType": "water",
-                                                              "elementType": "geometry",
-                                                              "stylers": [{"color": "#17263c"}]
-                                                            },
-                                                            {
-                                                              "featureType": "water",
-                                                              "elementType": "labels.text.fill",
-                                                              "stylers": [{"color": "#515c6d"}]
-                                                            },
-                                                            {
-                                                              "featureType": "water",
-                                                              "elementType": "labels.text.stroke",
-                                                              "stylers": [{"color": "#17263c"}]
+                                                      )
+                                                    else
+                                                      Container(
+                                                        width: 340.h,
+                                                        height: 76.h,
+                                                        child: GoogleMap(
+                                                          initialCameraPosition: CameraPosition(
+                                                            target: _markers.first.position,
+                                                            zoom: 15,
+                                                          ),
+                                                          markers: _markers,
+                                                          mapType: MapType.normal,
+                                                          zoomControlsEnabled: false,
+                                                          mapToolbarEnabled: false,
+                                                          myLocationButtonEnabled: false,
+                                                          rotateGesturesEnabled: false,
+                                                          scrollGesturesEnabled: false,
+                                                          zoomGesturesEnabled: false,
+                                                          tiltGesturesEnabled: false,
+                                                          compassEnabled: false,
+                                                          onMapCreated: (GoogleMapController controller) async {
+                                                            try {
+                                                              await controller.setMapStyle('''[
+                                                                {
+                                                                  "elementType": "geometry",
+                                                                  "stylers": [{"color": "#242f3e"}]
+                                                                },
+                                                                {
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#746855"}]
+                                                                },
+                                                                {
+                                                                  "elementType": "labels.text.stroke",
+                                                                  "stylers": [{"color": "#242f3e"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "administrative.locality",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#d59563"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "poi",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#d59563"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "poi.park",
+                                                                  "elementType": "geometry",
+                                                                  "stylers": [{"color": "#263c3f"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "poi.park",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#6b9a76"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "road",
+                                                                  "elementType": "geometry",
+                                                                  "stylers": [{"color": "#38414e"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "road",
+                                                                  "elementType": "geometry.stroke",
+                                                                  "stylers": [{"color": "#212a37"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "road",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#9ca5b3"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "road.highway",
+                                                                  "elementType": "geometry",
+                                                                  "stylers": [{"color": "#746855"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "road.highway",
+                                                                  "elementType": "geometry.stroke",
+                                                                  "stylers": [{"color": "#1f2835"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "road.highway",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#f3d19c"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "transit",
+                                                                  "elementType": "geometry",
+                                                                  "stylers": [{"color": "#2f3948"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "transit.station",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#d59563"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "water",
+                                                                  "elementType": "geometry",
+                                                                  "stylers": [{"color": "#17263c"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "water",
+                                                                  "elementType": "labels.text.fill",
+                                                                  "stylers": [{"color": "#515c6d"}]
+                                                                },
+                                                                {
+                                                                  "featureType": "water",
+                                                                  "elementType": "labels.text.stroke",
+                                                                  "stylers": [{"color": "#17263c"}]
+                                                                }
+                                                              ]''');
+                                                              
+                                                              // Ensure the camera is positioned at the selected location
+                                                              if (_markers.isNotEmpty) {
+                                                                controller.animateCamera(
+                                                                  CameraUpdate.newLatLng(_markers.first.position),
+                                                                );
+                                                              }
+                                                            } catch (e) {
+                                                              print('Error setting map style: $e');
                                                             }
-                                                          ]''');
-                                                        },
+                                                          },
+                                                        ),
+                                                      ),
+                                                    // Add a transparent container to capture tap events
+                                                    Positioned.fill(
+                                                      child: Container(
+                                                        color: Colors.transparent,
                                                       ),
                                                     ),
                                                     if (_locationName != null)
@@ -1927,20 +2078,35 @@ class LogScreenState extends State<LogScreen> {
   }
 
   Future<List<PlacePrediction>> _getPlaces(String query) async {
-    final location = _currentPosition != null
-        ? '&location=${_currentPosition!.latitude},${_currentPosition!.longitude}&radius=50000'
-        : '';
-    final response = await http.get(
-      Uri.parse(
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query$location&key=$_placesApiKey',
-      ),
-    );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final predictions = data['predictions'] as List? ?? [];
-      return predictions.map((p) => PlacePrediction.fromJson(p)).toList();
+    try {
+      final encodedQuery = Uri.encodeComponent(query);
+      final location = _currentPosition != null
+          ? '&location=${_currentPosition!.latitude},${_currentPosition!.longitude}&radius=50000'
+          : '';
+      final url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$encodedQuery$location&key=$_placesApiKey';
+      print('Fetching places with URL: $url');
+      
+      final response = await http.get(Uri.parse(url));
+      print('Places API response status: ${response.statusCode}');
+      print('Places API response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK') {
+          final predictions = data['predictions'] as List? ?? [];
+          return predictions.map((p) => PlacePrediction.fromJson(p)).toList();
+        } else {
+          print('Places API error: ${data['status']}');
+          return [];
+        }
+      } else {
+        print('Places API error: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching places: $e');
+      return [];
     }
-    return [];
   }
 
   Future<Map<String, dynamic>?> _getPlaceDetails(String placeId) async {
@@ -1987,21 +2153,26 @@ class LogScreenState extends State<LogScreen> {
       selectedContacts = savedContacts;
     });
 
+    // Load saved map screenshot
+    final savedScreenshot = await StorageService.getMapScreenshot();
+    if (savedScreenshot != null) {
+      setState(() {
+        _mapScreenshot = savedScreenshot;
+      });
+    }
+
+    // Only load saved location if it exists, don't request current location
     final savedLocation = await StorageService.getSelectedLocation();
     final savedCoords = await StorageService.getLocationCoordinates();
-    if (savedCoords != null) {
+    if (savedCoords != null && savedLocation != null) {
       setState(() {
-        _currentPosition = Position(
-          latitude: savedCoords['lat']!,
-          longitude: savedCoords['lng']!,
-          timestamp: DateTime.now(),
-          accuracy: 0,
-          altitude: 0,
-          heading: 0,
-          speed: 0,
-          speedAccuracy: 0,
-          altitudeAccuracy: 0,
-          headingAccuracy: 0,
+        _markers.clear();
+        _markers.add(
+          Marker(
+            markerId: MarkerId('selected_location'),
+            position: LatLng(savedCoords['lat']!, savedCoords['lng']!),
+            infoWindow: InfoWindow(title: savedLocation),
+          ),
         );
         _locationName = savedLocation;
       });
