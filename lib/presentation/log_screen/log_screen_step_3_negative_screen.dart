@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/utils/size_utils.dart';
 import '../log_screen/log_screen.dart';
+import '../log_screen_step_four_screen/log_screen_step_four_screen.dart';
 
 class LogScreenStep3NegativeScreen extends StatefulWidget {
   const LogScreenStep3NegativeScreen({Key? key}) : super(key: key);
@@ -40,7 +41,118 @@ class _LogScreenStep3NegativeScreenState extends State<LogScreenStep3NegativeScr
 
   @override
   Widget build(BuildContext context) {
-    return Container(); // Replace with your existing build implementation
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
+        width: double.maxFinite,
+        height: SizeUtils.height,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Your existing content here
+            
+            // Next button with absolute positioning
+            Positioned(
+              right: 12.h,
+              bottom: 50.h,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFourScreen.builder(context),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            );
+                            var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            );
+                            return FadeTransition(
+                              opacity: fadeAnimation,
+                              child: ScaleTransition(
+                                scale: scaleAnimation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          transitionDuration: Duration(milliseconds: 400),
+                        ),
+                      );
+                    },
+                    child: SvgPicture.asset(
+                      'assets/images/next_log.svg',
+                      width: 142.h,
+                      height: 42.h,
+                    ),
+                  ),
+                  Positioned(
+                    top: 8.h,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFourScreen.builder(context),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                ),
+                              );
+                              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                ),
+                              );
+                              return FadeTransition(
+                                opacity: fadeAnimation,
+                                child: ScaleTransition(
+                                  scale: scaleAnimation,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            transitionDuration: Duration(milliseconds: 400),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Next",
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   PreferredSizeWidget _buildAppbar(BuildContext context) {

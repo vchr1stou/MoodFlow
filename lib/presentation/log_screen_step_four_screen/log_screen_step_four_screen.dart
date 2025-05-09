@@ -1,14 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
-import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_icon_button.dart';
-import '../../widgets/custom_outlined_button.dart';
-import 'models/log_screen_step_four_model.dart';
-import 'provider/log_screen_step_four_provider.dart';
-import 'package:easy_localization/easy_localization.dart';
+import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
+import '../log_screen_step_five_screen/log_screen_step_five_screen.dart';
 
 class LogScreenStepFourScreen extends StatefulWidget {
   const LogScreenStepFourScreen({Key? key})
@@ -19,10 +14,7 @@ class LogScreenStepFourScreen extends StatefulWidget {
   @override
   LogScreenStepFourScreenState createState() => LogScreenStepFourScreenState();
   static Widget builder(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LogScreenStepFourProvider(),
-      child: LogScreenStepFourScreen(),
-    );
+    return LogScreenStepFourScreen();
   }
 }
 
@@ -37,250 +29,372 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed4001,
-        child: SafeArea(
-          child: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 4,
-                    sigmaY: 4,
-                  ),
-                  child: Container(
-                    height: 830.h,
-                    padding: EdgeInsets.symmetric(horizontal: 8.h),
-                    decoration: AppDecoration.gradientAmberToRed4001,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        ClipRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: 4,
-                              sigmaY: 4,
-                            ),
-                            child: Container(
-                              width: double.maxFinite,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20.h,
-                                vertical: 36.h,
-                              ),
-                              decoration: AppDecoration.gradientBlackToGray,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(height: 96.h),
-                                  Text(
-                                    "lbl_add_photo".tr(),
-                                    style: theme.textTheme.headlineSmall,
-                                  ),
-                                  SizedBox(height: 6.h),
-                                  Text(
-                                    "msg_save_the_scene_that".tr(),
-                                    style:
-                                        CustomTextStyles.labelMediumOnPrimary,
-                                  ),
-                                  SizedBox(height: 16.h),
-                                  _buildAlert(context),
-                                  SizedBox(height: 10.h),
-                                  Text(
-                                    "msg_add_music_track".tr(),
-                                    style: theme.textTheme.headlineSmall,
-                                  ),
-                                  SizedBox(height: 6.h),
-                                  Text(
-                                    "msg_every_feeling_has2".tr(),
-                                    style:
-                                        CustomTextStyles.labelMediumOnPrimary,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: double.maxFinite,
-                          margin: EdgeInsets.fromLTRB(6.h, 26.h, 6.h, 46.h),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: double.maxFinite,
-                                child: _buildAppbar(context),
-                              ),
-                              SizedBox(height: 8.h),
-                              Text(
-                                "lbl_add_to_journal".tr(),
-                                style: theme.textTheme.headlineSmall,
-                              ),
-                              SizedBox(height: 6.h),
-                              Text(
-                                "msg_spill_the_tea_it_s".tr(),
-                                style: CustomTextStyles.labelMediumOnPrimary,
-                              ),
-                              SizedBox(height: 16.h),
-                              _buildColumncloseone(context),
-                              Spacer(),
-                              _buildAlertone(context),
-                              SizedBox(height: 26.h),
-                              CustomOutlinedButton(
-                                height: 36.h,
-                                width: 118.h,
-                                text: "lbl_save".tr(),
-                                buttonStyle: CustomButtonStyles.none,
-                                decoration:
-                                    CustomButtonStyles.outlineTL18Decoration,
-                                buttonTextStyle:
-                                    CustomTextStyles.titleSmallSemiBold,
-                                alignment: Alignment.centerRight,
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  color: Color(0xFF808080).withOpacity(0.2),
                 ),
               ),
             ),
-          ),
+            // Content
+            SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 96.h),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Add to Journal",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 3.h),
+                            Container(
+                              width: 300.h,
+                              child: Text(
+                                "Spill the tea. It's just between you and your app.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 11.h),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/writing_box.svg',
+                                  width: 364.h,
+                                  height: 199.h,
+                                ),
+                                Positioned(
+                                  top: 58.h,
+                                  child: Column(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/writing_plus.svg',
+                                        width: 45.h,
+                                        height: 44.h,
+                                      ),
+                                      SizedBox(height: 6.h),
+                                      Text(
+                                        "Press to start writing",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 11.h),
+                            Text(
+                              "Add Photo",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 3.h),
+                            Text(
+                              "Save the scene that shaped your feeling.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 11.h),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/photo_box.svg',
+                                  width: 364.h,
+                                  height: 111.h,
+                                ),
+                                Positioned(
+                                  top: 25.h,
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/images/photo_icon.svg',
+                                          width: 37.h,
+                                          height: 31.h,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        Text(
+                                          "Add Photo",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 11.h),
+                            Text(
+                              "Add Music Track",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 3.h),
+                            Text(
+                              "Every feeling has a soundtrack. What's yours?",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 11.h),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/music_box.svg',
+                                  width: 364.h,
+                                  height: 111.h,
+                                ),
+                                Positioned(
+                                  top: 27.h,
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/images/spotify_small.svg',
+                                          width: 29.h,
+                                          height: 29.h,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        Text(
+                                          "Add Music",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Next button with absolute positioning
+            Positioned(
+              right: 12.h,
+              bottom: 50.h,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFiveScreen.builder(context),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            );
+                            var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            );
+                            return FadeTransition(
+                              opacity: fadeAnimation,
+                              child: ScaleTransition(
+                                scale: scaleAnimation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          transitionDuration: Duration(milliseconds: 400),
+                        ),
+                      );
+                    },
+                    child: SvgPicture.asset(
+                      'assets/images/next_log.svg',
+                      width: 142.h,
+                      height: 42.h,
+                    ),
+                  ),
+                  Positioned(
+                    top: 8.h,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFiveScreen.builder(context),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                ),
+                              );
+                              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                ),
+                              );
+                              return FadeTransition(
+                                opacity: fadeAnimation,
+                                child: ScaleTransition(
+                                  scale: scaleAnimation,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            transitionDuration: Duration(milliseconds: 400),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Next",
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildAlert(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(vertical: 22.h),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        spacing: 8,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgPhotoOnRectan,
-            height: 30.h,
-            width: 38.h,
-          ),
-          Text(
-            "lbl_add_photo2".tr(),
-            style: theme.textTheme.labelMedium,
-          ),
-          SizedBox(height: 6.h)
-        ],
       ),
     );
   }
 
   /// Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      height: 30.h,
-      leadingWidth: 30.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgArrowLeft,
-        onTap: () {
-          onTapArrowleftone(context);
-        },
-      ),
-      title: Container(
-        width: double.maxFinite,
-        margin: EdgeInsets.only(
-          left: 21.h,
-          right: 49.h,
-        ),
-        child: SliderTheme(
-          data: SliderThemeData(
-            trackShape: RoundedRectSliderTrackShape(),
-            activeTrackColor: theme.colorScheme.onPrimary.withValues(
-              alpha: 0.6,
-            ),
-            inactiveTrackColor: appTheme.blueGray1007f,
-            thumbShape: RoundSliderThumbShape(),
-          ),
-          child: Slider(
-            value: 76.39,
-            min: 0.0,
-            max: 100.0,
-            onChanged: (value) {},
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildColumncloseone(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 2.h),
-      padding: EdgeInsets.symmetric(vertical: 60.h),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        spacing: 14,
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 200.h,
+      leading: Row(
         children: [
-          CustomIconButton(
-            height: 36.h,
-            width: 38.h,
-            padding: EdgeInsets.all(10.h),
-            decoration: IconButtonStyleHelper.fillPrimaryTL18,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgCloseOnprimary,
+          GestureDetector(
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep3PositiveScreen.builder(context),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: ScaleTransition(
+                        scale: scaleAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  transitionDuration: Duration(milliseconds: 400),
+                ),
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.only(left: 16.h, top: 10.h),
+              child: SvgPicture.asset(
+                'assets/images/back_log.svg',
+                width: 27.h,
+                height: 27.h,
+              ),
             ),
           ),
-          Text(
-            "msg_press_to_start_writing".tr(),
-            style: CustomTextStyles.labelMediumOnPrimary_1,
-          ),
-          SizedBox(height: 6.h)
         ],
       ),
     );
-  }
-
-  /// Section Widget
-  Widget _buildAlertone(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 14.h),
-      padding: EdgeInsets.symmetric(vertical: 24.h),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        spacing: 8,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgSettingsOnprimary,
-            height: 28.h,
-            width: 30.h,
-          ),
-          Text(
-            "lbl_add_music".tr(),
-            style: theme.textTheme.labelMedium,
-          ),
-          SizedBox(height: 4.h)
-        ],
-      ),
-    );
-  }
-
-  /// Navigates to the previous screen.
-  onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBackWithoutContext();
   }
 }

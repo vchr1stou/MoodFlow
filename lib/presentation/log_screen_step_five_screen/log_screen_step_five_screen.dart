@@ -1,16 +1,31 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
-import '../../widgets/app_bar/appbar_leading_image.dart';
-import '../../widgets/app_bar/appbar_title_iconbutton.dart';
-import '../../widgets/app_bar/appbar_title_image.dart';
-import '../../widgets/app_bar/appbar_trailing_image.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_outlined_button.dart';
-import 'models/log_screen_step_five_model.dart';
-import 'provider/log_screen_step_five_provider.dart';
+import '../log_screen_step_four_screen/log_screen_step_four_screen.dart';
+import '../homescreen_screen/homescreen_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'provider/log_screen_step_five_provider.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+
+class Particle {
+  Offset position;
+  Color color;
+  double size;
+  double velocityY;
+  double rotation;
+  int shape; // 0: rectangle, 1: diamond
+
+  Particle({
+    required this.position,
+    required this.color,
+    required this.size,
+    required this.shape,
+    this.velocityY = 2.0,
+    required this.rotation,
+  });
+}
 
 class LogScreenStepFiveScreen extends StatefulWidget {
   const LogScreenStepFiveScreen({Key? key}) : super(key: key);
@@ -26,492 +41,376 @@ class LogScreenStepFiveScreen extends StatefulWidget {
   }
 }
 
-class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> {
+class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with TickerProviderStateMixin {
+  double _alignX = 0.0;
+  double _smoothX = 0.0;
+  static const double _sensitivity = 0.8;
+  static const double _smoothingFactor = 0.7;
+  bool _isInitialized = false;
+
+  final List<Particle> _particles = [];
+  late AnimationController _animationController;
+  final Random _random = Random();
+
+  static const List<Color> _colors = [
+    Color(0xFFFF1D44), // Red
+    Color(0xFFFFD100), // Gold
+    Color(0xFF00E0FF), // Blue
+    Color(0xFFFF8D00), // Orange
+    Color(0xFFFFFFFF), // White
+    Color(0xFF00FF94), // Green
+  ];
+
   @override
   void initState() {
     super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat();
+
+    _animationController.addListener(_updateParticles);
+
+    accelerometerEvents.listen((AccelerometerEvent event) {
+      if (mounted) {
+        setState(() {
+          final targetX = (-event.x * _sensitivity).clamp(-1.0, 1.0);
+          _smoothX = _smoothX * _smoothingFactor + targetX * (1 - _smoothingFactor);
+          _alignX = _smoothX;
+        });
+      }
+    });
+  }
+
+  void _generateParticles(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    _particles.clear();
+
+    for (int i = 0; i < 100; i++) {
+      _particles.add(
+        Particle(
+          position: Offset(
+            _random.nextDouble() * size.width,
+            -size.height + (_random.nextDouble() * size.height * 2),
+          ),
+          color: _colors[_random.nextInt(_colors.length)],
+          size: 2 + _random.nextDouble() * 3,
+          shape: _random.nextInt(2),
+          rotation: _random.nextDouble() * pi * 2,
+        ),
+      );
+    }
+  }
+
+  void _updateParticles() {
+    if (!mounted || !_isInitialized) return;
+
+    final size = MediaQuery.of(context).size;
+    for (var particle in _particles) {
+      final swayAmount = sin(_animationController.value * pi * 2) * 0.5;
+
+      particle.position = Offset(
+        particle.position.dx + _alignX * 6 + swayAmount,
+        particle.position.dy + particle.velocityY,
+      );
+
+      particle.rotation += 0.05 + (swayAmount.abs() * 0.05);
+
+      if (particle.position.dy > size.height) {
+        particle.position = Offset(
+          _random.nextDouble() * size.width,
+          -particle.size * 2,
+        );
+        particle.rotation = _random.nextDouble() * pi * 2;
+      }
+
+      if (particle.position.dx < -particle.size * 3) {
+        particle.position = Offset(size.width + particle.size * 3, particle.position.dy);
+      } else if (particle.position.dx > size.width + particle.size * 3) {
+        particle.position = Offset(-particle.size * 3, particle.position.dy);
+      }
+    }
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _generateParticles(context);
+        _isInitialized = true;
+      });
+    }
+
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
       body: Container(
         width: double.maxFinite,
         height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed4001,
-        child: SafeArea(
-          child: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Container(
-                height: 936.h,
-                child: Stack(
-                  alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background blur overlay
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  color: Color(0xFF808080).withOpacity(0.2),
+                ),
+              ),
+            ),
+            // Confetti particles
+            CustomPaint(
+              painter: ParticlePainter(particles: _particles),
+              size: Size.infinite,
+            ),
+            // Content
+            SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                child: Column(
                   children: [
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 8.h,
-                          top: 202.h,
-                          right: 8.h,
-                        ),
-                        child: ClipRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: 4,
-                              sigmaY: 4,
-                            ),
-                            child: Container(
-                              width: double.maxFinite,
-                              padding: EdgeInsets.symmetric(horizontal: 6.h),
-                              decoration: AppDecoration.gradientBlackToGray,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(height: 22.h),
-                                  Container(
-                                    width: double.maxFinite,
-                                    margin: EdgeInsets.only(
-                                      left: 30.h,
-                                      right: 18.h,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 138.h,
-                                          margin: EdgeInsets.only(bottom: 24.h),
-                                          child: Column(
-                                            children: [
-                                              SizedBox(
-                                                width: double.maxFinite,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    CustomImageView(
-                                                      imagePath: ImageConstant
-                                                          .imgForward,
-                                                      height: 14.h,
-                                                      width: 14.h,
-                                                      alignment: Alignment
-                                                          .bottomCenter,
-                                                    ),
-                                                    CustomImageView(
-                                                      imagePath: ImageConstant
-                                                          .imgSettingsPinkA100,
-                                                      height: 18.h,
-                                                      width: 12.h,
-                                                      margin: EdgeInsets.only(
-                                                        right: 28.h,
-                                                        bottom: 12.h,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Container(
-                                                width: double.maxFinite,
-                                                margin: EdgeInsets.symmetric(
-                                                    horizontal: 6.h),
-                                                child: Row(
-                                                  children: [
-                                                    CustomImageView(
-                                                      imagePath: ImageConstant
-                                                          .imgTelevisionPinkA100,
-                                                      height: 22.h,
-                                                      width: 24.h,
-                                                    ),
-                                                    CustomImageView(
-                                                      imagePath: ImageConstant
-                                                          .imgTelevisionCyan400,
-                                                      height: 10.h,
-                                                      width: 12.h,
-                                                      alignment: Alignment
-                                                          .bottomCenter,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgBookmarkPurple500,
-                                          height: 24.h,
-                                          width: 30.h,
-                                          alignment: Alignment.bottomCenter,
-                                          margin: EdgeInsets.only(left: 2.h),
-                                        ),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgSettingsPurple700,
-                                          height: 22.h,
-                                          width: 22.h,
-                                          alignment: Alignment.bottomCenter,
-                                          margin: EdgeInsets.only(
-                                            left: 18.h,
-                                            bottom: 14.h,
-                                          ),
-                                        ),
-                                        CustomImageView(
-                                          imagePath:
-                                              ImageConstant.imgUserCyan400,
-                                          height: 10.h,
-                                          width: 12.h,
-                                          margin: EdgeInsets.only(
-                                            left: 2.h,
-                                            top: 32.h,
-                                          ),
-                                        ),
-                                        Spacer(),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgTelevisionCyan40014x22,
-                                          height: 14.h,
-                                          width: 24.h,
-                                          alignment: Alignment.center,
-                                        ),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgTelevisionPinkA10012x10,
-                                          height: 12.h,
-                                          width: 12.h,
-                                          margin: EdgeInsets.only(
-                                            left: 4.h,
-                                            top: 30.h,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: 28.h),
-                                  _buildRowallthefeels(context),
-                                  SizedBox(height: 6.h),
-                                  Container(
-                                    width: double.maxFinite,
-                                    margin: EdgeInsets.only(
-                                      left: 48.h,
-                                      right: 52.h,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        CustomImageView(
-                                          imagePath:
-                                              ImageConstant.imgUserPurple500,
-                                          height: 12.h,
-                                          width: 14.h,
-                                        ),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgTelevisionCyan40016x18,
-                                          height: 16.h,
-                                          width: 20.h,
-                                          margin: EdgeInsets.only(left: 26.h),
-                                        ),
-                                        Spacer(flex: 38),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgTelevisionPinkA10018x16,
-                                          height: 18.h,
-                                          width: 18.h,
-                                          alignment: Alignment.topCenter,
-                                        ),
-                                        Spacer(flex: 61),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgTelevisionPurple500,
-                                          height: 14.h,
-                                          width: 28.h,
-                                          margin: EdgeInsets.only(bottom: 10.h),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    width: double.maxFinite,
-                                    margin: EdgeInsets.only(
-                                      left: 30.h,
-                                      right: 24.h,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgContrastPurple700,
-                                          height: 18.h,
-                                          width: 26.h,
-                                        ),
-                                        Spacer(flex: 75),
-                                        Container(
-                                          height: 26.h,
-                                          width: 38.h,
-                                          margin: EdgeInsets.only(top: 2.h),
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              CustomImageView(
-                                                imagePath: ImageConstant
-                                                    .imgThumbsUpPurple500,
-                                                height: 14.h,
-                                                width: 14.h,
-                                                alignment:
-                                                    Alignment.bottomRight,
-                                              ),
-                                              CustomImageView(
-                                                imagePath: ImageConstant
-                                                    .imgTelevisionPurple700,
-                                                height: 24.h,
-                                                width: double.maxFinite,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        CustomImageView(
-                                          imagePath: ImageConstant
-                                              .imgTelevisionPurple50018x22,
-                                          height: 18.h,
-                                          width: 24.h,
-                                          alignment: Alignment.bottomCenter,
-                                          margin: EdgeInsets.only(left: 10.h),
-                                        ),
-                                        Spacer(flex: 24),
-                                        CustomImageView(
-                                          imagePath: ImageConstant.imgVector,
-                                          height: 14.h,
-                                          width: 26.h,
-                                          alignment: Alignment.center,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  _buildRowthumbsup(context),
-                                  SizedBox(height: 10.h),
-                                  _buildRowspacersix(context),
-                                ],
+                    Padding(
+                      padding: EdgeInsets.only(top: 87.h),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            SizedBox(height: 300.h),
+                            Text(
+                              "All the Feels, Captured!",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
-                          ),
+                            SizedBox(height: 10.h),
+                            Text(
+                              "Another step in your story",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    _buildHorizontalscrol(context),
                   ],
                 ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildRowallthefeels(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 6.h),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              spacing: 10,
-              children: [
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "msg_all_the_feels_captured".tr(),
-                    style: CustomTextStyles.headlineSmall24,
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+            // Next button with absolute positioning
+            Positioned(
+              right: 0,
+              left: 0,
+              bottom: 60.h,
+              child: Center(
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    CustomImageView(
-                      imagePath: ImageConstant.imgSort,
-                      height: 16.h,
-                      width: 12.h,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                ),
+                              );
+                              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                ),
+                              );
+                              return FadeTransition(
+                                opacity: fadeAnimation,
+                                child: ScaleTransition(
+                                  scale: scaleAnimation,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            transitionDuration: Duration(milliseconds: 400),
+                          ),
+                        );
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/next_log.svg',
+                        width: 142.h,
+                        height: 42.h,
+                      ),
                     ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 4.h),
+                    Positioned(
+                      top: 8.h,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                );
+                                var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                );
+                                return FadeTransition(
+                                  opacity: fadeAnimation,
+                                  child: ScaleTransition(
+                                    scale: scaleAnimation,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              transitionDuration: Duration(milliseconds: 400),
+                            ),
+                          );
+                        },
                         child: Text(
-                          "msg_another_step_in".tr(),
-                          style: CustomTextStyles.titleMediumSFProBold,
+                          "Done",
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    )
+                    ),
                   ],
-                )
-              ],
+                ),
+              ),
             ),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgBookmarkPurple700,
-            height: 34.h,
-            width: 26.h,
-            alignment: Alignment.bottomCenter,
-            margin: EdgeInsets.only(bottom: 6.h),
-          )
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildRowthumbsup(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 4.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgThumbsUpPurple50020x14,
-            height: 20.h,
-            width: 16.h,
-            alignment: Alignment.topCenter,
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgTelevisionPinkA10014x16,
-            height: 14.h,
-            width: 18.h,
-            margin: EdgeInsets.only(left: 6.h),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgSettingsPinkA10032x12,
-            height: 32.h,
-            width: 14.h,
-            margin: EdgeInsets.only(
-              left: 6.h,
-              top: 2.h,
-            ),
-          ),
-          Spacer(),
-          CustomImageView(
-            imagePath: ImageConstant.imgThumbsUpPurple50016x14,
-            height: 16.h,
-            width: 16.h,
-            alignment: Alignment.topCenter,
-            margin: EdgeInsets.only(top: 2.h),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgBookmarkCyan400,
-            height: 30.h,
-            width: 24.h,
-            margin: EdgeInsets.only(
-              left: 24.h,
-              right: 110.h,
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildRowspacersix(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Spacer(flex: 24),
-          CustomImageView(
-            imagePath: ImageConstant.imgBookmarkPurple70030x32,
-            height: 30.h,
-            width: 34.h,
-            alignment: Alignment.bottomCenter,
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgVectorPurple500,
-            height: 26.h,
-            width: 12.h,
-            margin: EdgeInsets.only(
-              left: 6.h,
-              top: 4.h,
-            ),
-          ),
-          Spacer(flex: 34),
-          CustomImageView(
-            imagePath: ImageConstant.imgBookmarkPurple50024x24,
-            height: 24.h,
-            width: 26.h,
-            alignment: Alignment.bottomCenter,
-            margin: EdgeInsets.only(bottom: 10.h),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgThumbsUpCyan400,
-            height: 10.h,
-            width: 14.h,
-            margin: EdgeInsets.only(
-              left: 4.h,
-              top: 2.h,
-            ),
-          ),
-          Spacer(flex: 21),
-          CustomImageView(
-            imagePath: ImageConstant.imgThumbsUpCyan40012x14,
-            height: 12.h,
-            width: 16.h,
-            alignment: Alignment.bottomCenter,
-            margin: EdgeInsets.only(bottom: 20.h),
-          ),
-          Spacer(flex: 19),
-          CustomImageView(
-            imagePath: ImageConstant.imgTelevisionPurple50010x16,
-            height: 10.h,
-            width: 18.h,
-          )
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildHorizontalscrol(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: IntrinsicWidth(
-        child: SizedBox(
-          height: 936.h,
-          width: 608.h,
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              // ... remaining children ...
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 
-  /// Navigates to the previous screen.
-  onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBackWithoutContext();
+  PreferredSizeWidget _buildAppbar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 200.h,
+      leading: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFourScreen.builder(context),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: ScaleTransition(
+                        scale: scaleAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  transitionDuration: Duration(milliseconds: 400),
+                ),
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.only(left: 16.h, top: 10.h),
+              child: SvgPicture.asset(
+                'assets/images/back_log.svg',
+                width: 27.h,
+                height: 27.h,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+class ParticlePainter extends CustomPainter {
+  final List<Particle> particles;
+
+  ParticlePainter({required this.particles});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var particle in particles) {
+      final paint = Paint()
+        ..color = particle.color
+        ..style = PaintingStyle.fill;
+
+      canvas.save();
+      canvas.translate(particle.position.dx, particle.position.dy);
+      canvas.rotate(particle.rotation);
+
+      if (particle.shape == 0) {
+        // Rectangle confetti
+        final rect = Rect.fromCenter(
+          center: Offset.zero,
+          width: particle.size * 3,
+          height: particle.size,
+        );
+        canvas.drawRect(rect, paint);
+      } else {
+        // Diamond confetti
+        final path = Path();
+        path.moveTo(0, -particle.size * 1.5);
+        path.lineTo(particle.size, 0);
+        path.lineTo(0, particle.size * 1.5);
+        path.lineTo(-particle.size, 0);
+        path.close();
+        canvas.drawPath(path, paint);
+      }
+
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(ParticlePainter oldDelegate) => true;
 }
