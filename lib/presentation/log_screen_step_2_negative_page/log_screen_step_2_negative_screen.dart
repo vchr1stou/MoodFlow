@@ -1305,8 +1305,8 @@ class LogScreenStep2NegativePageState
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LogScreenStep3PositiveScreen(
-                            selectedFeelings: LogScreenStep2PositiveScreenState.selectedPositiveFeelings,
+                          builder: (context) => LogScreenStep3NegativeScreen(
+                            selectedFeelings: selectedNegativeFeelings,
                           ),
                         ),
                       );
@@ -1321,32 +1321,12 @@ class LogScreenStep2NegativePageState
                     top: 8.h,
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => LogScreen.builder(context),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                ),
-                              );
-                              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                ),
-                              );
-                              return FadeTransition(
-                                opacity: fadeAnimation,
-                                child: ScaleTransition(
-                                  scale: scaleAnimation,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            transitionDuration: Duration(milliseconds: 400),
+                          MaterialPageRoute(
+                            builder: (context) => LogScreenStep3NegativeScreen(
+                              selectedFeelings: selectedNegativeFeelings,
+                            ),
                           ),
                         );
                       },
@@ -1380,34 +1360,7 @@ class LogScreenStep2NegativePageState
         children: [
           GestureDetector(
             onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => LogScreen.builder(context),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeInOut,
-                      ),
-                    );
-                    var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeInOut,
-                      ),
-                    );
-                    return FadeTransition(
-                      opacity: fadeAnimation,
-                      child: ScaleTransition(
-                        scale: scaleAnimation,
-                        child: child,
-                      ),
-                    );
-                  },
-                  transitionDuration: Duration(milliseconds: 400),
-                ),
-              );
+              Navigator.pop(context);
             },
             child: Padding(
               padding: EdgeInsets.only(left: 16.h, top: 10.h),

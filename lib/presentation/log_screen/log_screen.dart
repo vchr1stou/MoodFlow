@@ -37,7 +37,7 @@ import 'models/log_model.dart';
 import 'models/log_screen_one_item_model.dart';
 import 'provider/log_provider.dart';
 import 'widgets/log_screen_one_item_widget.dart';
-import 'services/storage_service.dart';
+import '../../core/services/storage_service.dart';
 
 class PlacePrediction {
   final String description;
@@ -76,7 +76,7 @@ class LogScreen extends StatefulWidget {
 class LogScreenState extends State<LogScreen> {
   late DateTime _selectedDate;
   Set<int> toggledIcons = {};
-  List<String> selectedContacts = [];
+  List<Contact> selectedContacts = [];
   String? selectedLocation;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   double nextButtonTop = 229.h + 10.h + 30.h + 10.h + 76.h + 10.h + 30.h + 10.h + 76.h + 18.h;
@@ -90,6 +90,8 @@ class LogScreenState extends State<LogScreen> {
   final String _placesApiKey = 'AIzaSyDohu3J9jw0lUyUswNP3PxiKzXKJJQJvNk';
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
+  String? _currentMood;
+  String? _moodSource;
 
   @override
   void initState() {
@@ -97,7 +99,12 @@ class LogScreenState extends State<LogScreen> {
     _selectedDate = DateTime.now();
     _requestContactPermission();
     _requestLocationPermission();
-    _loadSavedData();
+    _loadSelectedContacts(); // Load saved contacts
+  }
+
+  Future<void> _saveCurrentMood() async {
+    print('Saving mood: ${widget.feeling} from source: ${widget.emojiSource}');
+    await StorageService.saveCurrentMood(widget.feeling, widget.emojiSource);
   }
 
   Future<void> _requestContactPermission() async {
@@ -252,6 +259,8 @@ class LogScreenState extends State<LogScreen> {
       setState(() {
         _currentPosition = position;
       });
+      // Save coordinates when getting current location
+      await StorageService.saveLocationCoordinates(position.latitude, position.longitude);
       if (_mapController != null) {
         print('Animating camera to position');
         _mapController!.animateCamera(
@@ -759,9 +768,9 @@ class LogScreenState extends State<LogScreen> {
                             children: [
                               ...contacts.map((contact) => GestureDetector(
                                 onTap: () {
-                                  if (!selectedContacts.contains(contact.displayName)) {
+                                  if (!selectedContacts.any((c) => c.displayName == contact.displayName)) {
                                     setState(() {
-                                      selectedContacts.add(contact.displayName);
+                                      selectedContacts.add(contact);
                                     });
                                     Navigator.pop(context);
                                   } else {
@@ -1133,50 +1142,29 @@ class LogScreenState extends State<LogScreen> {
                                                             return Padding(
                                                               padding: EdgeInsets.only(right: 8.h),
                                                               child: Dismissible(
-                                                                key: Key(contact),
+                                                                key: Key(contact.displayName ?? 'contact_$index'),
                                                                 direction: DismissDirection.up,
-                                                                dismissThresholds: const {
-                                                                  DismissDirection.up: 0.15,
-                                                                },
-                                                                movementDuration: Duration(milliseconds: 150),
-                                                                crossAxisEndOffset: 0.3,
-                                                                background: Container(
-                                                                  alignment: Alignment.topCenter,
-                                                                  padding: EdgeInsets.only(top: 8.h),
-                                                                  child: AnimatedContainer(
-                                                                    duration: Duration(milliseconds: 100),
-                                                                    curve: Curves.easeOut,
-                                                                    child: Icon(
-                                                                      Icons.delete,
-                                                                      color: Colors.white,
-                                                                      size: 24.h,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                confirmDismiss: (direction) async {
-                                                                  // Faster confirmation
-                                                                  await Future.delayed(Duration(milliseconds: 50));
-                                                                  if (!mounted) return false;
-                                                                  return true;
-                                                                },
                                                                 onDismissed: (direction) {
                                                                   setState(() {
-                                                                    selectedContacts.remove(contact);
+                                                                    selectedContacts.removeAt(index);
                                                                   });
                                                                 },
-                                                                child: AnimatedContainer(
-                                                                  duration: Duration(milliseconds: 150),
-                                                                  curve: Curves.easeOut,
-                                                                  child: GestureDetector(
-                                                                    onTap: () => _onContactSelected(contact),
-                                                                    child: Column(
-                                                                      mainAxisSize: MainAxisSize.min,
-                                                                      children: [
-                                                                        AnimatedContainer(
-                                                                          duration: Duration(milliseconds: 300),
-                                                                          curve: Curves.easeInOutCubic,
+                                                                child: GestureDetector(
+                                                                  onTap: () => _onContactSelected(contact),
+                                                                  child: Column(
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    children: [
+                                                                      if (contact.avatar != null)
+                                                                        CircleAvatar(
+                                                                          radius: 20.h,
+                                                                          backgroundImage: MemoryImage(contact.avatar!),
+                                                                        )
+                                                                      else
+                                                                        CircleAvatar(
+                                                                          radius: 20.h,
+                                                                          backgroundColor: Colors.white.withOpacity(0.2),
                                                                           child: Text(
-                                                                            contact,
+                                                                            contact.displayName?.substring(0, 1).toUpperCase() ?? '?',
                                                                             style: TextStyle(
                                                                               color: Colors.white,
                                                                               fontSize: 16,
@@ -1184,41 +1172,45 @@ class LogScreenState extends State<LogScreen> {
                                                                             ),
                                                                           ),
                                                                         ),
-                                                                      ],
-                                                                    ),
+                                                                      SizedBox(height: 4.h),
+                                                                      Text(
+                                                                        contact.displayName?.split(' ')[0] ?? 'Unknown',
+                                                                        style: TextStyle(
+                                                                          color: Colors.white,
+                                                                          fontSize: 10,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   ),
                                                                 ),
                                                               ),
                                                             );
                                                           }).toList(),
-                                                          AnimatedContainer(
-                                                            duration: Duration(milliseconds: 300),
-                                                            curve: Curves.easeInOutCubic,
-                                                            child: GestureDetector(
-                                                              onTap: _pickContact,
-                                                              child: Column(
-                                                                mainAxisSize: MainAxisSize.min,
-                                                                children: [
-                                                                  CircleAvatar(
-                                                                    radius: 20.h,
-                                                                    backgroundColor: Colors.white.withOpacity(0.2),
-                                                                    child: Icon(
-                                                                      Icons.add,
-                                                                      color: Colors.white,
-                                                                      size: 24.h,
-                                                                    ),
+                                                          GestureDetector(
+                                                            onTap: _pickContact,
+                                                            child: Column(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                CircleAvatar(
+                                                                  radius: 20.h,
+                                                                  backgroundColor: Colors.white.withOpacity(0.2),
+                                                                  child: Icon(
+                                                                    Icons.add,
+                                                                    color: Colors.white,
+                                                                    size: 24.h,
                                                                   ),
-                                                                  SizedBox(height: 4.h),
-                                                                  Text(
-                                                                    "Add",
-                                                                    style: TextStyle(
-                                                                      color: Colors.white,
-                                                                      fontSize: 10,
-                                                                      fontWeight: FontWeight.bold,
-                                                                    ),
+                                                                ),
+                                                                SizedBox(height: 4.h),
+                                                                Text(
+                                                                  "Add",
+                                                                  style: TextStyle(
+                                                                    color: Colors.white,
+                                                                    fontSize: 10,
+                                                                    fontWeight: FontWeight.bold,
                                                                   ),
-                                                                ],
-                                                              ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ),
                                                         ],
@@ -1543,55 +1535,113 @@ class LogScreenState extends State<LogScreen> {
       leading: Row(
         children: [
           GestureDetector(
-            onTap: () {
-              switch (widget.emojiSource) {
-                case 'emoji_one':
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EmojiLogOneScreen.builder(context, source: widget.source),
-                    ),
-                  );
-                  break;
-                case 'emoji_two':
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EmojiLogTwoScreen.builder(context, source: widget.source),
-                    ),
-                  );
-                  break;
-                case 'emoji_three':
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EmojiLogThreeScreen.builder(context, source: widget.source),
-                    ),
-                  );
-                  break;
-                case 'emoji_four':
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EmojiLogFourScreen.builder(context, source: widget.source),
-                    ),
-                  );
-                  break;
-                case 'emoji_five':
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EmojiLogFiveScreen(),
-                    ),
-                  );
-                  break;
-                default:
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LogInputScreen.builder(context, source: widget.source),
-                    ),
-                  );
+            onTap: () async {
+              // Get the latest saved mood source
+              final savedMoodSource = StorageService.getMoodSource();
+              print('Navigating back with saved mood source: $savedMoodSource');
+              
+              if (savedMoodSource != null) {
+                switch (savedMoodSource) {
+                  case 'emoji_one':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogOneScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_two':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogTwoScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_three':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogThreeScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_four':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogFourScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_five':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EmojiLogFiveScreen(),
+                      ),
+                    );
+                    break;
+                  default:
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LogInputScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                }
+              } else {
+                // Fallback to using widget.emojiSource if no saved source
+                print('No saved mood source, using widget.emojiSource: ${widget.emojiSource}');
+                switch (widget.emojiSource) {
+                  case 'emoji_one':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogOneScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_two':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogTwoScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_three':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogThreeScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_four':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmojiLogFourScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                    break;
+                  case 'emoji_five':
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EmojiLogFiveScreen(),
+                      ),
+                    );
+                    break;
+                  default:
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LogInputScreen.builder(context, source: widget.source),
+                      ),
+                    );
+                }
               }
             },
             child: Padding(
@@ -1756,7 +1806,9 @@ class LogScreenState extends State<LogScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
+                            // Save the selected date/time when done
+                            await StorageService.saveSelectedDateTime(_selectedDate);
                             Navigator.of(context).pop();
                           },
                         ),
@@ -1790,6 +1842,7 @@ class LogScreenState extends State<LogScreen> {
                           setState(() {
                             _selectedDate = newDateTime;
                           });
+                          // Save the date/time whenever it changes
                           await StorageService.saveSelectedDateTime(newDateTime);
                         },
                       ),
@@ -1836,10 +1889,10 @@ class LogScreenState extends State<LogScreen> {
     return months[month - 1];
   }
 
-  Future<void> _onContactSelected(String contact) async {
+  Future<void> _onContactSelected(Contact contact) async {
     setState(() {
-      if (selectedContacts.contains(contact)) {
-        selectedContacts.remove(contact);
+      if (selectedContacts.any((c) => c.displayName == contact.displayName)) {
+        selectedContacts.removeWhere((c) => c.displayName == contact.displayName);
       } else {
         selectedContacts.add(contact);
       }
@@ -1886,7 +1939,19 @@ class LogScreenState extends State<LogScreen> {
   }
 
   Future<void> _loadSavedData() async {
-    // Load saved date/time
+    // Load saved mood first
+    final savedMood = StorageService.getCurrentMood();
+    final savedMoodSource = StorageService.getMoodSource();
+    print('Loaded saved mood: $savedMood from source: $savedMoodSource');
+    
+    if (savedMood != null && savedMoodSource != null) {
+      setState(() {
+        _currentMood = savedMood;
+        _moodSource = savedMoodSource;
+      });
+    }
+
+    // Load other saved data
     final savedDateTime = await StorageService.getSelectedDateTime();
     if (savedDateTime != null) {
       setState(() {
@@ -1894,19 +1959,16 @@ class LogScreenState extends State<LogScreen> {
       });
     }
 
-    // Load saved toggled icons
     final savedIcons = await StorageService.getToggledIcons();
     setState(() {
       toggledIcons = savedIcons;
     });
 
-    // Load saved contacts
     final savedContacts = await StorageService.getSelectedContacts();
     setState(() {
       selectedContacts = savedContacts;
     });
 
-    // Load saved location
     final savedLocation = await StorageService.getSelectedLocation();
     final savedCoords = await StorageService.getLocationCoordinates();
     if (savedCoords != null) {
@@ -1926,5 +1988,40 @@ class LogScreenState extends State<LogScreen> {
         _locationName = savedLocation;
       });
     }
+  }
+
+  Future<void> _loadSelectedContacts() async {
+    try {
+      final contacts = await StorageService.getSelectedContacts();
+      if (contacts.isNotEmpty) {
+        setState(() {
+          selectedContacts = contacts;
+        });
+      }
+    } catch (e) {
+      print('Error loading contacts: $e');
+      setState(() {
+        selectedContacts = [];
+      });
+    }
+  }
+
+  Future<void> _saveSelectedContacts() async {
+    try {
+      await StorageService.saveSelectedContacts(selectedContacts);
+    } catch (e) {
+      print('Error saving contacts: $e');
+    }
+  }
+
+  void _replaceContact(int index) {
+    _pickContact().then((_) {
+      if (selectedContacts.length > index) {
+        setState(() {
+          selectedContacts.removeAt(index);
+        });
+        _saveSelectedContacts();
+      }
+    });
   }
 }

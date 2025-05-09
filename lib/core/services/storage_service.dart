@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:contacts_service/contacts_service.dart';
 
 class StorageService {
   static const String _dateTimeKey = 'selected_date_time';
@@ -11,6 +12,8 @@ class StorageService {
   static const String _negativeFeelingKey = 'negative_feelings';
   static const String _positiveIntensityKey = 'positive_intensity';
   static const String _negativeIntensityKey = 'negative_intensity';
+  static const String _currentMoodKey = 'current_mood';
+  static const String _moodSourceKey = 'mood_source';
 
   static late SharedPreferences _prefs;
 
@@ -40,12 +43,42 @@ class StorageService {
   }
 
   // Selected Contacts
-  static Future<void> saveSelectedContacts(List<String> contacts) async {
-    await _prefs.setStringList(_selectedContactsKey, contacts);
+  static Future<void> saveSelectedContacts(List<Contact> contacts) async {
+    final List<Map<String, dynamic>> contactData = contacts.map((contact) {
+      return {
+        'displayName': contact.displayName ?? '',
+        'avatar': contact.avatar != null ? base64Encode(contact.avatar!) : null,
+        'phones': contact.phones?.map((phone) => phone.value).toList() ?? [],
+        'emails': contact.emails?.map((email) => email.value).toList() ?? [],
+      };
+    }).toList();
+    await _prefs.setString(_selectedContactsKey, jsonEncode(contactData));
   }
 
-  static List<String> getSelectedContacts() {
-    return _prefs.getStringList(_selectedContactsKey) ?? [];
+  static Future<List<Contact>> getSelectedContacts() async {
+    final String? contactsJson = _prefs.getString(_selectedContactsKey);
+    if (contactsJson == null) return [];
+    
+    try {
+      final List<dynamic> contactData = jsonDecode(contactsJson);
+      return contactData.map((data) {
+        final Map<String, dynamic> contactMap = data as Map<String, dynamic>;
+        final Contact contact = Contact(
+          displayName: contactMap['displayName'] as String?,
+          phones: (contactMap['phones'] as List<dynamic>?)?.map((phone) => 
+            Item(label: 'mobile', value: phone.toString())).toList(),
+          emails: (contactMap['emails'] as List<dynamic>?)?.map((email) => 
+            Item(label: 'email', value: email.toString())).toList(),
+        );
+        if (contactMap['avatar'] != null) {
+          contact.avatar = base64Decode(contactMap['avatar'] as String);
+        }
+        return contact;
+      }).toList();
+    } catch (e) {
+      print('Error loading contacts: $e');
+      return [];
+    }
   }
 
   // Location
@@ -115,6 +148,20 @@ class StorageService {
     return intensities.map((key, value) => MapEntry(key, value as double));
   }
 
+  // Current Mood
+  static Future<void> saveCurrentMood(String mood, String source) async {
+    await _prefs.setString(_currentMoodKey, mood);
+    await _prefs.setString(_moodSourceKey, source);
+  }
+
+  static String? getCurrentMood() {
+    return _prefs.getString(_currentMoodKey);
+  }
+
+  static String? getMoodSource() {
+    return _prefs.getString(_moodSourceKey);
+  }
+
   // Clear all data
   static Future<void> clearAll() async {
     await _prefs.remove(_dateTimeKey);
@@ -126,5 +173,7 @@ class StorageService {
     await _prefs.remove(_negativeFeelingKey);
     await _prefs.remove(_positiveIntensityKey);
     await _prefs.remove(_negativeIntensityKey);
+    await _prefs.remove(_currentMoodKey);
+    await _prefs.remove(_moodSourceKey);
   }
 } 

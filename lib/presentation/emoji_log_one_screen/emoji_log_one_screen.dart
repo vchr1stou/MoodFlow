@@ -6,6 +6,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/services/storage_service.dart';
 
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
@@ -315,7 +316,9 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                                     offset: Offset(matchesTextLeftOffset,
                                         matchesTextTopOffset),
                                     child: GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
+                                        // Clear saved data before navigating
+                                        await StorageService.clearAll();
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(

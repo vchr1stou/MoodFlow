@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/services/storage_service.dart';
 
 import '../../core/app_export.dart';
 import '../emoji_log_one_screen/emoji_log_one_screen.dart';
@@ -330,7 +331,9 @@ class EmojiLogTwoScreenState extends State<EmojiLogTwoScreen>
                                     offset: Offset(matchesTextLeftOffset,
                                         matchesTextTopOffset),
                                     child: GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
+                                        // Clear saved data before navigating
+                                        await StorageService.clearAll();
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(

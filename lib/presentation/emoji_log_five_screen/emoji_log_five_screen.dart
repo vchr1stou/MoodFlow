@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:moodflow/presentation/homescreen_screen/homescreen_screen.dart';
 import 'package:moodflow/presentation/emoji_log_four_screen/emoji_log_four_screen.dart';
+import '../../core/services/storage_service.dart';
 import '../../core/app_export.dart';
 import '../log_input_screen/log_input_screen.dart';
 import '../log_screen/log_screen.dart';
@@ -288,7 +289,9 @@ class _EmojiLogFiveScreenState extends State<EmojiLogFiveScreen>
                                     offset: Offset(matchesTextLeftOffset,
                                         matchesTextTopOffset),
                                     child: GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
+                                        // Clear saved data before navigating
+                                        await StorageService.clearAll();
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
