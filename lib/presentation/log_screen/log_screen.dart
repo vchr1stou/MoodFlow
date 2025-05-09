@@ -289,16 +289,26 @@ class LogScreenState extends State<LogScreen> {
     }
   }
 
-  void _showLocationPicker() {
+  void _showLocationPicker() async {
     if (_currentPosition == null) {
       print('Current position is null, requesting permission');
       _requestLocationPermission();
       return;
     }
 
-    // Add current location marker by default
+    // Reset all location-related state and saved data
     setState(() {
       _markers.clear();
+      _locationName = null;
+      selectedLocation = null;
+    });
+    
+    // Clear saved location data
+    await StorageService.saveSelectedLocation('');
+    await StorageService.saveLocationCoordinates(0.0, 0.0);
+
+    // Add current location marker by default
+    setState(() {
       _markers.add(
         Marker(
           markerId: MarkerId('current_location'),

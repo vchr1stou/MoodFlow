@@ -29,6 +29,10 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
   List<File> _selectedPhotos = [];
   Map<String, dynamic>? _selectedTrack;
   
+  // Add position adjustment variables
+  double _trackVerticalOffset = 0.0;
+  double _trackHorizontalOffset = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -239,6 +243,13 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
         });
       }
     }
+  }
+
+  void _adjustTrackPosition(DragUpdateDetails details) {
+    setState(() {
+      _trackVerticalOffset += details.delta.dy;
+      _trackHorizontalOffset += details.delta.dx;
+    });
   }
 
   @override
@@ -619,38 +630,27 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                 if (_selectedTrack == null)
                                   Positioned(
                                     top: 27.h,
-                                    child: Center(
-                                      child: Column(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () async {
-                                              await showModalBottomSheet(
-                                                context: context,
-                                                backgroundColor: Colors.transparent,
-                                                isScrollControlled: true,
-                                                builder: (context) => SpotifyMusicSelectionScreen.builder(context),
-                                              );
-                                              _loadSelectedTrack();
-                                            },
-                                            child: SvgPicture.asset(
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        await showModalBottomSheet(
+                                          context: context,
+                                          backgroundColor: Colors.transparent,
+                                          isScrollControlled: true,
+                                          builder: (context) => SpotifyMusicSelectionScreen.builder(context),
+                                        );
+                                        _loadSelectedTrack();
+                                      },
+                                      child: Center(
+                                        child: Column(
+                                          children: [
+                                            SvgPicture.asset(
                                               'assets/images/spotify_small.svg',
                                               width: 29.h,
                                               height: 29.h,
                                               fit: BoxFit.contain,
                                             ),
-                                          ),
-                                          SizedBox(height: 6.h),
-                                          GestureDetector(
-                                            onTap: () async {
-                                              await showModalBottomSheet(
-                                                context: context,
-                                                backgroundColor: Colors.transparent,
-                                                isScrollControlled: true,
-                                                builder: (context) => SpotifyMusicSelectionScreen.builder(context),
-                                              );
-                                              _loadSelectedTrack();
-                                            },
-                                            child: Text(
+                                            SizedBox(height: 6.h),
+                                            Text(
                                               "Add Music",
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
@@ -660,8 +660,8 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                                 color: Colors.white,
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   )
@@ -677,50 +677,85 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                         );
                                         _loadSelectedTrack();
                                       },
-                                      child: Container(
-                                        margin: EdgeInsets.symmetric(horizontal: 16.h, vertical: 16.h),
-                                        child: Row(
-                                          children: [
-                                            if (_selectedTrack!['imageUrl'] != null)
-                                              ClipRRect(
-                                                borderRadius: BorderRadius.circular(8.h),
-                                                child: Image.network(
-                                                  _selectedTrack!['imageUrl'],
-                                                  width: 60.h,
-                                                  height: 60.h,
-                                                  fit: BoxFit.cover,
+                                      child: Dismissible(
+                                        key: ValueKey(_selectedTrack!['id']),
+                                        direction: DismissDirection.up,
+                                        onDismissed: (direction) {
+                                          setState(() {
+                                            _selectedTrack = null;
+                                          });
+                                          StorageService.saveSelectedTrack({});
+                                        },
+                                        background: Container(
+                                          alignment: Alignment.topCenter,
+                                          padding: EdgeInsets.only(top: 10),
+                                          child: Column(
+                                            children: [
+                                              Icon(Icons.delete, color: Colors.white, size: 22),
+                                              SizedBox(height: 2),
+                                              Text(
+                                                'Remove',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.normal,
+                                                  fontSize: 12,
                                                 ),
                                               ),
-                                            SizedBox(width: 12.h),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    _selectedTrack!['name'],
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w600,
+                                            ],
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: GestureDetector(
+                                            onPanUpdate: _adjustTrackPosition,
+                                            child: Transform.translate(
+                                              offset: Offset(_trackHorizontalOffset, _trackVerticalOffset),
+                                              child: Container(
+                                                margin: EdgeInsets.symmetric(horizontal: 16.h),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    if (_selectedTrack!['imageUrl'] != null)
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(8.h),
+                                                        child: Image.network(
+                                                          _selectedTrack!['imageUrl'],
+                                                          width: 60.h,
+                                                          height: 60.h,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
+                                                    SizedBox(width: 12.h),
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          _selectedTrack!['name'] ?? '',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 14,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                        SizedBox(height: 4.h),
+                                                        Text(
+                                                          '${_selectedTrack!['artist'] ?? ''} · ${_selectedTrack!['album'] ?? ''}',
+                                                          style: TextStyle(
+                                                            color: Colors.white.withOpacity(0.7),
+                                                            fontSize: 12,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      ],
                                                     ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  SizedBox(height: 4.h),
-                                                  Text(
-                                                    _selectedTrack!['artist'],
-                                                    style: TextStyle(
-                                                      color: Colors.white.withOpacity(0.7),
-                                                      fontSize: 12,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ),

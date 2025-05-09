@@ -20,7 +20,43 @@ class SpotifyMusicSelectionScreen extends StatefulWidget {
 class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
-  List<dynamic> _recommendedTracks = [];
+  List<Map<String, dynamic>> _recommendedTracks = [
+    {
+      'name': 'Souvenir',
+      'artist': 'Selena Gomez',
+      'album': 'Rare',
+      'imageUrl': 'https://i.scdn.co/image/ab67616d0000b2735183fe2502a176f8017da25f',
+      'id': '1iPr9MIjFho26J0wlveZ0w',
+    },
+    {
+      'name': 'Irthes Gia Na Meineis',
+      'artist': 'Giorgos Sabanis',
+      'album': 'Irthes Gia Na Meineis',
+      'imageUrl': 'https://i.scdn.co/image/ab67616d0000b273c14e9427008db05a44179e80',
+      'id': '2qk3dzqnk6sFGa6awfpulM',
+    },
+    {
+      'name': 'Daylight',
+      'artist': 'Taylor Swift',
+      'album': 'Lover',
+      'imageUrl': 'https://i.scdn.co/image/ab67616d0000b273e787cffec20aa2a396a61647',
+      'id': '1fzAuUVbzlhZ1lJAx9PtY6',
+    },
+    {
+      'name': 'This Town',
+      'artist': 'Niall Horan',
+      'album': 'Flicker (Deluxe)',
+      'imageUrl': 'https://i.scdn.co/image/ab67616d0000b2735bac234d5511248b248caf36',
+      'id': '0qvzXomUDJVaUboy2wMfiS',
+    },
+    {
+      'name': 'Firework',
+      'artist': 'Katy Perry',
+      'album': 'Teenage Dream',
+      'imageUrl': 'https://i.scdn.co/image/ab67616d0000b273f619042d5f6b2149a4f5e0ca',
+      'id': '1mXuMM6zjPgjL4asbBsgnt',
+    },
+  ];
   bool _isLoading = false;
   String? _selectedTrackId;
   String? _accessToken;
@@ -30,28 +66,16 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
   static const String _clientId = '826c83b9cc66470b98e91492884bab68';
   static const String _clientSecret = '95bed038b55d4a519d328c4dfe032ce0';
 
-  @override
-  void initState() {
-    super.initState();
-    _getSpotifyToken();
-  }
-
   Future<void> _getSpotifyToken() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     try {
       final response = await http.post(
         Uri.parse('https://accounts.spotify.com/api/token'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ${base64Encode(utf8.encode('$_clientId:$_clientSecret'))}',
         },
         body: {
           'grant_type': 'client_credentials',
-          'client_id': _clientId,
-          'client_secret': _clientSecret,
         },
       );
 
@@ -59,67 +83,39 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
         final data = json.decode(response.body);
         setState(() {
           _accessToken = data['access_token'];
-          _isLoading = false;
         });
-        _loadRecommendedTracks();
       } else {
         print('Error getting token: ${response.statusCode}');
         print('Response body: ${response.body}');
-        setState(() {
-          _errorMessage = 'Failed to connect to Spotify. Please try again.';
-          _isLoading = false;
-        });
       }
     } catch (e) {
       print('Error getting token: $e');
-      setState(() {
-        _errorMessage = 'Network error. Please check your connection.';
-        _isLoading = false;
-      });
     }
   }
 
-  Future<void> _loadRecommendedTracks() async {
-    if (_accessToken == null) return;
-    
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse('https://api.spotify.com/v1/recommendations?limit=10&seed_genres=pop'),
-        headers: {'Authorization': 'Bearer $_accessToken'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _recommendedTracks = data['tracks'];
-          _isLoading = false;
-        });
-      } else {
-        print('Error loading tracks: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        setState(() {
-          _errorMessage = 'Failed to load tracks. Please try again.';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error loading tracks: $e');
-      setState(() {
-        _errorMessage = 'Network error. Please check your connection.';
-        _isLoading = false;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _getSpotifyToken(); // Get token when screen initializes
   }
 
   Future<void> _searchTracks(String query) async {
-    if (query.isEmpty || _accessToken == null) {
-      setState(() => _searchResults = []);
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults = [];
+      });
       return;
+    }
+
+    if (_accessToken == null) {
+      await _getSpotifyToken();
+      if (_accessToken == null) {
+        setState(() {
+          _errorMessage = 'Failed to authenticate with Spotify. Please try again.';
+          _isLoading = false;
+        });
+        return;
+      }
     }
 
     setState(() {
@@ -139,6 +135,16 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
           _searchResults = data['tracks']['items'];
           _isLoading = false;
         });
+      } else if (response.statusCode == 401) {
+        await _getSpotifyToken();
+        if (_accessToken != null) {
+          _searchTracks(query);
+        } else {
+          setState(() {
+            _errorMessage = 'Failed to authenticate with Spotify. Please try again.';
+            _isLoading = false;
+          });
+        }
       } else {
         print('Error searching tracks: ${response.statusCode}');
         print('Response body: ${response.body}');
@@ -157,23 +163,26 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
   }
 
   Widget _buildTrackItem(dynamic track) {
-    final imageUrl = track['album']['images'].isNotEmpty
+    final imageUrl = track['imageUrl'] ?? (track['album']?['images']?.isNotEmpty == true
         ? track['album']['images'][0]['url']
-        : null;
+        : null);
     final title = track['name'];
-    final artist = track['artists'][0]['name'];
+    final artist = track['artist'] ?? (track['artists'] is List ? track['artists'][0]['name'] : '');
+    final album = track['album'] ?? (track['album'] is Map ? track['album']['name'] : '');
     final isSelected = track['id'] == _selectedTrackId;
 
     return GestureDetector(
       onTap: () {
+        print('Selected track: $track');
         setState(() => _selectedTrackId = track['id']);
-        // Save the selected track
-        StorageService.saveSelectedTrack({
-          'id': track['id'],
-          'name': track['name'],
-          'artist': track['artists'][0]['name'],
+        final trackData = {
+          'id': track['id'] ?? title,
+          'name': title,
+          'artist': artist,
+          'album': album,
           'imageUrl': imageUrl,
-        });
+        };
+        StorageService.saveSelectedTrack(trackData);
         Navigator.pop(context);
       },
       child: Container(
@@ -188,6 +197,7 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (imageUrl != null)
               ClipRRect(
@@ -197,12 +207,28 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
                   width: 60.h,
                   height: 60.h,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 60.h,
+                      height: 60.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.h),
+                      ),
+                      child: Icon(
+                        Icons.music_note,
+                        color: Colors.white.withOpacity(0.5),
+                        size: 30.h,
+                      ),
+                    );
+                  },
                 ),
               ),
             SizedBox(width: 12.h),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     title,
@@ -301,7 +327,8 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
                           hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                           prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16.h),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 11.h),
+                          isDense: true,
                         ),
                         onChanged: _searchTracks,
                       ),
@@ -325,9 +352,14 @@ class SpotifyMusicSelectionScreenState extends State<SpotifyMusicSelectionScreen
                                   ),
                                   SizedBox(height: 16.h),
                                   TextButton(
-                                    onPressed: _getSpotifyToken,
+                                    onPressed: () {
+                                      setState(() {
+                                        _errorMessage = null;
+                                        _searchController.clear();
+                                      });
+                                    },
                                     child: Text(
-                                      'Retry',
+                                      'Back to Recommendations',
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   ),
