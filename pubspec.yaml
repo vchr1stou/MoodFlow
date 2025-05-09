@@ -47,6 +47,7 @@ dependencies:
   google_places_flutter: ^2.0.6
   flutter_typeahead: ^5.0.0
   sensors_plus: ^6.1.1
+  image_picker: ^1.0.7
 dev_dependencies:
   flutter_test:
     sdk: flutter

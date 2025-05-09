@@ -162,6 +162,19 @@ class StorageService {
     return _prefs.getString(_moodSourceKey);
   }
 
+  // Selected Track
+  static Future<void> saveSelectedTrack(Map<String, dynamic> track) async {
+    await _prefs.setString('selected_track', jsonEncode(track));
+  }
+
+  static Future<Map<String, dynamic>?> getSelectedTrack() async {
+    final trackJson = _prefs.getString('selected_track');
+    if (trackJson != null) {
+      return jsonDecode(trackJson) as Map<String, dynamic>;
+    }
+    return null;
+  }
+
   // Clear all data
   static Future<void> clearAll() async {
     await _prefs.remove(_dateTimeKey);
