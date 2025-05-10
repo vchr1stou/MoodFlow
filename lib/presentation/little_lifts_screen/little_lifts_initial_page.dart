@@ -414,7 +414,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 41.38,
               iconHeight: 43.85,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.workoutScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => WorkoutScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -430,7 +436,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 37,
               iconHeight: 44,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.meditationScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => MeditationScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -449,6 +461,7 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
                 Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
                   MaterialPageRoute(
                     builder: (context) => BreathingmainScreen.builder(context),
+                    fullscreenDialog: true,
                   ),
                   (route) => false,
                 );
@@ -468,7 +481,7 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 35,
               iconHeight: 44,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.moviesScreen);
+                _navigateToMovies();
               },
             ),
           ),
@@ -484,7 +497,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 38,
               iconHeight: 40,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.musicScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => MusicScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -500,7 +519,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 42,
               iconHeight: 32,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.bookScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => BookScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -517,7 +542,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 34,
               iconHeight: 34,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.positiveaffirmationsScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => PositiveaffirmationsScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -533,7 +564,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 47.46,
               iconHeight: 28.83,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.cookingScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => CookingScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -549,7 +586,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 47,
               iconHeight: 33,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.travelingScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => TravelingScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -566,7 +609,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 58,
               iconHeight: 32,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.safetynetlittleliftsScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => SafetynetlittleliftsScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -582,7 +631,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 39,
               iconHeight: 36,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.softthanksScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => SoftthanksScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -598,7 +653,13 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
               iconWidth: 26,
               iconHeight: 40,
               onTap: () {
-                widget.navigatorKey.currentState?.pushNamed(AppRoutes.savedScreen);
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => SavedScreen.builder(context),
+                    fullscreenDialog: true,
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -710,6 +771,16 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _navigateToMovies() {
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => MoviesScreen.builder(context),
+        fullscreenDialog: true,
+      ),
+      (route) => false,
     );
   }
 }

@@ -9,7 +9,6 @@ import '../homescreen_screen/homescreen_screen.dart';
 import '../workout_screen/workout_screen.dart';
 import '../meditation_screen/meditation_screen.dart';
 import '../breathingmain_screen/breathingmain_screen.dart';
-import '../movies_screen/movies_screen.dart';
 import '../music_screen/music_screen.dart';
 import '../book_screen/book_screen.dart';
 import '../positiveaffirmations_screen/positiveaffirmations_screen.dart';
@@ -250,8 +249,8 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
     );
   }
 
-  Widget getCurrentPage(BuildContext context, String currentRoute) {
-    switch (currentRoute) {
+  Widget getCurrentPage(BuildContext context, String routeName) {
+    switch (routeName) {
       case AppRoutes.littleLiftsInitialPage:
         return LittleLiftsInitialPage.builder(context, navigatorKey);
       case AppRoutes.workoutScreen:
@@ -268,8 +267,6 @@ class LittleLiftsScreenState extends State<LittleLiftsScreen> {
             ),
           ),
         );
-      case AppRoutes.moviesScreen:
-        return MoviesScreen.builder(context);
       case AppRoutes.musicScreen:
         return MusicScreen.builder(context);
       case AppRoutes.bookScreen:

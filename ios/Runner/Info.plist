@@ -54,6 +54,8 @@
 		<string>prefs</string>
 		<string>App-Prefs</string>
 		<string>spotify</string>
+		<string>https</string>
+		<string>http</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
