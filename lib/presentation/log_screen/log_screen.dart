@@ -33,6 +33,7 @@ import '../emoji_log_three_screen/emoji_log_three_screen.dart';
 import '../emoji_log_four_screen/emoji_log_four_screen.dart';
 import '../emoji_log_five_screen/emoji_log_five_screen.dart';
 import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.dart';
+import '../ai_screen_text/ai_screen_text.dart';
 
 import 'models/log_model.dart';
 import 'models/log_screen_one_item_model.dart';
@@ -69,7 +70,7 @@ class LogScreen extends StatefulWidget {
   @override
   LogScreenState createState() => LogScreenState();
 
-  static Widget builder(BuildContext context, {String source = 'homescreen', String emojiSource = 'emoji_one', String feeling = ''}) {
+  static Widget builder(BuildContext context, {required String source, String emojiSource = 'emoji_one', String feeling = ''}) {
     return LogScreen(source: source, emojiSource: emojiSource, feeling: feeling);
   }
 }
@@ -97,16 +98,39 @@ class LogScreenState extends State<LogScreen> {
   @override
   void initState() {
     super.initState();
+    print('🚀 LogScreen: Initializing with feeling: ${widget.feeling}');
+    print('🚀 LogScreen: Initializing with emojiSource: ${widget.emojiSource}');
+    print('🚀 LogScreen: Current saved mood: ${StorageService.getCurrentMood()}');
+    print('🚀 LogScreen: Current saved source: ${StorageService.getMoodSource()}');
+    
     _selectedDate = DateTime.now();
     _requestContactPermission();
     _loadSavedData(); // Load saved contacts
     _saveCurrentMood(); // Save the initial mood and timestamp
+    
+    print('✅ LogScreen: Initialization complete');
   }
 
   Future<void> _saveCurrentMood() async {
-    print('Saving mood: ${widget.feeling}');
-    await StorageService.saveCurrentMood(widget.feeling, '');
+    print('📝 LogScreen: Starting _saveCurrentMood');
+    print('📝 LogScreen: Widget feeling: ${widget.feeling}');
+    print('📝 LogScreen: Widget emojiSource: ${widget.emojiSource}');
+    print('📝 LogScreen: Current saved mood: ${StorageService.getCurrentMood()}');
+    print('📝 LogScreen: Current saved source: ${StorageService.getMoodSource()}');
+    
+    // Only save if there isn't already a saved mood
+    if (StorageService.getCurrentMood() == null) {
+      print('💾 LogScreen: No saved mood found, saving widget feeling');
+      await StorageService.saveCurrentMood(widget.feeling, widget.emojiSource);
+    } else {
+      print('ℹ️ LogScreen: Mood already saved, not overwriting');
+    }
+    
     await StorageService.saveSelectedDateTime(_selectedDate);
+    
+    print('✅ LogScreen: Mood saved successfully');
+    print('✅ LogScreen: New saved mood: ${StorageService.getCurrentMood()}');
+    print('✅ LogScreen: New saved source: ${StorageService.getMoodSource()}');
   }
 
   Future<void> _requestContactPermission() async {
@@ -1090,7 +1114,7 @@ class LogScreenState extends State<LogScreen> {
                                         text: TextSpan(
                                           children: [
                                             TextSpan(
-                                              text: widget.feeling.split(' ').first + '\u2009',
+                                              text: (StorageService.getCurrentMood()?.split(' ').first ?? widget.feeling.split(' ').first) + '\u2009',
                                               style: TextStyle(
                                                 fontFamily: 'Roboto',
                                                 fontSize: 25,
@@ -1099,7 +1123,7 @@ class LogScreenState extends State<LogScreen> {
                                               ),
                                             ),
                                             TextSpan(
-                                              text: widget.feeling.split(' ').last,
+                                              text: StorageService.getCurrentMood()?.split(' ').last ?? widget.feeling.split(' ').last,
                                               style: TextStyle(
                                                 fontFamily: 'Roboto',
                                                 fontSize: 29,
@@ -1710,9 +1734,23 @@ class LogScreenState extends State<LogScreen> {
         children: [
           GestureDetector(
             onTap: () async {
-              // Get the latest saved mood source
+              print('🔍 Back button pressed with source: ${widget.source}');
+              
+              // Always check source parameter first
+              if (widget.source == 'aiscreen') {
+                print('✅ Navigating back to AI screen');
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AiScreenText.builder(context),
+                  ),
+                );
+                return;
+              }
+              
+              // Only check saved mood source if not coming from AI screen
               final savedMoodSource = StorageService.getMoodSource();
-              print('Navigating back with saved mood source: $savedMoodSource');
+              print('📝 Saved mood source: $savedMoodSource');
               
               if (widget.source == 'colorscreen') {
                 Navigator.pushReplacement(
@@ -1759,7 +1797,7 @@ class LogScreenState extends State<LogScreen> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EmojiLogFiveScreen(),
+                        builder: (context) => EmojiLogFiveScreen(source: widget.source),
                       ),
                     );
                     break;
@@ -1772,57 +1810,12 @@ class LogScreenState extends State<LogScreen> {
                     );
                 }
               } else {
-                // Fallback to using widget.emojiSource if no saved source
-                print('No saved mood source, using widget.emojiSource: ${widget.emojiSource}');
-                switch (widget.emojiSource) {
-                  case 'emoji_one':
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EmojiLogOneScreen.builder(context, source: widget.source),
-                      ),
-                    );
-                    break;
-                  case 'emoji_two':
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EmojiLogTwoScreen.builder(context, source: widget.source),
-                      ),
-                    );
-                    break;
-                  case 'emoji_three':
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EmojiLogThreeScreen.builder(context, source: widget.source),
-                      ),
-                    );
-                    break;
-                  case 'emoji_four':
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EmojiLogFourScreen.builder(context, source: widget.source),
-                      ),
-                    );
-                    break;
-                  case 'emoji_five':
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EmojiLogFiveScreen(),
-                      ),
-                    );
-                    break;
-                  default:
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LogInputScreen.builder(context, source: widget.source),
-                      ),
-                    );
-                }
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LogInputScreen.builder(context, source: widget.source),
+                  ),
+                );
               }
             },
             child: Padding(

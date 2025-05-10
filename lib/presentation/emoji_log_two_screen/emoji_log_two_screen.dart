@@ -339,6 +339,7 @@ class EmojiLogTwoScreenState extends State<EmojiLogTwoScreen>
                                           MaterialPageRoute(
                                             builder: (context) => LogScreen.builder(
                                               context,
+                                              source: widget.source,
                                               feeling: "Low 😕",
                                             ),
                                           ),

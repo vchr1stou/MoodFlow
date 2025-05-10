@@ -14,6 +14,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../emoji_log_two_screen/emoji_log_two_screen.dart';
 import '../log_input_screen/log_input_screen.dart';
 import '../log_screen/log_screen.dart';
+import '../ai_screen_text/ai_screen_text.dart';
 
 import 'models/emoji_log_one_model.dart';
 import 'provider/emoji_log_one_provider.dart';
@@ -324,6 +325,7 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                                           MaterialPageRoute(
                                             builder: (context) => LogScreen.builder(
                                               context,
+                                              source: widget.source,
                                               feeling: "Heavy 😔",
                                             ),
                                           ),
@@ -366,15 +368,24 @@ class EmojiLogOneScreenState extends State<EmojiLogOneScreen>
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LogInputScreen.builder(
-                            context,
-                            source: widget.source,
+                      if (widget.source == 'aiscreen') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AiScreenText.builder(context),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LogInputScreen.builder(
+                              context,
+                              source: widget.source,
+                            ),
+                          ),
+                        );
+                      }
                     },
                     child: SvgPicture.asset(
                       'assets/images/close_button.svg',

@@ -324,6 +324,7 @@ class EmojiLogThreeScreenState extends State<EmojiLogThreeScreen>
                                           MaterialPageRoute(
                                             builder: (context) => LogScreen.builder(
                                               context,
+                                              source: widget.source,
                                               feeling: "Neutral 😐",
                                             ),
                                           ),

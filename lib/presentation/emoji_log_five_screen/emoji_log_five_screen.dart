@@ -12,7 +12,8 @@ import '../log_screen/log_screen.dart';
 import 'package:provider/provider.dart';
 
 class EmojiLogFiveScreen extends StatefulWidget {
-  const EmojiLogFiveScreen({Key? key}) : super(key: key);
+  final String source;
+  const EmojiLogFiveScreen({Key? key, required this.source}) : super(key: key);
 
   @override
   State<EmojiLogFiveScreen> createState() => _EmojiLogFiveScreenState();
@@ -297,6 +298,7 @@ class _EmojiLogFiveScreenState extends State<EmojiLogFiveScreen>
                                           MaterialPageRoute(
                                             builder: (context) => LogScreen.builder(
                                               context,
+                                              source: widget.source,
                                               feeling: "Bright 😊",
                                             ),
                                           ),

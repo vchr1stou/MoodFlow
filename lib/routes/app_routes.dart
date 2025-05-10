@@ -182,7 +182,7 @@ class AppRoutes {
         emojiLogTwoScreen: EmojiLogTwoScreen.builder,
         emojiLogThreeScreen: EmojiLogThreeScreen.builder,
         emojiLogFourScreen: EmojiLogFourScreen.builder,
-        emojiLogFiveScreen: (context) => const EmojiLogFiveScreen(),
+        emojiLogFiveScreen: (context) => const EmojiLogFiveScreen(source: 'homescreen'),
         profileScreen: ProfileScreen.builder,
         porfileAcessibilitySettingsScreen:
             PorfileAcessibilitySettingsScreen.builder,
@@ -205,7 +205,7 @@ class AppRoutes {
         breathingmainScreen: BreathingmainScreen.builder,
         inhaleScreen: InhaleScreen.builder,
         breathingdoneScreen: BreathingdoneScreen.builder,
-        logScreen: LogScreen.builder,
+        logScreen: (context) => LogScreen.builder(context, source: 'homescreen'),
         logScreenStep2PositiveScreen: LogScreenStep2PositiveScreen.builder,
         logScreenStep3PositiveScreen: LogScreenStep3PositiveScreen.builder,
         logScreenStepFourScreen: LogScreenStepFourScreen.builder,

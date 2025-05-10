@@ -94,7 +94,7 @@ class EmojiLogFourScreenState extends State<EmojiLogFourScreen>
             Navigator.of(context).push(
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    const EmojiLogFiveScreen(),
+                    EmojiLogFiveScreen(source: widget.source),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return ScaleTransition(
@@ -324,6 +324,7 @@ class EmojiLogFourScreenState extends State<EmojiLogFourScreen>
                                           MaterialPageRoute(
                                             builder: (context) => LogScreen.builder(
                                               context,
+                                              source: widget.source,
                                               feeling: "Light 😀",
                                             ),
                                           ),
