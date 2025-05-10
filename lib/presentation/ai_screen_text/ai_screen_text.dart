@@ -368,51 +368,12 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
     final savedMood = StorageService.getCurrentMood();
     print('📝 _handleCloseButton: Saved mood is: $savedMood');
     
-    if (savedMood != null) {
-      print('✅ _handleCloseButton: Using saved mood: $savedMood');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LogScreen.builder(
-            context,
-            source: 'aiscreen',
-            emojiSource: 'emoji_one',
-            feeling: savedMood,
-          ),
-        ),
-      );
-    } else {
-      print('⚠️ _handleCloseButton: No saved mood found, using current mood');
-      final provider = Provider.of<AiScreenTextProvider>(context, listen: false);
-      if (provider.currentMood != null) {
-        final moodWithEmoji = _getMoodWithEmoji(provider.currentMood!);
-        print('📝 _handleCloseButton: Using current mood with emoji: $moodWithEmoji');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LogScreen.builder(
-              context,
-              source: 'aiscreen',
-              emojiSource: 'emoji_one',
-              feeling: moodWithEmoji,
-            ),
-          ),
-        );
-      } else {
-        print('⚠️ _handleCloseButton: No current mood, using default');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LogScreen.builder(
-              context,
-              source: 'aiscreen',
-              emojiSource: 'emoji_one',
-              feeling: 'Neutral 😐',
-            ),
-          ),
-        );
-      }
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LogInputScreen.builder(context, source: 'aiscreen'),
+      ),
+    );
   }
 
   String _getMoodWithEmoji(String mood) {
