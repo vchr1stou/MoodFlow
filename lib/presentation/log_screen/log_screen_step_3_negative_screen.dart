@@ -8,6 +8,12 @@ import '../log_screen_step_four_screen/log_screen_step_four_screen.dart';
 class LogScreenStep3NegativeScreen extends StatefulWidget {
   const LogScreenStep3NegativeScreen({Key? key}) : super(key: key);
 
+  // Static method to clear all data
+  static void clearAllData() {
+    StorageService.saveNegativeFeelings([]);
+    StorageService.saveNegativeIntensities({});
+  }
+
   @override
   State<LogScreenStep3NegativeScreen> createState() => _LogScreenStep3NegativeScreenState();
 }

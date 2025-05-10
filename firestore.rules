@@ -2,9 +2,37 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read and write their own data
+    // Allow users to read and write their own data and their logs subcollection
     match /users/{userEmail} {
       allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+      
+      // Allow users to read and write their own logs
+      match /logs/{logId} {
+        allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+        
+        // Allow access to all subcollections (Journal, Spotify, Photos, etc.)
+        match /Journal/{docId} {
+          allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+        }
+        
+        match /Spotify/{docId} {
+          allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+        }
+        
+        match /Photos/{docId} {
+          allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+        }
+        
+        // Allow access to other subcollections (whats_happening, etc.)
+        match /{subcollection}/{docId} {
+          allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+        }
+      }
+
+      // Allow users to read and write their own journal entries
+      match /Journal/{journalId} {
+        allow read, write: if request.auth != null && request.auth.token.email == userEmail;
+      }
     }
     
     // Default deny all other access

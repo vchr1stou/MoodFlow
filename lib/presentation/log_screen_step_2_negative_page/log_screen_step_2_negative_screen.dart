@@ -244,10 +244,30 @@ class LogScreenStep2NegativePageState
                                         onTap: () {
                                           Navigator.push(
                                             context,
-                                            MaterialPageRoute(
-                                              builder: (context) => LogScreenStep3PositiveScreen(
-                                                selectedFeelings: getSelectedFeelings(),
-                                              ),
+                                            PageRouteBuilder(
+                                              pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep3PositiveScreen(),
+                                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                                  CurvedAnimation(
+                                                    parent: animation,
+                                                    curve: Curves.easeInOut,
+                                                  ),
+                                                );
+                                                var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                                  CurvedAnimation(
+                                                    parent: animation,
+                                                    curve: Curves.easeInOut,
+                                                  ),
+                                                );
+                                                return FadeTransition(
+                                                  opacity: fadeAnimation,
+                                                  child: ScaleTransition(
+                                                    scale: scaleAnimation,
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                              transitionDuration: Duration(milliseconds: 400),
                                             ),
                                           );
                                         },

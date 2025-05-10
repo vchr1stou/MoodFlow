@@ -9,6 +9,8 @@ import '../log_screen_step_five_screen/log_screen_step_five_screen.dart';
 import '../spotify_music_selection_screen/spotify_music_selection_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LogScreenStepFourScreen extends StatefulWidget {
   const LogScreenStepFourScreen({Key? key})
@@ -28,6 +30,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
   String _journalPreview = '';
   List<File> _selectedPhotos = [];
   Map<String, dynamic>? _selectedTrack;
+  bool _isSaving = false;
   
   // Add position adjustment variables
   double _trackVerticalOffset = 0.0;
@@ -37,10 +40,12 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
   void initState() {
     super.initState();
     _loadSelectedTrack();
+    _loadSelectedPhotos();
   }
 
   Future<void> _loadSelectedTrack() async {
     final track = await StorageService.getSelectedTrack();
+    print('Loading selected track: $track'); // Debug log
     if (track != null && track.isNotEmpty && track['name'] != null) {
       setState(() {
         _selectedTrack = track;
@@ -51,6 +56,15 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
       });
       // Clear any empty track data
       await StorageService.saveSelectedTrack({});
+    }
+  }
+
+  Future<void> _loadSelectedPhotos() async {
+    final photos = await StorageService.getSelectedPhotos();
+    if (photos.isNotEmpty) {
+      setState(() {
+        _selectedPhotos = photos;
+      });
     }
   }
 
@@ -185,12 +199,15 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                               setState(() {
                                 _journalPreview = _journalController.text;
                               });
+                              // Save to StorageService
+                              StorageService.saveJournalText(_journalController.text);
                               Navigator.pop(context);
                             } else {
                               // If text is empty, reset preview and close
                               setState(() {
                                 _journalPreview = '';
                               });
+                              StorageService.saveJournalText('');
                               Navigator.pop(context);
                             }
                           },
@@ -226,6 +243,9 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
         setState(() {
           _selectedPhotos[replaceIndex] = File(picked.path);
         });
+        // Save both the File objects and their paths
+        await StorageService.saveSelectedPhotos(_selectedPhotos);
+        await StorageService.saveSelectedPhotoPaths(_selectedPhotos.map((file) => file.path).toList());
       }
     } else {
       final picked = await picker.pickMultiImage();
@@ -247,6 +267,9 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
             _selectedPhotos.addAll(filteredNewPhotos);
           }
         });
+        // Save both the File objects and their paths
+        await StorageService.saveSelectedPhotos(_selectedPhotos);
+        await StorageService.saveSelectedPhotoPaths(_selectedPhotos.map((file) => file.path).toList());
       }
     }
   }
@@ -687,15 +710,55 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                       child: Dismissible(
                                         key: ValueKey(_selectedTrack!['id']),
                                         direction: DismissDirection.up,
+                                        confirmDismiss: (direction) async {
+                                          return await showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                backgroundColor: Colors.black.withOpacity(0.8),
+                                                title: Text(
+                                                  'Remove Track',
+                                                  style: TextStyle(color: Colors.white),
+                                                ),
+                                                content: Text(
+                                                  'Are you sure you want to remove this track?',
+                                                  style: TextStyle(color: Colors.white),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(context).pop(false),
+                                                    child: Text(
+                                                      'Cancel',
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(context).pop(true),
+                                                    child: Text(
+                                                      'Remove',
+                                                      style: TextStyle(color: Colors.red),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        },
                                         onDismissed: (direction) {
                                           setState(() {
                                             _selectedTrack = null;
+                                            _trackVerticalOffset = 0.0;
+                                            _trackHorizontalOffset = 0.0;
                                           });
                                           StorageService.saveSelectedTrack({});
                                         },
                                         background: Container(
                                           alignment: Alignment.topCenter,
                                           padding: EdgeInsets.only(top: 10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.3),
+                                            borderRadius: BorderRadius.circular(24.h),
+                                          ),
                                           child: Column(
                                             children: [
                                               Icon(Icons.delete, color: Colors.white, size: 22),
@@ -785,46 +848,83 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                 alignment: Alignment.center,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFiveScreen.builder(context),
-                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                            var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOut,
+                    onTap: () async {
+                      if (_isSaving) return;
+                      
+                      // Save journal text to Firestore
+                      if (_journalPreview.isNotEmpty) {
+                        setState(() {
+                          _isSaving = true;
+                        });
+                        
+                        try {
+                          final user = FirebaseAuth.instance.currentUser;
+                          print('Current user: ${user?.email}');
+                          
+                          if (user != null) {
+                            // Get current date in YYYY-MM-DD format
+                            final now = DateTime.now();
+                            final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                            
+                            print('Creating document at: users/${user.email}/logs/$dateStr');
+                            
+                            // First ensure the date document exists
+                            final dateDoc = FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user.email)
+                                .collection('logs')
+                                .doc(dateStr);
+                            
+                            // Create the date document if it doesn't exist
+                            await dateDoc.set({
+                              'created_at': FieldValue.serverTimestamp(),
+                            }, SetOptions(merge: true));
+                            
+                            print('Adding journal entry to: users/${user.email}/logs/$dateStr/Journal');
+                            
+                            // Add the journal entry
+                            await dateDoc.collection('Journal').add({
+                              'text': _journalPreview,
+                              'timestamp': FieldValue.serverTimestamp(),
+                            });
+                            
+                            print('Successfully saved journal text');
+                            
+                            // Show success message
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Journal entry saved successfully'),
+                                backgroundColor: Colors.green,
                               ),
                             );
-                            var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOut,
+                          } else {
+                            print('No user logged in');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('You must be logged in to save journal entries'),
+                                backgroundColor: Colors.red,
                               ),
                             );
-                            return FadeTransition(
-                              opacity: fadeAnimation,
-                              child: ScaleTransition(
-                                scale: scaleAnimation,
-                                child: child,
-                              ),
-                            );
-                          },
-                          transitionDuration: Duration(milliseconds: 400),
-                        ),
-                      );
-                    },
-                    child: SvgPicture.asset(
-                      'assets/images/next_log.svg',
-                      width: 142.h,
-                      height: 42.h,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8.h,
-                    child: GestureDetector(
-                      onTap: () {
+                          }
+                        } catch (e) {
+                          print('Error saving journal text: $e');
+                          // Show error to user
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to save journal entry: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } finally {
+                          setState(() {
+                            _isSaving = false;
+                          });
+                        }
+                      } else {
+                        print('No journal text to save');
+                      }
+                      
+                      if (!_isSaving) {
                         Navigator.pushReplacement(
                           context,
                           PageRouteBuilder(
@@ -853,9 +953,126 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                             transitionDuration: Duration(milliseconds: 400),
                           ),
                         );
+                      }
+                    },
+                    child: SvgPicture.asset(
+                      'assets/images/next_log.svg',
+                      width: 142.h,
+                      height: 42.h,
+                    ),
+                  ),
+                  Positioned(
+                    top: 8.h,
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (_isSaving) return;
+                        
+                        // Save journal text to Firestore
+                        if (_journalPreview.isNotEmpty) {
+                          setState(() {
+                            _isSaving = true;
+                          });
+                          
+                          try {
+                            final user = FirebaseAuth.instance.currentUser;
+                            print('Current user: ${user?.email}');
+                            
+                            if (user != null) {
+                              // Get current date in YYYY-MM-DD format
+                              final now = DateTime.now();
+                              final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                              
+                              print('Creating document at: users/${user.email}/logs/$dateStr');
+                              
+                              // First ensure the date document exists
+                              final dateDoc = FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(user.email)
+                                  .collection('logs')
+                                  .doc(dateStr);
+                              
+                              // Create the date document if it doesn't exist
+                              await dateDoc.set({
+                                'created_at': FieldValue.serverTimestamp(),
+                              }, SetOptions(merge: true));
+                              
+                              print('Adding journal entry to: users/${user.email}/logs/$dateStr/Journal');
+                              
+                              // Add the journal entry
+                              await dateDoc.collection('Journal').add({
+                                'text': _journalPreview,
+                                'timestamp': FieldValue.serverTimestamp(),
+                              });
+                              
+                              print('Successfully saved journal text');
+                              
+                              // Show success message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Journal entry saved successfully'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              print('No user logged in');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('You must be logged in to save journal entries'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            print('Error saving journal text: $e');
+                            // Show error to user
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to save journal entry: ${e.toString()}'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          } finally {
+                            setState(() {
+                              _isSaving = false;
+                            });
+                          }
+                        } else {
+                          print('No journal text to save');
+                        }
+                        
+                        if (!_isSaving) {
+                          Navigator.pushReplacement(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFiveScreen.builder(context),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                );
+                                var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                );
+                                return FadeTransition(
+                                  opacity: fadeAnimation,
+                                  child: ScaleTransition(
+                                    scale: scaleAnimation,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              transitionDuration: Duration(milliseconds: 400),
+                            ),
+                          );
+                        }
                       },
                       child: Text(
-                        "Next",
+                        _isSaving ? "Saving..." : "Next",
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 15,

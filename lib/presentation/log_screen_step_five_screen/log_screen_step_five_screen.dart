@@ -1,13 +1,26 @@
 import 'dart:math';
 import 'dart:ui';
+import 'dart:typed_data';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../core/app_export.dart';
 import '../log_screen_step_four_screen/log_screen_step_four_screen.dart';
 import '../homescreen_screen/homescreen_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'provider/log_screen_step_five_provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import '../../core/services/storage_service.dart';
+import '../../services/log_service.dart';
+import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.dart';
+import '../log_screen_step_2_negative_screen/log_screen_step_2_negative_screen.dart';
+import '../log_screen_step_3_negative_screen/log_screen_step_3_negative_screen.dart';
+import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
+import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Particle {
   Offset position;
@@ -134,6 +147,244 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
     setState(() {});
   }
 
+  Future<void> _saveLogToFirestore() async {
+    try {
+      final auth = FirebaseAuth.instance;
+      final user = auth.currentUser;
+      
+      print('Checking authentication state...');
+      if (user == null) {
+        throw Exception('User is not authenticated');
+      }
+      
+      print('User is authenticated. Email: ${user.email}');
+      if (user.email == null) {
+        throw Exception('User email is null');
+      }
+
+      final logService = LogService();
+      
+      // Get only the required data
+      final mood = StorageService.getCurrentMood();
+      final timestamp = await StorageService.getSelectedDateTime();
+      final toggledIcons = StorageService.getToggledIcons();
+      final contacts = await StorageService.getSelectedContacts();
+      final locationName = await StorageService.getSelectedLocation();
+      final locationCoords = await StorageService.getLocationCoordinates();
+
+      print('Retrieved data - Mood: $mood, Timestamp: $timestamp, Toggled Icons: $toggledIcons, Contacts: ${contacts.length}, Location: $locationName');
+
+      // Check each required field and create a list of missing fields
+      List<String> missingFields = [];
+      if (mood == null) missingFields.add('mood');
+      if (timestamp == null) missingFields.add('timestamp');
+
+      // If any fields are missing, throw an exception with details
+      if (missingFields.isNotEmpty) {
+        throw Exception('Missing required fields: ${missingFields.join(", ")}');
+      }
+
+      // Format the date and time for the subcollection name
+      final day = timestamp!.day.toString().padLeft(2, '0');
+      final month = timestamp.month.toString().padLeft(2, '0');
+      final year = timestamp.year.toString();
+      final hour = timestamp.hour.toString().padLeft(2, '0');
+      final minute = timestamp.minute.toString().padLeft(2, '0');
+      final subcollectionName = '${day}_${month}_${year}_${hour}_${minute}';
+
+      print('Attempting to save log with subcollection name: $subcollectionName');
+
+      // Save to Firestore with the formatted subcollection name and toggled icons
+      await logService.saveLog(
+        mood: mood!,
+        timestamp: timestamp,
+        subcollectionName: subcollectionName,
+        toggledIcons: toggledIcons,
+        contacts: contacts,
+      );
+
+      // Save location data in map subcollection if available
+      if (locationName != null && locationCoords != null) {
+        print('Saving location data to map subcollection');
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(subcollectionName)
+            .collection('map')
+            .doc('location')
+            .set({
+          'name': locationName,
+          'latitude': locationCoords['lat'],
+          'longitude': locationCoords['lng'],
+          'timestamp': timestamp,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Save positive feelings and their intensities
+      final selectedPositiveFeelings = LogScreenStep2PositiveScreen.selectedPositiveFeelings;
+      final positiveFeelingIntensities = LogScreenStep3PositiveScreenState.storedSliderValues;
+
+      if (selectedPositiveFeelings.isNotEmpty) {
+        print('Saving positive feelings and intensities');
+        final positiveFeelingsData = selectedPositiveFeelings.map((feeling) {
+          return {
+            'name': feeling,
+            'intensity': positiveFeelingIntensities[feeling]?.round() ?? 0,
+            'timestamp': timestamp,
+            'createdAt': FieldValue.serverTimestamp(),
+          };
+        }).toList();
+
+        // Save each positive feeling as a separate document
+        for (var feelingData in positiveFeelingsData) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.email)
+              .collection('logs')
+              .doc(subcollectionName)
+              .collection('positive_feelings')
+              .doc(feelingData['name'] as String)
+              .set(feelingData);
+        }
+      }
+
+      // Save negative feelings and their intensities
+      final selectedNegativeFeelings = LogScreenStep2NegativePageState.selectedNegativeFeelings;
+      final negativeFeelingIntensities = LogScreenStep3NegativeScreenState.storedSliderValues;
+
+      if (selectedNegativeFeelings.isNotEmpty) {
+        print('Saving negative feelings and intensities');
+        final negativeFeelingsData = selectedNegativeFeelings.map((feeling) {
+          return {
+            'name': feeling,
+            'intensity': negativeFeelingIntensities[feeling]?.round() ?? 0,
+            'timestamp': timestamp,
+            'createdAt': FieldValue.serverTimestamp(),
+          };
+        }).toList();
+
+        // Save each negative feeling as a separate document
+        for (var feelingData in negativeFeelingsData) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.email)
+              .collection('logs')
+              .doc(subcollectionName)
+              .collection('negative_feelings')
+              .doc(feelingData['name'] as String)
+              .set(feelingData);
+        }
+      }
+
+      // Save journal text and Spotify track
+      final journalText = await StorageService.getJournalText();
+      final selectedTrack = await StorageService.getSelectedTrack();
+      final selectedPhotos = await StorageService.getSelectedPhotos();
+      
+      print('Selected track data: $selectedTrack'); // Debug log
+      
+      if (journalText != null && journalText.isNotEmpty) {
+        print('Saving journal text');
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(subcollectionName)
+            .collection('Journal')
+            .doc('text')
+            .set({
+          'text': journalText,
+          'timestamp': timestamp,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Save Spotify track in its own subcollection
+      if (selectedTrack != null && selectedTrack.isNotEmpty && selectedTrack['id'] != null) {
+        print('Saving Spotify track data');
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(subcollectionName)
+            .collection('Spotify')
+            .doc('track')
+            .set({
+          'id': selectedTrack['id'],
+          'name': selectedTrack['name'] ?? '',
+          'artist': selectedTrack['artist'] ?? '',
+          'album': selectedTrack['album'] ?? '',
+          'imageUrl': selectedTrack['imageUrl'] ?? '',
+          'timestamp': timestamp,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Save photos in Photos subcollection
+      if (selectedPhotos != null && selectedPhotos.isNotEmpty) {
+        print('Saving photos to Firebase Storage');
+        final storage = FirebaseStorage.instance;
+        
+        // Get the saved photo paths
+        final photoPaths = await StorageService.getSelectedPhotoPaths();
+        print('Retrieved photo paths: $photoPaths');
+        
+        // Create a document to store photo names
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(subcollectionName)
+            .collection('Photos')
+            .doc('photo_names')
+            .set({
+          'names': photoPaths.map((path) => path.split('/').last).toList(),
+          'timestamp': timestamp,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        
+        print('Successfully saved photo names to Firestore');
+      }
+
+      print('Log saved successfully, clearing local storage...');
+
+      // Clear all local storage data
+      await StorageService.clearAll();
+      await StorageService.saveSelectedDateTime(DateTime.now());
+      await StorageService.saveCurrentMood('', '');
+
+      // Navigate to the home screen
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomescreenScreen()),
+        (route) => false,
+      );
+    } on FirebaseException catch (e) {
+      print('Firebase error saving log: ${e.code} - ${e.message}');
+      print('Error details: ${e.toString()}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Firebase error: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error saving log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving log: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -229,46 +480,9 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
                   alignment: Alignment.center,
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                ),
-                              );
-                              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                ),
-                              );
-                              return FadeTransition(
-                                opacity: fadeAnimation,
-                                child: ScaleTransition(
-                                  scale: scaleAnimation,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            transitionDuration: Duration(milliseconds: 400),
-                          ),
-                        );
-                      },
-                      child: SvgPicture.asset(
-                        'assets/images/next_log.svg',
-                        width: 142.h,
-                        height: 42.h,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8.h,
-                      child: GestureDetector(
-                        onTap: () {
+                      onTap: () async {
+                        await _saveLogToFirestore();
+                        if (mounted) {
                           Navigator.pushReplacement(
                             context,
                             PageRouteBuilder(
@@ -297,6 +511,49 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
                               transitionDuration: Duration(milliseconds: 400),
                             ),
                           );
+                        }
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/next_log.svg',
+                        width: 142.h,
+                        height: 42.h,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8.h,
+                      child: GestureDetector(
+                        onTap: () async {
+                          await _saveLogToFirestore();
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  );
+                                  var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  );
+                                  return FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: ScaleTransition(
+                                      scale: scaleAnimation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                transitionDuration: Duration(milliseconds: 400),
+                              ),
+                            );
+                          }
                         },
                         child: Text(
                           "Done",

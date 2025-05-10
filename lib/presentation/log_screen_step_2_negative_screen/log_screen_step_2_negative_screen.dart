@@ -11,6 +11,16 @@ class LogScreenStep2NegativeScreen extends StatefulWidget {
 
   @override
   State<LogScreenStep2NegativeScreen> createState() => _LogScreenStep2NegativeScreenState();
+
+  // Add static method to clear all static data
+  static void clearAllData() {
+    selectedNegativeFeelings = [];
+    storedSelectedButtons = {};
+  }
+
+  // Static variables
+  static List<String> selectedNegativeFeelings = [];
+  static Set<int> storedSelectedButtons = {};
 }
 
 class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScreen> {
@@ -45,6 +55,8 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     setState(() {
       selectedFeelings = savedFeelings;
       intensities = savedIntensities;
+      // Update static variable
+      LogScreenStep2NegativeScreen.selectedNegativeFeelings = savedFeelings;
     });
   }
 
@@ -60,6 +72,8 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     });
     StorageService.saveNegativeFeelings(selectedFeelings);
     StorageService.saveNegativeIntensities(intensities);
+    // Update static variable
+    LogScreenStep2NegativeScreen.selectedNegativeFeelings = selectedFeelings;
   }
 
   void _onIntensityChanged(String feeling, double value) {
@@ -94,9 +108,7 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const LogScreenStep3PositiveScreen(
-                          selectedFeelings: [],
-                        ),
+                        builder: (context) => LogScreenStep3PositiveScreen(),
                       ),
                     );
                   },
@@ -116,9 +128,7 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const LogScreenStep3PositiveScreen(
-                            selectedFeelings: [],
-                          ),
+                          builder: (context) => LogScreenStep3PositiveScreen(),
                         ),
                       );
                     },

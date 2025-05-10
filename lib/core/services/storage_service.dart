@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:contacts_service/contacts_service.dart';
+import 'dart:io';
 
 class StorageService {
   static const String _dateTimeKey = 'selected_date_time';
@@ -16,6 +17,8 @@ class StorageService {
   static const String _currentMoodKey = 'current_mood';
   static const String _moodSourceKey = 'mood_source';
   static const String _mapScreenshotKey = 'map_screenshot';
+  static const String _selectedPhotosKey = 'selected_photos';
+  static const String _selectedPhotoPathsKey = 'selected_photo_paths';
 
   static late SharedPreferences _prefs;
 
@@ -34,14 +37,14 @@ class StorageService {
   }
 
   // Toggled Icons
-  static Future<void> saveToggledIcons(Set<int> icons) async {
-    final List<String> iconList = icons.map((e) => e.toString()).toList();
+  static Future<void> saveToggledIcons(Set<String> icons) async {
+    final List<String> iconList = icons.toList();
     await _prefs.setStringList(_toggledIconsKey, iconList);
   }
 
-  static Set<int> getToggledIcons() {
+  static Set<String> getToggledIcons() {
     final List<String>? iconList = _prefs.getStringList(_toggledIconsKey);
-    return iconList?.map((e) => int.parse(e)).toSet() ?? {};
+    return iconList?.map((e) => e.toString()).toSet() ?? <String>{};
   }
 
   // Selected Contacts
@@ -166,11 +169,13 @@ class StorageService {
 
   // Selected Track
   static Future<void> saveSelectedTrack(Map<String, dynamic> track) async {
+    print('Saving track to storage: $track'); // Debug log
     await _prefs.setString('selected_track', jsonEncode(track));
   }
 
   static Future<Map<String, dynamic>?> getSelectedTrack() async {
     final trackJson = _prefs.getString('selected_track');
+    print('Getting track from storage: $trackJson'); // Debug log
     if (trackJson != null) {
       return jsonDecode(trackJson) as Map<String, dynamic>;
     }
@@ -193,6 +198,36 @@ class StorageService {
     }
   }
 
+  // Journal Text
+  static Future<String?> getJournalText() async {
+    return _prefs.getString('journal_text');
+  }
+
+  static Future<void> saveJournalText(String text) async {
+    await _prefs.setString('journal_text', text);
+  }
+
+  // Selected Photos
+  static Future<void> saveSelectedPhotos(List<File> photos) async {
+    final List<String> photoPaths = photos.map((photo) => photo.path).toList();
+    await _prefs.setStringList(_selectedPhotosKey, photoPaths);
+  }
+
+  static Future<List<File>> getSelectedPhotos() async {
+    final List<String>? photoPaths = _prefs.getStringList(_selectedPhotosKey);
+    if (photoPaths == null) return [];
+    return photoPaths.map((path) => File(path)).toList();
+  }
+
+  // Selected Photo Paths
+  static Future<void> saveSelectedPhotoPaths(List<String> paths) async {
+    await _prefs.setStringList(_selectedPhotoPathsKey, paths);
+  }
+
+  static Future<List<String>> getSelectedPhotoPaths() async {
+    return _prefs.getStringList(_selectedPhotoPathsKey) ?? [];
+  }
+
   // Clear all data
   static Future<void> clearAll() async {
     await _prefs.remove(_dateTimeKey);
@@ -207,5 +242,7 @@ class StorageService {
     await _prefs.remove(_currentMoodKey);
     await _prefs.remove(_moodSourceKey);
     await _prefs.remove(_mapScreenshotKey);
+    await _prefs.remove(_selectedPhotosKey);
+    await _prefs.remove(_selectedPhotoPathsKey);
   }
 } 

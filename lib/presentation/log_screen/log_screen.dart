@@ -76,7 +76,7 @@ class LogScreen extends StatefulWidget {
 
 class LogScreenState extends State<LogScreen> {
   late DateTime _selectedDate;
-  Set<int> toggledIcons = {};
+  Set<String> toggledIcons = {};
   List<Contact> selectedContacts = [];
   String? selectedLocation;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
@@ -100,11 +100,13 @@ class LogScreenState extends State<LogScreen> {
     _selectedDate = DateTime.now();
     _requestContactPermission();
     _loadSavedData(); // Load saved contacts
+    _saveCurrentMood(); // Save the initial mood and timestamp
   }
 
   Future<void> _saveCurrentMood() async {
-    print('Saving mood: ${widget.feeling} from source: ${widget.emojiSource}');
-    await StorageService.saveCurrentMood(widget.feeling, widget.emojiSource);
+    print('Saving mood: ${widget.feeling}');
+    await StorageService.saveCurrentMood(widget.feeling, '');
+    await StorageService.saveSelectedDateTime(_selectedDate);
   }
 
   Future<void> _requestContactPermission() async {
@@ -905,6 +907,7 @@ class LogScreenState extends State<LogScreen> {
                                     setState(() {
                                       selectedContacts.add(contact);
                                     });
+                                    _saveSelectedContacts(); // Save contacts after adding
                                     Navigator.pop(context);
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -965,36 +968,44 @@ class LogScreenState extends State<LogScreen> {
     }
   }
 
-  void _toggleIcon(int index) {
+  void _toggleIcon(String iconName) {
     setState(() {
-      if (toggledIcons.contains(index)) {
-        toggledIcons.remove(index);
+      if (toggledIcons.contains(iconName)) {
+        toggledIcons.remove(iconName);
       } else {
-        toggledIcons.add(index);
+        toggledIcons.add(iconName);
       }
       // Save toggled icons
       StorageService.saveToggledIcons(toggledIcons);
     });
   }
 
-  String _getIconPath(String basePath, int index) {
-    if (toggledIcons.contains(index)) {
-      // Replace .svg with _2.svg
+  String _getIconPath(String basePath, String iconName) {
+    if (toggledIcons.contains(iconName)) {
+      // Special handling for music icon
+      if (iconName == 'Music') {
+        return 'assets/images/music_2.svg';
+      }
+      // Replace .svg with _2.svg for other icons
       return basePath.replaceAll('.svg', '_2.svg');
+    }
+    // Special handling for music icon when not toggled
+    if (iconName == 'Music') {
+      return 'assets/images/music_log.svg';
     }
     return basePath;
   }
 
-  Widget _buildIconWithText(int index, double left, double top, String iconPath, String text) {
+  Widget _buildIconWithText(String iconName, double left, double top, String iconPath, String text) {
     return Positioned(
       left: left,
       top: top,
       child: Column(
         children: [
           GestureDetector(
-            onTap: () => _toggleIcon(index),
+            onTap: () => _toggleIcon(iconName),
             child: SvgPicture.asset(
-              _getIconPath(iconPath, index),
+              _getIconPath(iconPath, iconName),
               width: 43.h,
               height: 42.h,
             ),
@@ -1158,20 +1169,20 @@ class LogScreenState extends State<LogScreen> {
                                     height: 229.h,
                                   ),
                                   // First row
-                                  _buildIconWithText(0, 35.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/work.svg', 'Work'),
-                                  _buildIconWithText(1, 36.h + 43.h + 32.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/family.svg', 'Family'),
-                                  _buildIconWithText(2, 36.h + (43.h + 32.h) * 2, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/study.svg', 'Study'),
-                                  _buildIconWithText(3, 19.h + (43.h + 32.h) * 3, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/relationship.svg', 'Relationship'),
+                                  _buildIconWithText('Work', 35.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/work.svg', 'Work'),
+                                  _buildIconWithText('Family', 36.h + 43.h + 32.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/family.svg', 'Family'),
+                                  _buildIconWithText('Study', 36.h + (43.h + 32.h) * 2, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/study.svg', 'Study'),
+                                  _buildIconWithText('Relationship', 19.h + (43.h + 32.h) * 3, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 1.5, 'assets/images/relationship.svg', 'Relationship'),
                                   // Second row
-                                  _buildIconWithText(4, 30.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/exercise.svg', 'Exercise'),
-                                  _buildIconWithText(5, 36.h + 43.h + 32.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/party.svg', 'Party'),
-                                  _buildIconWithText(6, 27.h + (43.h + 32.h) * 2, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/travelling.svg', 'Travelling'),
-                                  _buildIconWithText(7, 32.h + (43.h + 32.h) * 3, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/weather.svg', 'Weather'),
+                                  _buildIconWithText('Exercise', 30.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/exercise.svg', 'Exercise'),
+                                  _buildIconWithText('Party', 36.h + 43.h + 32.h, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/party.svg', 'Party'),
+                                  _buildIconWithText('Travelling', 27.h + (43.h + 32.h) * 2, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/travelling.svg', 'Travelling'),
+                                  _buildIconWithText('Weather', 32.h + (43.h + 32.h) * 3, 229.h / 2 - (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/weather.svg', 'Weather'),
                                   // Third row
-                                  _buildIconWithText(8, 35.h, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/music_log.svg', 'Music'),
-                                  _buildIconWithText(9, 36.h + 43.h + 32.h, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/hobby.svg', 'Hobby'),
-                                  _buildIconWithText(10, 29.h + (43.h + 32.h) * 2, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/shopping.svg', 'Shopping'),
-                                  _buildIconWithText(11, 36.h + (43.h + 32.h) * 3, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/beauty.svg', 'Beauty'),
+                                  _buildIconWithText('Music', 35.h, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/music_log.svg', 'Music'),
+                                  _buildIconWithText('Hobby', 36.h + 43.h + 32.h, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/hobby.svg', 'Hobby'),
+                                  _buildIconWithText('Shopping', 29.h + (43.h + 32.h) * 2, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/shopping.svg', 'Shopping'),
+                                  _buildIconWithText('Beauty', 36.h + (43.h + 32.h) * 3, 229.h / 2 + (42.h + 2.h + 12.h + 8.h) * 0.5, 'assets/images/beauty.svg', 'Beauty'),
                                   // Text below box
                                   Positioned(
                                     left: 0,
@@ -1281,6 +1292,7 @@ class LogScreenState extends State<LogScreen> {
                                                                   setState(() {
                                                                     selectedContacts.removeAt(index);
                                                                   });
+                                                                  _saveSelectedContacts(); // Save contacts after removal
                                                                 },
                                                                 child: GestureDetector(
                                                                   onTap: () => _onContactSelected(contact),
@@ -1978,6 +1990,7 @@ class LogScreenState extends State<LogScreen> {
                           onPressed: () async {
                             // Save the selected date/time when done
                             await StorageService.saveSelectedDateTime(_selectedDate);
+                            await _saveCurrentMood(); // Save mood again with new timestamp
                             Navigator.of(context).pop();
                           },
                         ),
@@ -2013,6 +2026,7 @@ class LogScreenState extends State<LogScreen> {
                           });
                           // Save the date/time whenever it changes
                           await StorageService.saveSelectedDateTime(newDateTime);
+                          await _saveCurrentMood(); // Save mood again with new timestamp
                         },
                       ),
                     ),
@@ -2066,7 +2080,7 @@ class LogScreenState extends State<LogScreen> {
         selectedContacts.add(contact);
       }
     });
-    await StorageService.saveSelectedContacts(selectedContacts);
+    await _saveSelectedContacts(); // Save contacts after selection change
   }
 
   void _onLocationSelected(String? location) {
@@ -2143,9 +2157,9 @@ class LogScreenState extends State<LogScreen> {
       });
     }
 
-    final savedIcons = await StorageService.getToggledIcons();
+    final savedIcons = StorageService.getToggledIcons();
     setState(() {
-      toggledIcons = savedIcons;
+      toggledIcons = savedIcons.map((e) => e.toString()).toSet();
     });
 
     final savedContacts = await StorageService.getSelectedContacts();

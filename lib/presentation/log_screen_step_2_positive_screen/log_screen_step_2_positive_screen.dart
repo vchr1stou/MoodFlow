@@ -9,12 +9,24 @@ import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dar
 class LogScreenStep2PositiveScreen extends StatefulWidget {
   const LogScreenStep2PositiveScreen({Key? key}) : super(key: key);
 
+  // Static variable to store selected positive feelings
+  static List<String> selectedPositiveFeelings = [];
+  
+  // Static variable to store selected button indices
+  static Set<int> storedSelectedButtons = {};
+
   @override
   LogScreenStep2PositiveScreenState createState() =>
       LogScreenStep2PositiveScreenState();
 
   static Widget builder(BuildContext context) {
     return const LogScreenStep2PositiveScreen();
+  }
+
+  // Add static method to clear all static data
+  static void clearAllData() {
+    selectedPositiveFeelings = [];
+    storedSelectedButtons = {};
   }
 }
 
@@ -23,27 +35,21 @@ class LogScreenStep2PositiveScreenState
   // Add a Set to track selected button indices
   final Set<int> selectedButtons = {};
   List<String> selectedFeelings = [];
-  
-  // Static variable to store selected positive feelings
-  static List<String> selectedPositiveFeelings = [];
-  
-  // Static variable to store selected button indices
-  static Set<int> storedSelectedButtons = {};
 
   @override
   void initState() {
     super.initState();
     // Initialize selectedButtons from stored values
-    selectedButtons.addAll(storedSelectedButtons);
+    selectedButtons.addAll(LogScreenStep2PositiveScreen.storedSelectedButtons);
     // Update the static variable
-    selectedPositiveFeelings = getSelectedFeelings();
+    LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
   }
 
   @override
   void dispose() {
     // Save state when the screen is disposed
-    storedSelectedButtons = Set.from(selectedButtons);
-    selectedPositiveFeelings = getSelectedFeelings();
+    LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
+    LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
     super.dispose();
   }
 
@@ -56,8 +62,8 @@ class LogScreenStep2PositiveScreenState
         selectedButtons.add(index);
       }
       // Update the static variables
-      storedSelectedButtons = Set.from(selectedButtons);
-      selectedPositiveFeelings = getSelectedFeelings();
+      LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
+      LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
     });
   }
 
@@ -99,8 +105,8 @@ class LogScreenStep2PositiveScreenState
     return WillPopScope(
       onWillPop: () async {
         // Save the current state before popping
-        storedSelectedButtons = Set.from(selectedButtons);
-        selectedPositiveFeelings = getSelectedFeelings();
+        LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
+        LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
         return true;
       },
       child: Scaffold(
@@ -1305,14 +1311,12 @@ class LogScreenStep2PositiveScreenState
                     GestureDetector(
                       onTap: () {
                         // Save current state before navigating
-                        storedSelectedButtons = Set.from(selectedButtons);
-                        selectedPositiveFeelings = getSelectedFeelings();
+                        LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
+                        LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LogScreenStep3PositiveScreen(
-                              selectedFeelings: getSelectedFeelings(),
-                            ),
+                            builder: (context) => LogScreenStep3PositiveScreen(),
                           ),
                         );
                       },
@@ -1327,14 +1331,12 @@ class LogScreenStep2PositiveScreenState
                       child: GestureDetector(
                         onTap: () {
                           // Save current state before navigating
-                          storedSelectedButtons = Set.from(selectedButtons);
-                          selectedPositiveFeelings = getSelectedFeelings();
+                          LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
+                          LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => LogScreenStep3PositiveScreen(
-                                selectedFeelings: getSelectedFeelings(),
-                              ),
+                              builder: (context) => LogScreenStep3PositiveScreen(),
                             ),
                           );
                         },
@@ -1370,8 +1372,8 @@ class LogScreenStep2PositiveScreenState
           GestureDetector(
             onTap: () {
               // Save the current state before navigating back
-              storedSelectedButtons = Set.from(selectedButtons);
-              selectedPositiveFeelings = getSelectedFeelings();
+              LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
+              LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
               Navigator.pop(context);
             },
             child: Padding(

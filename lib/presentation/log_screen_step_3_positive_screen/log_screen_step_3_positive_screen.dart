@@ -10,19 +10,14 @@ import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.d
 
 // ignore_for_file: must_be_immutable
 class LogScreenStep3PositiveScreen extends StatefulWidget {
-  final List<String> selectedFeelings;
-  
-  const LogScreenStep3PositiveScreen({
-    Key? key,
-    required this.selectedFeelings,
-  }) : super(key: key);
+  const LogScreenStep3PositiveScreen({Key? key}) : super(key: key);
 
   @override
   LogScreenStep3PositiveScreenState createState() =>
       LogScreenStep3PositiveScreenState();
 
   static Widget builder(BuildContext context) {
-    return const LogScreenStep3PositiveScreen(selectedFeelings: []);
+    return const LogScreenStep3PositiveScreen();
   }
 }
 
@@ -40,7 +35,7 @@ class LogScreenStep3PositiveScreenState
   void initState() {
     super.initState();
     // Initialize slider values from stored values or default to 0.0
-    for (var feeling in widget.selectedFeelings) {
+    for (var feeling in LogScreenStep2PositiveScreen.selectedPositiveFeelings) {
       sliderValues[feeling] = storedSliderValues[feeling] ?? 0.0;
     }
 
@@ -216,7 +211,7 @@ class LogScreenStep3PositiveScreenState
                                     height: 486.h,
                                   ),
                                   // Display message when no feelings are selected
-                                  if (widget.selectedFeelings.isEmpty)
+                                  if (LogScreenStep2PositiveScreen.selectedPositiveFeelings.isEmpty)
                                     Center(
                                       child: Text(
                                         "No positive feelings are selected.",
@@ -231,16 +226,16 @@ class LogScreenStep3PositiveScreenState
                                   // Display selected feelings
                                   SingleChildScrollView(
                                     controller: _scrollController,
-                                    physics: widget.selectedFeelings.length > 5 
+                                    physics: LogScreenStep2PositiveScreen.selectedPositiveFeelings.length > 5 
                                         ? const AlwaysScrollableScrollPhysics() 
                                         : const NeverScrollableScrollPhysics(),
                                     child: SizedBox(
-                                      height: widget.selectedFeelings.length > 5 
-                                          ? 486.h + ((widget.selectedFeelings.length - 5) * 100.h)
+                                      height: LogScreenStep2PositiveScreen.selectedPositiveFeelings.length > 5 
+                                          ? 486.h + ((LogScreenStep2PositiveScreen.selectedPositiveFeelings.length - 5) * 100.h)
                                           : 486.h,
                                       child: Stack(
                                         children: [
-                                          ...widget.selectedFeelings.asMap().entries.map((entry) {
+                                          ...LogScreenStep2PositiveScreen.selectedPositiveFeelings.asMap().entries.map((entry) {
                                             final index = entry.key;
                                             final feeling = entry.value;
                                             return Stack(
@@ -312,7 +307,7 @@ class LogScreenStep3PositiveScreenState
                                     ),
                                   ),
                                   // Gradient fade effect for scroll indication
-                                  if (widget.selectedFeelings.length > 5 && _showGradient)
+                                  if (LogScreenStep2PositiveScreen.selectedPositiveFeelings.length > 5 && _showGradient)
                                     Positioned(
                                       bottom: 0,
                                       left: 0,

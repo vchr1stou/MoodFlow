@@ -6,7 +6,7 @@ import '../../core/app_export.dart';
 import '../log_screen_step_four_screen/log_screen_step_four_screen.dart';
 import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
 import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.dart';
-import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dart';
+import '../log_screen_step_2_negative_screen/log_screen_step_2_negative_screen.dart';
 
 // ignore_for_file: must_be_immutable
 class LogScreenStep3NegativeScreen extends StatefulWidget {
@@ -149,9 +149,7 @@ class LogScreenStep3NegativeScreenState
                                         Navigator.push(
                                           context,
                                           PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep3PositiveScreen(
-                                              selectedFeelings: LogScreenStep2PositiveScreenState.selectedPositiveFeelings,
-                                            ),
+                                            pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep3PositiveScreen(),
                                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                               var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
                                                 CurvedAnimation(
@@ -412,7 +410,7 @@ class LogScreenStep3NegativeScreenState
               Navigator.pushReplacement(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep2NegativePage.builder(context),
+                  pageBuilder: (context, animation, secondaryAnimation) => const LogScreenStep2NegativeScreen(),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
                       CurvedAnimation(
