@@ -7,6 +7,12 @@ import '../log_screen/log_screen.dart';
 class LogScreenStep2PositiveScreen extends StatefulWidget {
   const LogScreenStep2PositiveScreen({Key? key}) : super(key: key);
 
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    StorageService.savePositiveFeelings([]);
+    StorageService.savePositiveIntensities({});
+  }
+
   @override
   State<LogScreenStep2PositiveScreen> createState() => _LogScreenStep2PositiveScreenState();
 }

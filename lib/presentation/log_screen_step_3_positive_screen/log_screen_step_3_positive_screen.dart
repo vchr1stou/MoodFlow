@@ -19,6 +19,12 @@ class LogScreenStep3PositiveScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return const LogScreenStep3PositiveScreen();
   }
+
+  // Add static method to reset all SVG types
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    LogScreenStep3PositiveScreenState.storedSliderValues = {};
+  }
 }
 
 class LogScreenStep3PositiveScreenState
@@ -158,7 +164,7 @@ class LogScreenStep3PositiveScreenState
                                           context,
                                           PageRouteBuilder(
                                             pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep3NegativeScreen(
-                                              selectedFeelings: LogScreenStep2NegativePageState.selectedNegativeFeelings,
+                                              selectedFeelings: LogScreenStep2NegativePage.selectedNegativeFeelings,
                                             ),
                                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                               var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(

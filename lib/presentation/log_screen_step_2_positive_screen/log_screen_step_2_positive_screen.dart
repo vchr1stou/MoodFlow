@@ -5,6 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../log_screen/log_screen.dart';
 import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
 import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:moodflow/core/services/storage_service.dart';
 
 class LogScreenStep2PositiveScreen extends StatefulWidget {
   const LogScreenStep2PositiveScreen({Key? key}) : super(key: key);
@@ -25,6 +27,14 @@ class LogScreenStep2PositiveScreen extends StatefulWidget {
 
   // Add static method to clear all static data
   static void clearAllData() {
+    selectedPositiveFeelings = [];
+    storedSelectedButtons = {};
+  }
+
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    StorageService.savePositiveFeelings([]);
+    StorageService.savePositiveIntensities({});
     selectedPositiveFeelings = [];
     storedSelectedButtons = {};
   }

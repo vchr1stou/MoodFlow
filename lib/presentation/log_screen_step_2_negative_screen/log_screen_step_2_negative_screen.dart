@@ -5,25 +5,25 @@ import 'package:moodflow/presentation/log_screen/log_screen.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/utils/size_utils.dart' as size_utils;
 import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LogScreenStep2NegativeScreen extends StatefulWidget {
-  const LogScreenStep2NegativeScreen({Key? key}) : super(key: key);
+  static List<String> selectedNegativeFeelings = [];
+  static Map<String, bool> storedSelectedButtons = {};
 
-  @override
-  State<LogScreenStep2NegativeScreen> createState() => _LogScreenStep2NegativeScreenState();
-
-  // Add static method to clear all static data
-  static void clearAllData() {
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    StorageService.saveNegativeFeelings([]);
+    StorageService.saveNegativeIntensities({});
     selectedNegativeFeelings = [];
     storedSelectedButtons = {};
   }
 
-  // Static variables
-  static List<String> selectedNegativeFeelings = [];
-  static Set<int> storedSelectedButtons = {};
+  @override
+  State<LogScreenStep2NegativeScreen> createState() => LogScreenStep2NegativePageState();
 }
 
-class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScreen> {
+class LogScreenStep2NegativePageState extends State<LogScreenStep2NegativeScreen> {
   List<String> selectedFeelings = [];
   Map<String, double> intensities = {};
   String? _currentMood;

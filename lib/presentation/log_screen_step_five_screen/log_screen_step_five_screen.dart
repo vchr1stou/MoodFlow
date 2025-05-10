@@ -16,11 +16,15 @@ import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/services/storage_service.dart';
 import '../../services/log_service.dart';
 import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.dart';
-import '../log_screen_step_2_negative_screen/log_screen_step_2_negative_screen.dart';
+import '../log_screen_step_2_negative_screen/log_screen_step_2_negative_screen.dart' as negative_screen;
 import '../log_screen_step_3_negative_screen/log_screen_step_3_negative_screen.dart';
 import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
 import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class Particle {
   Offset position;
@@ -251,7 +255,7 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       }
 
       // Save negative feelings and their intensities
-      final selectedNegativeFeelings = LogScreenStep2NegativePageState.selectedNegativeFeelings;
+      final selectedNegativeFeelings = negative_screen.LogScreenStep2NegativeScreen.selectedNegativeFeelings;
       final negativeFeelingIntensities = LogScreenStep3NegativeScreenState.storedSliderValues;
 
       if (selectedNegativeFeelings.isNotEmpty) {
@@ -355,12 +359,44 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       await StorageService.saveSelectedDateTime(DateTime.now());
       await StorageService.saveCurrentMood('', '');
 
+      // Reset all SVG types to their default state
+      LogScreenStep2PositiveScreen.resetSvgTypes();
+      negative_screen.LogScreenStep2NegativeScreen.resetSvgTypes();
+      LogScreenStep3PositiveScreen.resetSvgTypes();
+      LogScreenStep3NegativeScreenState.resetSvgTypes();
+
       // Navigate to the home screen
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomescreenScreen()),
-        (route) => false,
-      );
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
+              );
+              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
+              );
+              return FadeTransition(
+                opacity: fadeAnimation,
+                child: ScaleTransition(
+                  scale: scaleAnimation,
+                  child: child,
+                ),
+              );
+            },
+            transitionDuration: Duration(milliseconds: 400),
+          ),
+          (route) => false,
+        );
+      }
     } on FirebaseException catch (e) {
       print('Firebase error saving log: ${e.code} - ${e.message}');
       print('Error details: ${e.toString()}');
@@ -482,88 +518,28 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
                     GestureDetector(
                       onTap: () async {
                         await _saveLogToFirestore();
-                        if (mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeInOut,
-                                  ),
-                                );
-                                var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeInOut,
-                                  ),
-                                );
-                                return FadeTransition(
-                                  opacity: fadeAnimation,
-                                  child: ScaleTransition(
-                                    scale: scaleAnimation,
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              transitionDuration: Duration(milliseconds: 400),
-                            ),
-                          );
-                        }
                       },
-                      child: SvgPicture.asset(
-                        'assets/images/next_log.svg',
-                        width: 142.h,
-                        height: 42.h,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8.h,
-                      child: GestureDetector(
-                        onTap: () async {
-                          await _saveLogToFirestore();
-                          if (mounted) {
-                            Navigator.pushReplacement(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                  var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeInOut,
-                                    ),
-                                  );
-                                  var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeInOut,
-                                    ),
-                                  );
-                                  return FadeTransition(
-                                    opacity: fadeAnimation,
-                                    child: ScaleTransition(
-                                      scale: scaleAnimation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                transitionDuration: Duration(milliseconds: 400),
-                              ),
-                            );
-                          }
-                        },
-                        child: Text(
-                          "Done",
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/next_log.svg',
+                            width: 142.h,
+                            height: 42.h,
                           ),
-                        ),
+                          Positioned(
+                            top: 8.h,
+                            child: Text(
+                              "Done",
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

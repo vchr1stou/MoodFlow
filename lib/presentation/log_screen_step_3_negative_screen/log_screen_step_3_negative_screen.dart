@@ -410,7 +410,7 @@ class LogScreenStep3NegativeScreenState
               Navigator.pushReplacement(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => const LogScreenStep2NegativeScreen(),
+                  pageBuilder: (context, animation, secondaryAnimation) => LogScreenStep2NegativeScreen(),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
                       CurvedAnimation(
@@ -448,6 +448,11 @@ class LogScreenStep3NegativeScreenState
         ],
       ),
     );
+  }
+
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    storedSliderValues = {};
   }
 }
 

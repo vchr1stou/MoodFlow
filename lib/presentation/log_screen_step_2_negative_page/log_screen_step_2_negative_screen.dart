@@ -10,20 +10,6 @@ import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.d
 class LogScreenStep2NegativePage extends StatefulWidget {
   const LogScreenStep2NegativePage({Key? key}) : super(key: key);
 
-  @override
-  LogScreenStep2NegativePageState createState() =>
-      LogScreenStep2NegativePageState();
-
-  static Widget builder(BuildContext context) {
-    return const LogScreenStep2NegativePage();
-  }
-}
-
-class LogScreenStep2NegativePageState
-    extends State<LogScreenStep2NegativePage> {
-  // Add a Set to track selected button indices
-  final Set<int> selectedButtons = {};
-  
   // Static variable to store selected negative feelings
   static List<String> selectedNegativeFeelings = [];
   
@@ -31,12 +17,33 @@ class LogScreenStep2NegativePageState
   static Set<int> storedSelectedButtons = {};
 
   @override
+  LogScreenStep2NegativePageState createState() =>
+      LogScreenStep2NegativePageState();
+
+  static Widget builder(BuildContext context) {
+    return const LogScreenStep2NegativePage();
+  }
+
+  // Add static method to reset all SVG types
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    selectedNegativeFeelings = [];
+    storedSelectedButtons = {};
+  }
+}
+
+class LogScreenStep2NegativePageState
+    extends State<LogScreenStep2NegativePage> {
+  // Add a Set to track selected button indices
+  final Set<int> selectedButtons = {};
+
+  @override
   void initState() {
     super.initState();
     // Initialize selectedButtons from stored values
-    selectedButtons.addAll(storedSelectedButtons);
+    selectedButtons.addAll(LogScreenStep2NegativePage.storedSelectedButtons);
     // Update the static variable
-    selectedNegativeFeelings = getSelectedFeelings();
+    LogScreenStep2NegativePage.selectedNegativeFeelings = getSelectedFeelings();
   }
 
   // Helper method to toggle button state
@@ -48,8 +55,8 @@ class LogScreenStep2NegativePageState
         selectedButtons.add(index);
       }
       // Update the static variables
-      storedSelectedButtons = Set.from(selectedButtons);
-      selectedNegativeFeelings = getSelectedFeelings();
+      LogScreenStep2NegativePage.storedSelectedButtons = Set.from(selectedButtons);
+      LogScreenStep2NegativePage.selectedNegativeFeelings = getSelectedFeelings();
     });
   }
 
@@ -1326,7 +1333,7 @@ class LogScreenStep2NegativePageState
                         context,
                         MaterialPageRoute(
                           builder: (context) => LogScreenStep3NegativeScreen(
-                            selectedFeelings: selectedNegativeFeelings,
+                            selectedFeelings: LogScreenStep2NegativePage.selectedNegativeFeelings,
                           ),
                         ),
                       );
@@ -1345,7 +1352,7 @@ class LogScreenStep2NegativePageState
                           context,
                           MaterialPageRoute(
                             builder: (context) => LogScreenStep3NegativeScreen(
-                              selectedFeelings: selectedNegativeFeelings,
+                              selectedFeelings: LogScreenStep2NegativePage.selectedNegativeFeelings,
                             ),
                           ),
                         );
