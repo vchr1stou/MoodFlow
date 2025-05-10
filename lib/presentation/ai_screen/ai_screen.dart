@@ -396,10 +396,22 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
   }
 
   Future<String> _callGeminiAPI(String message) async {
-    // TODO: Implement actual Gemini API call
-    // For now, return a mock response
-    await Future.delayed(Duration(seconds: 1)); // Simulate API delay
-    return "I'm here to help you feel better. How can I assist you today?";
+    try {
+      final provider = Provider.of<AiChatMainProvider>(context, listen: false);
+      await provider.sendMessage(message);
+      
+      // Get the last message from the provider's messages list
+      if (provider.messages.isNotEmpty) {
+        final lastMessage = provider.messages.last;
+        if (lastMessage['role'] == 'assistant') {
+          return lastMessage['content'] as String;
+        }
+      }
+      return "I'm here to help you feel better. How can I assist you today?";
+    } catch (e) {
+      print('Error calling Gemini API: $e');
+      throw e;
+    }
   }
 
   void _handleTextInputTap() {
@@ -490,7 +502,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                               child: message['isSender']
                                   ? BubbleSpecialThree(
                                       text: message['text'],
-                                      color: message['color'],
+                                      color: message['color'].withOpacity(0.3),
                                       tail: message['tail'],
                                       textStyle: TextStyle(
                                         color: Colors.white,
@@ -499,7 +511,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                                     )
                                   : BubbleSpecialThree(
                                       text: message['text'],
-                                      color: message['color'],
+                                      color: message['color'].withOpacity(0.3),
                                       tail: message['tail'],
                                       isSender: false,
                                       textStyle: TextStyle(
@@ -665,31 +677,35 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                                 top: 0,
                                 bottom: 0,
                                 child: _isTyping
-                                    ? TextField(
-                                        controller: _textController,
-                                        focusNode: _focusNode,
-                                        textAlignVertical: TextAlignVertical.center,
-                                        textAlign: TextAlign.left,
-                                        style: TextStyle(
-                                          fontFamily: 'Roboto',
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFFFFFFFF).withOpacity(0.75),
-                                          height: 1.0,
+                                    ? Container(
+                                        width: 372,
+                                        height: 44,
+                                        child: TextField(
+                                          controller: _textController,
+                                          focusNode: _focusNode,
+                                          textAlignVertical: TextAlignVertical.center,
+                                          textAlign: TextAlign.left,
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                            height: 1.0,
+                                          ),
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.only(left: 65, right: 65, top: 12),
+                                            hintText: '',
+                                            isDense: true,
+                                            isCollapsed: true,
+                                          ),
+                                          onSubmitted: (text) {
+                                            if (text.trim().isNotEmpty) {
+                                              _sendMessage();
+                                              _focusNode.unfocus();
+                                            }
+                                          },
                                         ),
-                                        decoration: InputDecoration(
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.only(left: 65, top: 12),
-                                          hintText: '',
-                                          isDense: true,
-                                          isCollapsed: true,
-                                        ),
-                                        onSubmitted: (text) {
-                                          if (text.trim().isNotEmpty) {
-                                            _sendMessage();
-                                            _focusNode.unfocus();
-                                          }
-                                        },
                                       )
                                     : Container(),
                               ),
