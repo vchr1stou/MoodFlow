@@ -13,6 +13,8 @@ import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
+import '../../providers/ai_chat_main_provider.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -163,7 +165,10 @@ class AiScreen extends StatefulWidget {
   AiScreenState createState() => AiScreenState();
 
   static Widget builder(BuildContext context) {
-    return const AiScreen();
+    return ChangeNotifierProvider(
+      create: (_) => AiChatMainProvider(),
+      child: const AiScreen(),
+    );
   }
 }
 
@@ -190,6 +195,17 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
       if (!_focusNode.hasFocus) {
         _isTyping = false;
         if (mounted) setState(() {});
+      } else {
+        // When keyboard opens, scroll to the latest message
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
       }
     });
     _loadUserName();
@@ -216,6 +232,24 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
         _breathingController.forward();
       }
     });
+
+    // Set up message listener
+    final provider = Provider.of<AiChatMainProvider>(context, listen: false);
+    provider.onMessageAdded = () {
+      setState(() {
+        _showChat = true;
+      });
+      // Scroll to bottom after adding message
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    };
   }
 
   Future<void> _loadUserName() async {
@@ -272,8 +306,9 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
           onResult: (result) {
             if (!mounted || _isManualStop) return;
             
+            final provider = Provider.of<AiChatMainProvider>(context, listen: false);
             setState(() {
-              _textController.text = result.recognizedWords;
+              provider.messageController.text = result.recognizedWords;
             });
           },
           listenFor: Duration(seconds: 30),
@@ -293,19 +328,24 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
     }
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_textController.text.trim().isEmpty) return;
     
+    final userMessage = _textController.text.trim();
     setState(() {
       _showChat = true;
       _messages.add({
-        'text': _textController.text,
+        'text': userMessage,
         'isSender': true,
         'color': Color(0xFF1B97F3),
         'tail': true,
       });
       _textController.clear();
+      _isTyping = false;
     });
+
+    // Dismiss keyboard
+    _focusNode.unfocus();
 
     // Scroll to bottom after adding message
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -318,11 +358,13 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
       }
     });
 
-    // Simulate AI response after a short delay
-    Future.delayed(Duration(seconds: 1), () {
+    try {
+      // Call Gemini API here
+      final response = await _callGeminiAPI(userMessage);
+      
       setState(() {
         _messages.add({
-          'text': "I'm here to help you feel better. How can I assist you today?",
+          'text': response,
           'isSender': false,
           'color': Color(0xFFE8E8EE),
           'tail': true,
@@ -339,7 +381,25 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
           );
         }
       });
-    });
+    } catch (e) {
+      print('Error calling Gemini API: $e');
+      // Show error message
+      setState(() {
+        _messages.add({
+          'text': "Sorry, I'm having trouble connecting right now. Please try again.",
+          'isSender': false,
+          'color': Color(0xFFE8E8EE),
+          'tail': true,
+        });
+      });
+    }
+  }
+
+  Future<String> _callGeminiAPI(String message) async {
+    // TODO: Implement actual Gemini API call
+    // For now, return a mock response
+    await Future.delayed(Duration(seconds: 1)); // Simulate API delay
+    return "I'm here to help you feel better. How can I assist you today?";
   }
 
   void _handleTextInputTap() {
@@ -354,7 +414,6 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
 
   @override
   void dispose() {
-    _textController.dispose();
     _focusNode.removeListener(_onFocusChange);
     _focusNode.dispose();
     _breathingController.dispose();
@@ -365,13 +424,14 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    final defaultPosition = 104.0;
-    final distanceFromKeyboard = 490.0;
-    final keyboardPosition = MediaQuery.of(context).size.height - bottomPadding - distanceFromKeyboard;
-
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isKeyboardVisible = bottomPadding > 0;
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           // Background image
@@ -402,42 +462,23 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
             bottom: 0,
             child: GlowEffect(isKeyboardOpen: _focusNode.hasFocus),
           ),
-          // User greeting text
-          if (!_showChat && !_isTyping) 
-            Positioned(
-              top: 120,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Text(
-                  'How are you feeling\nnow, ${_userName ?? 'User'}?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'SF Pro',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-            ),
-          // Chat messages
-          if (_showChat)
-            Positioned(
-              top: 85,
-              left: 0,
-              right: 0,
-              bottom: defaultPosition + 60,
-              child: Container(
-                color: Colors.transparent,
-                child: Column(
-                  children: [
-                    Expanded(
+          // Main content
+          SafeArea(
+            child: Stack(
+              children: [
+                // Chat messages
+                if (_showChat)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 104.0,
+                    child: Container(
+                      color: Colors.transparent,
                       child: SingleChildScrollView(
                         controller: _scrollController,
                         reverse: false,
-                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 8),
                         physics: AlwaysScrollableScrollPhysics(),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -471,89 +512,208 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          // Text input field
-          Positioned(
-            bottom: _isTyping ? keyboardPosition : defaultPosition,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  if (!_isTyping) {
-                    setState(() {
-                      _isTyping = true;
-                    });
-                    _focusNode.requestFocus();
-                  }
-                },
-                child: Container(
-                  width: 372,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: -1,
-                        blurRadius: 30,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
                   ),
-                  child: Stack(
-                    children: [
-                      // Text box background
-                      Center(
-                        child: SvgPicture.asset(
-                          'assets/images/text_box.svg',
-                          width: 372,
-                          height: 44,
-                          fit: BoxFit.contain,
-                          alignment: Alignment.center,
+                // User greeting text
+                if (!_showChat && !_isTyping)
+                  Positioned(
+                    top: 80,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Text(
+                        'How are you feeling\nnow, ${_userName ?? 'User'}?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'SF Pro',
+                          fontSize: 32,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      // Mic Button with animation
-                      Positioned(
-                        left: 30,
-                        top: (44 - 28) / 2,
-                        child: GestureDetector(
-                          onTap: _listen,
+                    ),
+                  ),
+                // Input box
+                Positioned(
+                  bottom: MediaQuery.of(context).viewInsets.bottom > 0
+                      ? 15.0  // Higher position when keyboard is present
+                      : (_messages.isEmpty 
+                          ? -30.0  // Lower position when no messages
+                          : (_showChat ? -30.0 : -30.0)),  // Keep it low in other states
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom > 0
+                          ? 8
+                          : 30 + MediaQuery.of(context).padding.bottom,
+                      top: 8,
+                    ),
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (!_isTyping) {
+                            setState(() {
+                              _isTyping = true;
+                            });
+                            _focusNode.requestFocus();
+                          }
+                        },
+                        child: Container(
+                          width: 372,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                spreadRadius: -1,
+                                blurRadius: 30,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
                           child: Stack(
                             children: [
-                              SvgPicture.asset(
-                                'assets/images/mic_button.svg',
-                                width: 28,
-                                height: 28,
-                                fit: BoxFit.contain,
+                              // Text box background
+                              Center(
+                                child: SvgPicture.asset(
+                                  'assets/images/text_box.svg',
+                                  width: 372,
+                                  height: 44,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                ),
                               ),
-                              if (_isListening)
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: AnimatedBuilder(
-                                      animation: _breathingAnimation,
-                                      builder: (context, child) {
-                                        return Container(
-                                          width: 28,
-                                          height: 28,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Color(0xE2917D),
-                                              width: 1.5 * _breathingAnimation.value,
+                              // Mic Button with animation
+                              Positioned(
+                                left: 30,
+                                top: (44 - 28) / 2,
+                                child: GestureDetector(
+                                  onTap: _listen,
+                                  child: Stack(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/mic_button.svg',
+                                        width: 28,
+                                        height: 28,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      if (_isListening)
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: AnimatedBuilder(
+                                              animation: _breathingAnimation,
+                                              builder: (context, child) {
+                                                return Container(
+                                                  width: 28,
+                                                  height: 28,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                      color: Color(0xE2917D),
+                                                      width: 1.5 * _breathingAnimation.value,
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Color(0xE2917D).withOpacity(0.5),
+                                                        blurRadius: 4.0 * _breathingAnimation.value,
+                                                        spreadRadius: 1.0 * _breathingAnimation.value,
+                                                      )
+                                                    ],
+                                                  ),
+                                                );
+                                              },
                                             ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Color(0xE2917D).withOpacity(0.5),
-                                                blurRadius: 4.0 * _breathingAnimation.value,
-                                                spreadRadius: 1.0 * _breathingAnimation.value,
-                                              )
-                                            ],
                                           ),
-                                        );
-                                      },
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // Send Button
+                              Positioned(
+                                right: 13,
+                                top: 1,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    if (_textController.text.trim().isNotEmpty) {
+                                      _sendMessage();
+                                      _focusNode.unfocus();
+                                      setState(() {
+                                        _isTyping = false;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 49,
+                                    height: 49,
+                                    color: Colors.transparent,
+                                    child: SvgPicture.asset(
+                                      'assets/images/send_button.svg',
+                                      width: 49,
+                                      height: 49,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Text input field
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                                child: _isTyping
+                                    ? TextField(
+                                        controller: _textController,
+                                        focusNode: _focusNode,
+                                        textAlignVertical: TextAlignVertical.center,
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                          height: 1.0,
+                                        ),
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.only(left: 65, top: 12),
+                                          hintText: '',
+                                          isDense: true,
+                                          isCollapsed: true,
+                                        ),
+                                        onSubmitted: (text) {
+                                          if (text.trim().isNotEmpty) {
+                                            _sendMessage();
+                                            _focusNode.unfocus();
+                                          }
+                                        },
+                                      )
+                                    : Container(),
+                              ),
+                              // Static text overlay
+                              if (!_isTyping)
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(left: 65),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        _textController.text.isEmpty ? 'Ask me anything' : _textController.text,
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                          height: 1.0,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -561,89 +721,10 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                           ),
                         ),
                       ),
-                      // Send Button
-                      Positioned(
-                        right: 13,
-                        top: 1,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (_textController.text.trim().isNotEmpty) {
-                              _sendMessage();
-                              _focusNode.unfocus();
-                              setState(() {
-                                _isTyping = false;
-                              });
-                            }
-                          },
-                          child: SvgPicture.asset(
-                            'assets/images/send_button.svg',
-                            width: 49,
-                            height: 49,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      // Text input field
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: _isTyping
-                            ? TextField(
-                                controller: _textController,
-                                focusNode: _focusNode,
-                                textAlignVertical: TextAlignVertical.center,
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.75),
-                                  height: 1.0,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.only(left: 65, top: 12),
-                                  hintText: '',
-                                  isDense: true,
-                                  isCollapsed: true,
-                                ),
-                                onSubmitted: (text) {
-                                  _sendMessage();
-                                  _focusNode.unfocus();
-                                },
-                              )
-                            : Container(),
-                      ),
-                      // Static text overlay
-                      if (!_isTyping)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 65),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                _textController.text.isEmpty ? 'Ask me anything' : _textController.text,
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFFFFFFFF).withOpacity(0.75),
-                                  height: 1.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -653,7 +734,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
         padding: EdgeInsets.only(
           left: 20,
           right: 20,
-          bottom: Platform.isAndroid ? 20 + MediaQuery.of(context).padding.bottom : 20,
+          bottom: Platform.isAndroid ? 20 + safeAreaBottom : 20,
         ),
         child: Stack(
           alignment: Alignment.bottomCenter,
