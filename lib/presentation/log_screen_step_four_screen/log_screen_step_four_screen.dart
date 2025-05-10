@@ -710,40 +710,6 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                       child: Dismissible(
                                         key: ValueKey(_selectedTrack!['id']),
                                         direction: DismissDirection.up,
-                                        confirmDismiss: (direction) async {
-                                          return await showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                backgroundColor: Colors.black.withOpacity(0.8),
-                                                title: Text(
-                                                  'Remove Track',
-                                                  style: TextStyle(color: Colors.white),
-                                                ),
-                                                content: Text(
-                                                  'Are you sure you want to remove this track?',
-                                                  style: TextStyle(color: Colors.white),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Navigator.of(context).pop(false),
-                                                    child: Text(
-                                                      'Cancel',
-                                                      style: TextStyle(color: Colors.white),
-                                                    ),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () => Navigator.of(context).pop(true),
-                                                    child: Text(
-                                                      'Remove',
-                                                      style: TextStyle(color: Colors.red),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
                                         onDismissed: (direction) {
                                           setState(() {
                                             _selectedTrack = null;
@@ -756,7 +722,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                           alignment: Alignment.topCenter,
                                           padding: EdgeInsets.only(top: 10),
                                           decoration: BoxDecoration(
-                                            color: Colors.red.withOpacity(0.3),
+                                            color: Colors.transparent,
                                             borderRadius: BorderRadius.circular(24.h),
                                           ),
                                           child: Column(

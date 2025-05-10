@@ -88,7 +88,7 @@ class LogScreenState extends State<LogScreen> {
   final Set<Marker> _markers = {};
   String? _locationName;
   Uint8List? _mapScreenshot;
-  final String _placesApiKey = 'AIzaSyDohu3J9jw0lUyUswNP3PxiKzXKJJQJvNk';
+  final String _placesApiKey = 'AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw';
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   String? _currentMood;
