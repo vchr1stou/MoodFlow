@@ -9,9 +9,9 @@ import '../models/sign_up_step_one_model.dart';
 // ignore_for_file: must_be_immutable
 class SignUpStepOneProvider extends ChangeNotifier {
   // Controllers for form input fields
-  TextEditingController nametwoController = TextEditingController();
-  TextEditingController emailtwoController = TextEditingController();
-  TextEditingController passwordtwoController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   TextEditingController confirmpasswordController = TextEditingController();
   TextEditingController pronounsController = TextEditingController();
 
@@ -25,9 +25,9 @@ class SignUpStepOneProvider extends ChangeNotifier {
   // Clean up controllers
   @override
   void dispose() {
-    nametwoController.dispose();
-    emailtwoController.dispose();
-    passwordtwoController.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     confirmpasswordController.dispose();
     pronounsController.dispose();
     super.dispose();

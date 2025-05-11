@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:moodflow/providers/sign_up_provider.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
@@ -10,6 +11,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/sign_up_step_one_model.dart';
 import 'provider/sign_up_step_one_provider.dart';
+import '../../providers/sign_up_step_provider.dart';
 
 class SignUpStepOneScreen extends StatefulWidget {
   const SignUpStepOneScreen({Key? key}) : super(key: key);
@@ -126,6 +128,13 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                           child: GestureDetector(
                             onTap: () {
                               if (_formKey.currentState!.validate()) {
+                                final signUpProvider = context.read<SignUpProvider>();
+                                signUpProvider.updateStepOneData(
+                                  context.read<SignUpStepOneProvider>().nameController.text,
+                                  context.read<SignUpStepOneProvider>().pronounsController.text,
+                                  context.read<SignUpStepOneProvider>().emailController.text,
+                                  context.read<SignUpStepOneProvider>().passwordController.text,
+                                );
                                 Navigator.pushNamed(context, AppRoutes.signUpStepTwoScreen);
                               }
                             },
@@ -227,7 +236,7 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
         ),
         SizedBox(height: 12),
         _buildInputField(
-          controller: context.read<SignUpStepOneProvider>().nametwoController,
+          controller: context.read<SignUpStepOneProvider>().nameController,
           hintText: "John Appleseed",
         ),
       ],
@@ -413,7 +422,7 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
         ),
         SizedBox(height: 12),
         _buildInputField(
-          controller: context.read<SignUpStepOneProvider>().emailtwoController,
+          controller: context.read<SignUpStepOneProvider>().emailController,
           hintText: "johnappleseed@example.com",
           keyboardType: TextInputType.emailAddress,
           validator: (value) {
@@ -466,7 +475,7 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                 child: TextFormField(
                   controller: context
                       .read<SignUpStepOneProvider>()
-                      .passwordtwoController,
+                      .passwordController,
                   obscureText:
                       context.watch<SignUpStepOneProvider>().isShowPassword,
                   keyboardType: TextInputType.visiblePassword,
@@ -596,7 +605,7 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                     if (value !=
                         context
                             .read<SignUpStepOneProvider>()
-                            .passwordtwoController
+                            .confirmpasswordController
                             .text) {
                       return "Passwords do not match";
                     }
