@@ -26,6 +26,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../little_lifts_screen/little_lifts_screen.dart';
 
+const String youtubeApiKey = 'AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw';
+
 class GlowPainter extends CustomPainter {
   final double animation;
   final List<Color> colors;
@@ -362,83 +364,117 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
   String? _currentMovieRecommendation;
   bool _isSaved = false;
 
+  Future<String?> fetchMovieTrailer({
+    required String query,
+    int maxDurationMinutes = 5,
+  }) async {
+    print('🌐 Making YouTube API request for: $query');
+    final url = Uri.parse(
+      'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${Uri.encodeComponent(query)}&key=$youtubeApiKey',
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        if (response.statusCode == 403 && 
+            errorData['error']?['status'] == 'PERMISSION_DENIED' &&
+            errorData['error']?['details']?[0]?['reason'] == 'SERVICE_DISABLED') {
+          print('⚠️ YouTube API is not enabled. Please enable it in the Google Cloud Console.');
+          print('🔗 Visit: https://console.developers.google.com/apis/api/youtube.googleapis.com/overview?project=544663069826');
+          return null;
+        }
+        print('❌ YouTube API error: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return null;
+      }
+
+      final data = jsonDecode(response.body);
+      final items = data['items'] as List<dynamic>;
+      print('📊 Found ${items.length} videos');
+
+      for (final item in items) {
+        final videoId = item['id']['videoId'];
+        print('🔎 Checking video: $videoId');
+        
+        final durationUrl = Uri.parse(
+          'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=$youtubeApiKey',
+        );
+        final durationResponse = await http.get(durationUrl);
+        if (durationResponse.statusCode != 200) {
+          print('❌ Duration API error for video $videoId: ${durationResponse.statusCode}');
+          continue;
+        }
+
+        final durationData = jsonDecode(durationResponse.body);
+        final details = durationData['items'] as List<dynamic>;
+        if (details.isEmpty) {
+          print('❌ No duration details for video $videoId');
+          continue;
+        }
+
+        final isoDuration = details[0]['contentDetails']['duration'];
+        final durationMinutes = _parseIsoDurationToMinutes(isoDuration);
+        print('⏱️ Video duration: $durationMinutes minutes');
+
+        if (durationMinutes <= maxDurationMinutes) {
+          final videoUrl = 'https://www.youtube.com/watch?v=$videoId';
+          print('✅ Found suitable video: $videoUrl');
+          return videoUrl;
+        } else {
+          print('⏰ Video too long: $durationMinutes minutes');
+        }
+      }
+
+      print('❌ No suitable videos found within duration limit');
+      return null;
+    } catch (e) {
+      print('❌ Error fetching YouTube video: $e');
+      return null;
+    }
+  }
+
+  int _parseIsoDurationToMinutes(String isoDuration) {
+    final regex = RegExp(r'PT(?:(\d+)H)?(?:(\d+)M)?');
+    final match = regex.firstMatch(isoDuration);
+    if (match == null) return 0;
+
+    final hours = int.tryParse(match.group(1) ?? '0') ?? 0;
+    final minutes = int.tryParse(match.group(2) ?? '0') ?? 0;
+
+    return (hours * 60) + minutes;
+  }
+
   // Helper to extract all movie information from AI response
-  Map<String, String> extractMovieInfo(String response) {
+  Future<Map<String, String>> extractMovieInfo(String response) async {
     final titleMatch = RegExp(r'Title:\s*(.*)').firstMatch(response);
     final yearMatch = RegExp(r'Year:\s*(\d{4})').firstMatch(response);
     final genreMatch = RegExp(r'Genre:\s*(.*)').firstMatch(response);
     final descriptionMatch = RegExp(r'Description:\s*(.*?)(?=\n|$)').firstMatch(response);
     
-    final trailerLine = response.split('\n').firstWhere(
-      (line) => line.contains('Trailer:'),
-      orElse: () => '',
-    );
+    final title = titleMatch?.group(1)?.trim() ?? '';
+    final year = yearMatch?.group(1)?.trim() ?? '';
+    final genre = genreMatch?.group(1)?.trim() ?? '';
+    final description = descriptionMatch?.group(1)?.trim() ?? '';
     
-    final trailerMatch = RegExp(r'Trailer:\s*(.*)').firstMatch(trailerLine);
-    final rawUrl = trailerMatch?.group(1)?.trim() ?? '';
+    // Search for a relevant movie trailer
+    final searchQuery = '$title $year official trailer';
+    print('🔍 Searching YouTube for: $searchQuery');
+    final videoUrl = await fetchMovieTrailer(query: searchQuery);
     
-    String cleanUrl = rawUrl;
-    if (rawUrl.contains('youtu.be')) {
-      final videoId = rawUrl.split('/').last;
-      cleanUrl = 'https://www.youtube.com/watch?v=$videoId';
-    } else if (rawUrl.contains('youtube.com')) {
-      final videoIdMatch = RegExp(r'(?:v=|/)([0-9A-Za-z_-]{11})(?:\?|&|$)').firstMatch(rawUrl);
-      if (videoIdMatch != null) {
-        final videoId = videoIdMatch.group(1);
-        cleanUrl = 'https://www.youtube.com/watch?v=$videoId';
-      }
+    if (videoUrl != null) {
+      print('🎥 Found YouTube video: $videoUrl');
+    } else {
+      print('❌ No suitable YouTube video found');
     }
     
     return {
-      'title': titleMatch?.group(1)?.trim() ?? '',
-      'year': yearMatch?.group(1)?.trim() ?? '',
-      'genre': genreMatch?.group(1)?.trim() ?? '',
-      'description': descriptionMatch?.group(1)?.trim() ?? '',
-      'trailerUrl': cleanUrl,
+      'title': title,
+      'year': year,
+      'genre': genre,
+      'description': description,
+      'trailerUrl': videoUrl ?? '',
     };
-  }
-
-  Future<void> _launchTrailerUrl() async {
-    if (_currentMovieRecommendation == null) return;
-    
-    final movieInfo = extractMovieInfo(_currentMovieRecommendation!);
-    final trailerUrl = movieInfo['trailerUrl'];
-    
-    if (trailerUrl != null && trailerUrl.isNotEmpty) {
-      try {
-        final uri = Uri.parse(trailerUrl);
-        
-        final videoIdMatch = RegExp(r'(?:v=|/)([0-9A-Za-z_-]{11})(?:\?|&|$)').firstMatch(trailerUrl);
-        if (videoIdMatch != null) {
-          final videoId = videoIdMatch.group(1);
-          
-          final youtubeUri = Uri.parse('youtube://${videoId}');
-          if (await canLaunchUrl(youtubeUri)) {
-            await launchUrl(youtubeUri);
-            return;
-          }
-          
-          final browserUrl = Uri.parse('https://www.youtube.com/watch?v=$videoId');
-          await launchUrl(
-            browserUrl,
-            mode: LaunchMode.platformDefault,
-          );
-          return;
-        }
-        
-        await launchUrl(
-          uri,
-          mode: LaunchMode.platformDefault,
-        );
-      } catch (e) {
-        try {
-          await launchUrl(
-            Uri.parse(trailerUrl),
-            mode: LaunchMode.platformDefault,
-          );
-        } catch (e) {}
-      }
-    }
   }
 
   @override
@@ -686,243 +722,226 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
                                         fit: BoxFit.contain,
                                       ),
                                     ),
-                                    // Movie poster image
+                                    // Content or Loading Indicator
                                     if (_currentMovieRecommendation != null)
-                                      Positioned(
-                                        top: 24,
-                                        left: 26,
-                                        child: Builder(
-                                          builder: (context) {
-                                            final info = extractMovieInfo(_currentMovieRecommendation!);
-                                            return MoviePoster(
-                                              title: info['title'] ?? '',
-                                              year: info['year'] ?? '',
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    // Description box background
-                                    Positioned(
-                                      top: 216, // 12px below the poster (176 + 24 + 12)
-                                      left: 0,
-                                      right: 0,
-                                      child: Center(
-                                        child: Container(
-                                          width: 332,
-                                          height: 238,
-                                          child: SvgPicture.asset(
-                                            'assets/images/desc_box.svg',
-                                            width: 332,
-                                            height: 238,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Movie title
-                                    Positioned(
-                                      top: 222,
-                                      left: 37,
-                                      child: Builder(
-                                        builder: (context) {
-                                          final info = extractMovieInfo(_currentMovieRecommendation!);
-                                          return Text(
-                                            info['title'] ?? '',
-                                            style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    // Year and Genre info
-                                    Positioned(
-                                      top: 256,
-                                      left: 37,
-                                      child: Builder(
-                                        builder: (context) {
-                                          final info = extractMovieInfo(_currentMovieRecommendation!);
-                                          return Text(
-                                            'Film (${info['year']}) · ${info['genre']}',
-                                            style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    // About text
-                                    Positioned(
-                                      top: 279,
-                                      left: 37,
-                                      child: Text(
-                                        'About',
-                                        style: TextStyle(
-                                          fontFamily: 'Roboto',
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    // Description text
-                                    Positioned(
-                                      top: 296,
-                                      left: 37,
-                                      right: 37,
-                                      child: Builder(
-                                        builder: (context) {
-                                          final info = extractMovieInfo(_currentMovieRecommendation!);
-                                          return Text(
-                                            info['description'] ?? '',
-                                            style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                              height: 1.4,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    // Movie recommendation text
-                                    Positioned(
-                                      top: 216,
-                                      left: 24,
-                                      right: 24,
-                                      bottom: 24,
-                                      child: SingleChildScrollView(
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                          child: Text(
-                                            _currentMovieRecommendation!.split('\n')
-                                                .where((line) => 
-                                                    !line.startsWith('Title:') && 
-                                                    !line.startsWith('Year:') && 
-                                                    !line.startsWith('Genre:') &&
-                                                    !line.startsWith('Description:') &&
-                                                    !line.startsWith('Poster:') &&
-                                                    !line.startsWith('Trailer:'))
-                                                .join('\n'),
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // YouTube Watch Button
-                                    Positioned(
-                                      top: 394, // Decreased from 404
-                                      left: 45,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          print('Button pressed!');
-                                          _launchTrailerUrl();
-                                        },
-                                        child: Container(
-                                          width: 203,
-                                          height: 42,
-                                          child: Stack(
-                                            children: [
-                                              SvgPicture.asset(
-                                                'assets/images/watch_ytb.svg',
-                                                width: 203,
-                                                height: 42,
-                                                fit: BoxFit.contain,
+                                      FutureBuilder<Map<String, String>>(
+                                        future: extractMovieInfo(_currentMovieRecommendation!),
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData) {
+                                            return Center(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  CupertinoActivityIndicator(),
+                                                  SizedBox(height: 16),
+                                                  Text(
+                                                    'Finding the perfect movie...',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              // YouTube Icon
+                                            );
+                                          }
+                                          
+                                          final info = snapshot.data!;
+                                          return Stack(
+                                            children: [
+                                              // Movie poster image
                                               Positioned(
-                                                left: 10,
-                                                top: 13,
-                                                child: SvgPicture.asset(
-                                                  'assets/images/youtube.svg',
-                                                  width: 20,
-                                                  height: 16,
-                                                  fit: BoxFit.contain,
+                                                top: 24,
+                                                left: 26,
+                                                child: MoviePoster(
+                                                  title: info['title'] ?? '',
+                                                  year: info['year'] ?? '',
                                                 ),
                                               ),
-                                              // Watch trailer text
+                                              // Description box background
                                               Positioned(
-                                                left: 34,
-                                                top: 13,
+                                                top: 216,
+                                                left: 0,
+                                                right: 0,
+                                                child: Center(
+                                                  child: Container(
+                                                    width: 332,
+                                                    height: 238,
+                                                    child: SvgPicture.asset(
+                                                      'assets/images/desc_box.svg',
+                                                      width: 332,
+                                                      height: 238,
+                                                      fit: BoxFit.contain,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Movie title
+                                              Positioned(
+                                                top: 222,
+                                                left: 37,
                                                 child: Text(
-                                                  'Watch the trailer on YouTube',
+                                                  info['title'] ?? '',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              // Year and Genre info
+                                              Positioned(
+                                                top: 256,
+                                                left: 37,
+                                                child: Text(
+                                                  'Film (${info['year']}) · ${info['genre']}',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              // About text
+                                              Positioned(
+                                                top: 279,
+                                                left: 37,
+                                                child: Text(
+                                                  'About',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              // Description text
+                                              Positioned(
+                                                top: 296,
+                                                left: 37,
+                                                right: 37,
+                                                child: Text(
+                                                  info['description'] ?? '',
                                                   style: TextStyle(
                                                     fontFamily: 'Roboto',
                                                     fontSize: 11,
                                                     fontWeight: FontWeight.w600,
                                                     color: Colors.white,
+                                                    height: 1.4,
+                                                  ),
+                                                ),
+                                              ),
+                                              // YouTube Watch Button
+                                              Positioned(
+                                                top: 394,
+                                                left: 45,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    print('Button pressed!');
+                                                    _launchTrailerUrl();
+                                                  },
+                                                  child: Container(
+                                                    width: 203,
+                                                    height: 42,
+                                                    child: Stack(
+                                                      children: [
+                                                        SvgPicture.asset(
+                                                          'assets/images/watch_ytb.svg',
+                                                          width: 203,
+                                                          height: 42,
+                                                          fit: BoxFit.contain,
+                                                        ),
+                                                        // YouTube Icon
+                                                        Positioned(
+                                                          left: 10,
+                                                          top: 13,
+                                                          child: SvgPicture.asset(
+                                                            'assets/images/youtube.svg',
+                                                            width: 20,
+                                                            height: 16,
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                        // Watch trailer text
+                                                        Positioned(
+                                                          left: 34,
+                                                          top: 13,
+                                                          child: Text(
+                                                            'Watch the trailer on YouTube',
+                                                            style: TextStyle(
+                                                              fontFamily: 'Roboto',
+                                                              fontSize: 11,
+                                                              fontWeight: FontWeight.w600,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Save Box Button
+                                              Positioned(
+                                                top: 394,
+                                                left: 256,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _isSaved = !_isSaved;
+                                                    });
+                                                  },
+                                                  child: Stack(
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        _isSaved ? 'assets/images/save_box2.svg' : 'assets/images/save_box.svg',
+                                                        width: 78,
+                                                        height: 42,
+                                                        fit: BoxFit.contain,
+                                                      ),
+                                                      // Save Icon
+                                                      Positioned(
+                                                        left: 10,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        child: Center(
+                                                          child: SvgPicture.asset(
+                                                            'assets/images/save_icon.svg',
+                                                            width: 21,
+                                                            height: 21,
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      // Save Text
+                                                      Positioned(
+                                                        left: 35,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        child: Center(
+                                                          child: Text(
+                                                            _isSaved ? 'Saved' : 'Save',
+                                                            style: TextStyle(
+                                                              fontFamily: 'Roboto',
+                                                              fontSize: 11,
+                                                              fontWeight: FontWeight.w600,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
                                             ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Save Box Button
-                                    Positioned(
-                                      top: 394, // Decreased from 404
-                                      left: 256,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _isSaved = !_isSaved;
-                                          });
+                                          );
                                         },
-                                        child: Stack(
-                                          children: [
-                                            SvgPicture.asset(
-                                              _isSaved ? 'assets/images/save_box2.svg' : 'assets/images/save_box.svg',
-                                              width: 78,
-                                              height: 42,
-                                              fit: BoxFit.contain,
-                                            ),
-                                            // Save Icon
-                                            Positioned(
-                                              left: 10,
-                                              top: 0,
-                                              bottom: 0,
-                                              child: Center(
-                                                child: SvgPicture.asset(
-                                                  'assets/images/save_icon.svg',
-                                                  width: 21,
-                                                  height: 21,
-                                                  fit: BoxFit.contain,
-                                                ),
-                                              ),
-                                            ),
-                                            // Save Text
-                                            Positioned(
-                                              left: 35,
-                                              top: 0,
-                                              bottom: 0,
-                                              child: Center(
-                                                child: Text(
-                                                  _isSaved ? 'Saved' : 'Save',
-                                                  style: TextStyle(
-                                                    fontFamily: 'Roboto',
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -931,7 +950,7 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
                         // Chat messages (show only the welcome message)
                         if (provider.showChat && provider.messages.isNotEmpty)
                           Positioned(
-                            top: 0.h, // Adjust this value to move the bubble up/down
+                            top: 0.h,
                             left: 0,
                             right: 0,
                             child: Container(
@@ -946,7 +965,6 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    // Only show the first message (welcome message)
                                     if (provider.messages.isNotEmpty)
                                       Padding(
                                         padding: EdgeInsets.only(bottom: 12),
@@ -993,10 +1011,10 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
                         // Input box
                         Positioned(
                           bottom: MediaQuery.of(context).viewInsets.bottom > 0
-                              ? 15.0  // Higher position when keyboard is present
+                              ? 15.0
                               : (provider.messages.isEmpty 
-                                  ? -30.0  // Lower position when no messages
-                                  : (provider.showChat ? -30.0 : -30.0)),  // Keep it low in other states
+                                  ? -30.0
+                                  : (provider.showChat ? -30.0 : -30.0)),
                           left: 0,
                           right: 0,
                           child: Padding(
@@ -1250,6 +1268,49 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
     } catch (e) {
       debugPrint('Invalid URL format: $url'); // Debug log
       return false;
+    }
+  }
+
+  Future<void> _launchTrailerUrl() async {
+    if (_currentMovieRecommendation == null) return;
+    
+    final movieInfo = await extractMovieInfo(_currentMovieRecommendation!);
+    final trailerUrl = movieInfo['trailerUrl'];
+    
+    if (trailerUrl != null && trailerUrl.isNotEmpty) {
+      try {
+        final uri = Uri.parse(trailerUrl);
+        
+        final videoIdMatch = RegExp(r'(?:v=|/)([0-9A-Za-z_-]{11})(?:\?|&|$)').firstMatch(trailerUrl);
+        if (videoIdMatch != null) {
+          final videoId = videoIdMatch.group(1);
+          
+          final youtubeUri = Uri.parse('youtube://${videoId}');
+          if (await canLaunchUrl(youtubeUri)) {
+            await launchUrl(youtubeUri);
+            return;
+          }
+          
+          final browserUrl = Uri.parse('https://www.youtube.com/watch?v=$videoId');
+          await launchUrl(
+            browserUrl,
+            mode: LaunchMode.platformDefault,
+          );
+          return;
+        }
+        
+        await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+      } catch (e) {
+        try {
+          await launchUrl(
+            Uri.parse(trailerUrl),
+            mode: LaunchMode.platformDefault,
+          );
+        } catch (e) {}
+      }
     }
   }
 }
