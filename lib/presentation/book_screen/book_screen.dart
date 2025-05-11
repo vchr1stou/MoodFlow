@@ -2,443 +2,998 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Added provider import
 import 'package:easy_localization/easy_localization.dart';
-
-// Assuming these imports point to valid files in your project structure
+import 'dart:io';
+import 'dart:math' as math;
+import 'package:flutter_svg/flutter_svg.dart';
+import '../homescreen_screen/homescreen_screen.dart';
+import '../../services/user_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:async';
+import 'package:chat_bubbles/chat_bubbles.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
+import '../log_input_screen/log_input_screen.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
-import '../../widgets/app_bar/appbar_leading_image.dart';
-import '../../widgets/app_bar/appbar_subtitle_one.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_drop_down.dart';
-import '../../widgets/custom_text_form_field.dart';
-import 'models/book_model.dart'; // Assuming this model exists
-import 'provider/book_provider.dart';
+import '../../widgets/unlock_slider.dart';
+import '../log_screen/log_screen.dart';
+import '../../core/services/storage_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../little_lifts_screen/little_lifts_screen.dart';
+import 'provider/book_provider.dart'; // Added import for BookProvider
+import 'widgets/book_cover.dart';
 
-class BookScreen extends StatefulWidget {
-  const BookScreen({super.key}); // Use super.key for constructor
+class GlowPainter extends CustomPainter {
+  final double animation;
+  final List<Color> colors;
+  final List<double> stops;
+  final bool isKeyboardOpen;
+
+  GlowPainter({
+    required this.animation,
+    required this.colors,
+    required this.stops,
+    required this.isKeyboardOpen,
+  });
 
   @override
-  BookScreenState createState() => BookScreenState();
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    
+    // Create the gradient paint
+    final gradientPaint = Paint()
+      ..shader = SweepGradient(
+        colors: colors.map((c) => c.withOpacity(0.8)).toList(),
+        stops: stops,
+        transform: GradientRotation(animation * 2 * math.pi),
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 25.0
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 35);
 
-  static Widget builder(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => BookProvider(),
-      child: const BookScreen(), // Add const
+    // Draw the main glow with conditional corner radius
+    final rrect = RRect.fromRectAndRadius(
+      rect.deflate(-0.2),
+      Radius.circular(isKeyboardOpen ? 0 : 47.33),
+    );
+    canvas.drawRRect(rrect, gradientPaint);
+
+    // Draw an inner stroke with conditional corner radius
+    final innerPaint = Paint()
+      ..shader = SweepGradient(
+        colors: colors,
+        stops: stops,
+        transform: GradientRotation(animation * 2 * math.pi),
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0;
+
+    canvas.drawRRect(rrect, innerPaint);
+  }
+
+  @override
+  bool shouldRepaint(GlowPainter oldDelegate) {
+    return animation != oldDelegate.animation ||
+           stops != oldDelegate.stops ||
+           isKeyboardOpen != oldDelegate.isKeyboardOpen;
+  }
+}
+
+class GlowEffect extends StatefulWidget {
+  final bool isKeyboardOpen;
+  
+  const GlowEffect({Key? key, required this.isKeyboardOpen}) : super(key: key);
+
+  @override
+  State<GlowEffect> createState() => _GlowEffectState();
+}
+
+class ListTween extends Tween<List<double>> {
+  ListTween({required List<double> begin, required List<double> end})
+      : super(begin: begin, end: end);
+
+  @override
+  List<double> lerp(double t) {
+    if (begin == null || end == null) return [];
+    return List.generate(
+      begin!.length,
+      (i) => begin![i] + (end![i] - begin![i]) * t,
     );
   }
 }
 
-class BookScreenState extends State<BookScreen> {
+class _GlowEffectState extends State<GlowEffect> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  final List<Color> _colors = [
+    Color(0xFFBC82F3),
+    Color(0xFFF5B9EA),
+    Color(0xFF8D9FFF),
+    Color(0xFFFF6778),
+    Color(0xFFFFBA71),
+    Color(0xFFC686FF),
+  ];
+  
+  // Fixed stops for consistent gradient
+  final List<double> _fixedStops = [
+    0.0,
+    0.2,
+    0.4,
+    0.6,
+    0.8,
+    1.0,
+  ];
+
   @override
   void initState() {
     super.initState();
-    // Initialization logic can go here
+    _controller = AnimationController(
+      duration: Duration(seconds: 8),
+      vsync: this,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.linear,
+    );
+
+    _controller.repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Use MediaQuery for responsive sizing instead of SizeUtils if possible
-    // For demonstration, SizeUtils is kept as per the original code
-    // final mediaQueryData = MediaQuery.of(context);
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: GlowPainter(
+            animation: _animation.value,
+            colors: _colors,
+            stops: _fixedStops,
+            isKeyboardOpen: widget.isKeyboardOpen,
+          ),
+          size: Size.infinite,
+        );
+      },
+    );
+  }
+}
 
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      appBar: _buildAppbar(context),
-      body: Container(
-        width: double.maxFinite,
-        height: SizeUtils.height, // Consider using mediaQueryData.size.height
-        decoration: AppDecoration.gradientAmberToRed,
-        child: SafeArea(
-          child: Container(
-            // Avoid fixed heights like 756.h if possible, let content define height
-            // margin: EdgeInsets.only(top: 56.h), // SafeArea handles top padding
-            child: SingleChildScrollView(
-              child: Container(
-                // Removed fixed height: height: 756.h,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 14.h,
-                  vertical: 10.h,
+class BookScreen extends StatefulWidget {
+  const BookScreen({Key? key}) : super(key: key);
+
+  @override
+  _BookScreenState createState() => _BookScreenState();
+
+  static Widget builder(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => BookProvider(),
+      child: const BookScreen(),
+    );
+  }
+}
+
+class _BookScreenState extends State<BookScreen> with SingleTickerProviderStateMixin {
+  final UserService _userService = UserService();
+  final FocusNode _focusNode = FocusNode();
+  bool _isTyping = false;
+  String? _userName;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  bool _isManualStop = false;
+  late AnimationController _breathingController;
+  late Animation<double> _breathingAnimation;
+  ScrollController _scrollController = ScrollController();
+  bool _showChat = false;
+  String? _currentBookRecommendation;
+  bool _isSaved = false;
+  late BookProvider bookProvider;
+
+  PreferredSizeWidget _buildAppbar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 200,
+      leading: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => LittleLiftsScreen.builder(context),
                 ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // This container seems to be a background element,
-                    // consider if it's necessary within the Stack
-                    // Container(
-                    //   height: 514.h,
-                    //   width: 366.h,
-                    //   decoration: BoxDecoration(
-                    //     color: appTheme.gray5019,
-                    //   ),
-                    // ),
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        width: double.maxFinite,
-                        margin:
-                            EdgeInsets.only(right: 2.h), // Consider if needed
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildRowcontrastone(context),
-                            SizedBox(height: 24.h),
-                            // Removed outer Container, unnecessary nesting
-                            Padding(
-                              // Added Padding instead of margin
-                              padding: EdgeInsets.only(
-                                left: 8.h,
-                                right: 4.h,
-                              ),
-                              child: ClipRect(
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 100, // High blur values
-                                    sigmaY: 100,
-                                  ),
-                                  child: Container(
-                                    width: double.maxFinite,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8.h,
-                                      vertical: 16.h,
+                (route) => false,
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16, top: 10),
+              child: SvgPicture.asset(
+                'assets/images/back_log.svg',
+                width: 27,
+                height: 27,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _isTyping = false;
+        if (mounted) setState(() {});
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
+    });
+    _loadUserName();
+    _speech = stt.SpeechToText();
+    
+    _breathingController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000),
+    );
+    
+    _breathingAnimation = Tween<double>(begin: 1.0, end: 1.5)
+      .animate(CurvedAnimation(
+        parent: _breathingController,
+        curve: Curves.easeInOut,
+      ));
+    
+    _breathingController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _breathingController.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        _breathingController.forward();
+      }
+    });
+
+    final provider = Provider.of<BookProvider>(context, listen: false);
+    provider.onMessageAdded = () {
+      setState(() {
+        _showChat = true;
+        // Update the current book recommendation when a new message is added
+        if (provider.messages.isNotEmpty) {
+          final lastMessage = provider.messages.last;
+          if (lastMessage['role'] == 'assistant') {
+            _currentBookRecommendation = lastMessage['content'];
+          }
+        }
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    };
+
+    setState(() {
+      _showChat = true;
+    });
+
+    bookProvider = Provider.of<BookProvider>(context, listen: false);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    SizeUtils.init(context);
+  }
+
+  Future<void> _loadUserName() async {
+    final userData = await _userService.getCurrentUserData();
+    if (userData != null) {
+      setState(() {
+        _userName = userData['name'] as String? ?? 'User';
+      });
+    } else {
+      setState(() {
+        _userName = 'User';
+      });
+    }
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            if (!_isManualStop) {
+              setState(() {
+                _isListening = false;
+              });
+              _breathingController.stop();
+            }
+          }
+        },
+        onError: (error) {
+          print('Error: $error');
+          setState(() {
+            _isListening = false;
+            _isManualStop = false;
+          });
+          _breathingController.stop();
+        },
+      );
+
+      if (available) {
+        setState(() {
+          _isListening = true;
+          _isManualStop = false;
+        });
+        _breathingController.forward();
+        
+        await _speech.listen(
+          onResult: (result) {
+            if (!mounted || _isManualStop) return;
+            
+            final provider = Provider.of<BookProvider>(context, listen: false);
+            setState(() {
+              provider.messageController.text = result.recognizedWords;
+            });
+          },
+          listenFor: Duration(seconds: 30),
+          pauseFor: Duration(seconds: 8),
+          partialResults: true,
+          cancelOnError: false,
+          listenMode: stt.ListenMode.dictation,
+        );
+      }
+    } else {
+      setState(() {
+        _isListening = false;
+        _isManualStop = true;
+      });
+      _breathingController.stop();
+      await _speech.stop();
+    }
+  }
+
+  void _sendMessage() {
+    final provider = Provider.of<BookProvider>(context, listen: false);
+    if (provider.messageController.text.trim().isEmpty) return;
+    
+    final userMessage = provider.messageController.text.trim();
+    provider.messageController.clear();
+    setState(() {
+      _isTyping = false;
+    });
+
+    _focusNode.unfocus();
+    provider.sendMessage(userMessage);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _breathingController.dispose();
+    _speech.stop();
+    super.dispose();
+  }
+
+  Map<String, String> extractBookInfo(String message) {
+    final titleMatch = RegExp(r'Title:\s*(.*)').firstMatch(message);
+    final authorMatch = RegExp(r'Author:\s*(.*)').firstMatch(message);
+    final genreMatch = RegExp(r'Genre:\s*(.*)').firstMatch(message);
+    final publishedMatch = RegExp(r'Published:\s*(.*)').firstMatch(message);
+    final descriptionMatch = RegExp(r'Description:\s*(.*?)(?=\n\w+:|$)').firstMatch(message);
+    final linkMatch = RegExp(r'Link:\s*(.*)').firstMatch(message);
+    final isbnMatch = RegExp(r'ISBN:\s*(.*)').firstMatch(message);
+    final coverMatch = RegExp(r'Cover:\s*(.*)').firstMatch(message);
+    final photoMatch = RegExp(r'Photo:\s*(.*)').firstMatch(message);
+
+    // Use cover URL from either Cover: or Photo: field
+    final coverUrl = coverMatch?.group(1)?.trim() ?? photoMatch?.group(1)?.trim();
+
+    return {
+      'title': titleMatch?.group(1)?.trim() ?? '',
+      'author': authorMatch?.group(1)?.trim() ?? '',
+      'genre': genreMatch?.group(1)?.trim() ?? '',
+      'published': publishedMatch?.group(1)?.trim() ?? '',
+      'description': descriptionMatch?.group(1)?.trim() ?? '',
+      'link': linkMatch?.group(1)?.trim() ?? '',
+      'isbn': isbnMatch?.group(1)?.trim() ?? '',
+      'coverUrl': coverUrl ?? '',
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => HomescreenScreen.builder(context),
+          ),
+          (route) => false,
+        );
+        return false;
+      },
+      child: Scaffold(
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
+        appBar: _buildAppbar(context),
+        body: Stack(
+          children: [
+            // Background image
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/background.png'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            // Semi-transparent overlay with blur
+            Positioned.fill(
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    color: Color(0xFF000000).withOpacity(0.15),
+                  ),
+                ),
+              ),
+            ),
+            // Glow Effect
+            Positioned.fill(
+              child: GlowEffect(isKeyboardOpen: _focusNode.hasFocus),
+            ),
+            // Main content
+            SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        // Book recommendation overlay
+                        if (_currentBookRecommendation != null)
+                          Positioned(
+                            top: 120.h,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Container(
+                                width: 366,
+                                height: 491,
+                                child: Stack(
+                                  children: [
+                                    // Book time box background
+                                    Center(
+                                      child: SvgPicture.asset(
+                                        'assets/images/movie_time_box.svg',
+                                        width: 366,
+                                        height: 491,
+                                        fit: BoxFit.contain,
+                                      ),
                                     ),
-                                    decoration:
-                                        AppDecoration.windowsGlassBlur.copyWith(
-                                      borderRadius:
-                                          BorderRadiusStyle.roundedBorder32,
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      // Removed non-standard 'spacing' property
-                                      children: [
-                                        SizedBox(height: 8.h),
-                                        Padding(
-                                          // Added Padding instead of margin
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 8.h),
-                                          child: CustomImageView(
-                                            imagePath:
-                                                ImageConstant.imgMurderexpress1,
-                                            height: 174.h,
-                                            // width: double.maxFinite, // Often redundant in Column
-                                            radius: BorderRadius.circular(16.h),
-                                            // margin removed, handled by Padding
+                                    // Book cover image
+                                    if (_currentBookRecommendation != null)
+                                      Positioned(
+                                        top: 24,
+                                        left: 26,
+                                        child: Builder(
+                                          builder: (context) {
+                                            final info = extractBookInfo(_currentBookRecommendation!);
+                                            debugPrint('🖼️ Using cover URL: ${info['coverUrl']}');
+                                            return BookCover(
+                                              coverUrl: info['coverUrl'] ?? '',
+                                              title: info['title'] ?? '',
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    // Description box background
+                                    Positioned(
+                                      top: 216,
+                                      left: 0,
+                                      right: 0,
+                                      child: Center(
+                                        child: Container(
+                                          width: 332,
+                                          height: 238,
+                                          child: SvgPicture.asset(
+                                            'assets/images/desc_box.svg',
+                                            width: 332,
+                                            height: 238,
+                                            fit: BoxFit.contain,
                                           ),
                                         ),
-                                        SizedBox(height: 10.h), // Added spacing
-                                        _buildSettingsone(context),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 56.h),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16.h), // Adjusted padding
-                              child: Selector<BookProvider,
-                                  TextEditingController?>(
-                                selector: (context, provider) =>
-                                    provider.searchfieldoneController,
-                                builder:
-                                    (context, searchfieldoneController, child) {
-                                  return CustomTextFormField(
-                                    controller: searchfieldoneController,
-                                    hintText: "lbl_ask_me_anything".tr(),
-                                    textInputAction: TextInputAction.done,
-                                    prefix: Padding(
-                                      // Adjusted padding for potentially better spacing
-                                      padding: EdgeInsets.only(
-                                          left: 15.h, // Rounded value
-                                          right: 15.h, // Equal spacing example
-                                          top: 10.h,
-                                          bottom: 10.h),
-                                      child: IntrinsicWidth(
-                                        // Ensures Row takes minimum width
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            CustomImageView(
-                                              imagePath: ImageConstant.imgMic,
-                                              height: 24.h, // Keep height
-                                              width: 24
-                                                  .h, // Make it square? Or keep original
-                                              // Removed complex margin, handled by Padding
+                                    // Book title
+                                    Positioned(
+                                      top: 230,
+                                      left: 35,
+                                      child: Builder(
+                                        builder: (context) {
+                                          final info = extractBookInfo(_currentBookRecommendation!);
+                                          return Text(
+                                            info['title'] ?? '',
+                                            style: TextStyle(
+                                              fontFamily: 'Roboto',
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
                                             ),
-                                            SizedBox(width: 8.h), // Spacing
-                                            // Consider if this image is just a divider
-                                            CustomImageView(
-                                              imagePath: ImageConstant
-                                                  .imgHighlightFrame,
-                                              height:
-                                                  24.h, // Match icon height?
-                                              width: 2.h, // Thinner divider?
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    // Author and Genre info
+                                    Positioned(
+                                      top: 256,
+                                      left: 37,
+                                      child: Builder(
+                                        builder: (context) {
+                                          final info = extractBookInfo(_currentBookRecommendation!);
+                                          return Text(
+                                            '${info['author']} (${info['published']}) · ${info['genre']}',
+                                            style: TextStyle(
+                                              fontFamily: 'Roboto',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    // About text
+                                    Positioned(
+                                      top: 279,
+                                      left: 37,
+                                      child: Text(
+                                        'About',
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    // Description text
+                                    Positioned(
+                                      top: 296,
+                                      left: 37,
+                                      right: 37,
+                                      child: Builder(
+                                        builder: (context) {
+                                          final info = extractBookInfo(_currentBookRecommendation!);
+                                          return Text(
+                                            info['description'] ?? '',
+                                            style: TextStyle(
+                                              fontFamily: 'Roboto',
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                              height: 1.4,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    // Get Book Button
+                                    Positioned(
+                                      top: 394,
+                                      left: 128,
+                                      child: GestureDetector(
+                                        onTap: _launchPurchaseLink,
+                                        child: Container(
+                                          width: 203,
+                                          height: 42,
+                                          child: Stack(
+                                            children: [
+                                              SvgPicture.asset(
+                                                'assets/images/get_the_book.svg',
+                                                width: 203,
+                                                height: 42,
+                                                fit: BoxFit.contain,
+                                              ),
+                                              // Book Icon
+                                              Positioned(
+                                                left: 10,
+                                                top: 12,
+                                                child: SvgPicture.asset(
+                                                  'assets/images/book_icon.svg',
+                                                  width: 20.28,
+                                                  height: 19.93,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                              // Get book text
+                                              Positioned(
+                                                left: 34,
+                                                top: 13,
+                                                child: Text(
+                                                  'Get the book',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Save Box Button
+                                    Positioned(
+                                      top: 394,
+                                      left: 256,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _isSaved = !_isSaved;
+                                          });
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            SvgPicture.asset(
+                                              _isSaved ? 'assets/images/save_box2.svg' : 'assets/images/save_box.svg',
+                                              width: 78,
+                                              height: 42,
+                                              fit: BoxFit.contain,
+                                            ),
+                                            // Save Icon
+                                            Positioned(
+                                              left: 10,
+                                              top: 0,
+                                              bottom: 0,
+                                              child: Center(
+                                                child: SvgPicture.asset(
+                                                  'assets/images/save_icon.svg',
+                                                  width: 21,
+                                                  height: 21,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                            ),
+                                            // Save Text
+                                            Positioned(
+                                              left: 35,
+                                              top: 0,
+                                              bottom: 0,
+                                              child: Center(
+                                                child: Text(
+                                                  _isSaved ? 'Saved' : 'Save',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    prefixConstraints: BoxConstraints(
-                                      // Looser constraints might be better
-                                      maxHeight: 48.h, // Adjusted
-                                    ),
-                                    suffix: Padding(
-                                      // Added Padding for margin effect
-                                      padding: EdgeInsets.only(
-                                          right: 4
-                                              .h), // Padding outside the InkWell
-                                      child: InkWell(
-                                        // Make the suffix tappable
-                                        onTap: () {
-                                          // Add send logic here using searchfieldoneController.text
-                                          print(
-                                              "Sending: ${searchfieldoneController?.text}");
-                                          // Clear field? provider.clearSearch();
-                                        },
-                                        borderRadius:
-                                            BorderRadius.circular(20.h),
-                                        child: Container(
-                                          padding: EdgeInsets.all(10.h),
-                                          // margin: EdgeInsets.only(left: 30.h), // Handled by Padding
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(20.h),
-                                            gradient: LinearGradient(
-                                              begin: Alignment(0.5, 1),
-                                              end: Alignment(0.5, 0),
-                                              colors: [
-                                                theme.colorScheme.primary,
-                                                // Assuming .withValues was a typo for .withOpacity
-                                                theme.colorScheme.primary
-                                                    .withOpacity(
-                                                        0.5), // Example opacity
-                                                // Or maybe just a solid color:
-                                                // theme.colorScheme.primary,
-                                              ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        // Chat messages (show only the welcome message)
+                        if (bookProvider.showChat && bookProvider.messages.isNotEmpty)
+                          Positioned(
+                            top: 0.h,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              color: Colors.transparent,
+                              child: SingleChildScrollView(
+                                controller: _scrollController,
+                                reverse: false,
+                                padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 8),
+                                physics: AlwaysScrollableScrollPhysics(),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    // Only show the first message (welcome message)
+                                    if (bookProvider.messages.isNotEmpty)
+                                      Padding(
+                                        padding: EdgeInsets.only(bottom: 12),
+                                        child: Column(
+                                          children: [
+                                            BubbleSpecialThree(
+                                              text: bookProvider.messages[0]['content'] ?? '',
+                                              color: Color(0xFFF5B9EA).withOpacity(0.3),
+                                              tail: true,
+                                              isSender: false,
+                                              textStyle: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 17,
+                                              ),
                                             ),
-                                          ),
-                                          child: CustomImageView(
-                                            imagePath: ImageConstant
-                                                .imgPaperplanefill1,
-                                            height: 22.h,
-                                            width: 22.h,
-                                            fit: BoxFit
-                                                .contain, // Keep contain if aspect ratio matters
-                                            color: Colors
-                                                .white, // Ensure icon visible on gradient
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        // User greeting text
+                        if (!bookProvider.showChat && !_isTyping)
+                          Positioned(
+                            top: 80,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Text(
+                                'How are you feeling\nnow, ${_userName ?? 'User'}?',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        // Input box
+                        Positioned(
+                          bottom: MediaQuery.of(context).viewInsets.bottom > 0
+                              ? 15.0
+                              : (bookProvider.messages.isEmpty 
+                                  ? -30.0
+                                  : (bookProvider.showChat ? -30.0 : -30.0)),
+                          left: 0,
+                          right: 0,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom > 0
+                                  ? 8
+                                  : 30 + MediaQuery.of(context).padding.bottom,
+                              top: 8,
+                            ),
+                            child: Center(
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (!_isTyping) {
+                                    setState(() {
+                                      _isTyping = true;
+                                    });
+                                    _focusNode.requestFocus();
+                                  }
+                                },
+                                child: Container(
+                                  width: 372,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        spreadRadius: -1,
+                                        blurRadius: 30,
+                                        offset: Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      // Text box background
+                                      Center(
+                                        child: SvgPicture.asset(
+                                          'assets/images/text_box.svg',
+                                          width: 372,
+                                          height: 44,
+                                          fit: BoxFit.contain,
+                                          alignment: Alignment.center,
+                                        ),
+                                      ),
+                                      // Mic Button with animation
+                                      Positioned(
+                                        left: 30,
+                                        top: (44 - 28) / 2,
+                                        child: GestureDetector(
+                                          onTap: _listen,
+                                          child: Stack(
+                                            children: [
+                                              SvgPicture.asset(
+                                                'assets/images/mic_button.svg',
+                                                width: 28,
+                                                height: 28,
+                                                fit: BoxFit.contain,
+                                              ),
+                                              if (_isListening)
+                                                Positioned.fill(
+                                                  child: IgnorePointer(
+                                                    child: AnimatedBuilder(
+                                                      animation: _breathingAnimation,
+                                                      builder: (context, child) {
+                                                        return Container(
+                                                          width: 28,
+                                                          height: 28,
+                                                          decoration: BoxDecoration(
+                                                            shape: BoxShape.circle,
+                                                            border: Border.all(
+                                                              color: Color(0xE2917D),
+                                                              width: 1.5 * _breathingAnimation.value,
+                                                            ),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Color(0xE2917D).withOpacity(0.5),
+                                                                blurRadius: 4.0 * _breathingAnimation.value,
+                                                                spreadRadius: 1.0 * _breathingAnimation.value,
+                                                              )
+                                                            ],
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    suffixConstraints: BoxConstraints(
-                                      maxHeight: 44.h,
-                                    ),
-                                  );
-                                },
+                                      // Send Button
+                                      Positioned(
+                                        right: 13,
+                                        top: 1,
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () {
+                                            if (bookProvider.messageController.text.trim().isNotEmpty) {
+                                              _sendMessage();
+                                              _focusNode.unfocus();
+                                              setState(() {
+                                                _isTyping = false;
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            width: 49,
+                                            height: 49,
+                                            color: Colors.transparent,
+                                            child: SvgPicture.asset(
+                                              'assets/images/send_button.svg',
+                                              width: 49,
+                                              height: 49,
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Text input field
+                                      Positioned(
+                                        left: 0,
+                                        right: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        child: _isTyping
+                                            ? Container(
+                                                width: 372,
+                                                height: 44,
+                                                child: TextField(
+                                                  controller: bookProvider.messageController,
+                                                  focusNode: _focusNode,
+                                                  textAlignVertical: TextAlignVertical.center,
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                                    height: 1.0,
+                                                  ),
+                                                  decoration: InputDecoration(
+                                                    border: InputBorder.none,
+                                                    contentPadding: EdgeInsets.only(left: 65, right: 65, top: 12),
+                                                    hintText: '',
+                                                    isDense: true,
+                                                    isCollapsed: true,
+                                                  ),
+                                                  onSubmitted: (text) {
+                                                    if (text.trim().isNotEmpty) {
+                                                      _sendMessage();
+                                                      _focusNode.unfocus();
+                                                    }
+                                                  },
+                                                ),
+                                              )
+                                            : Container(),
+                                      ),
+                                      // Static text overlay
+                                      if (!_isTyping)
+                                        Positioned(
+                                          left: 0,
+                                          right: 0,
+                                          top: 0,
+                                          bottom: 0,
+                                          child: Padding(
+                                            padding: EdgeInsets.only(left: 65),
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                bookProvider.messageController.text.isEmpty ? 'Ask me anything' : bookProvider.messageController.text,
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Color(0xFFFFFFFF).withOpacity(0.75),
+                                                  height: 1.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                            SizedBox(height: 20.h), // Add bottom padding/space
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Section Widget - AppBar
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 44.h, // Provide enough space for padding + icon
-      leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgChevron,
-        margin: EdgeInsets.only(
-          left: 16.h, // Standard padding
-          top: 16.v,
-          bottom: 16.v,
-        ),
-        onTap: () {
-          Navigator.maybePop(context); // Standard back navigation
-        },
-      ),
-      title: AppbarSubtitleOne(
-        text: "lbl_little_lifts".tr(),
-        margin: EdgeInsets.only(left: 10.h),
-      ),
-    );
-  }
-
-  /// Section Widget - Contrast Row (Storytime Mood)
-  Widget _buildRowcontrastone(BuildContext context) {
-    // Consider using Padding + Card or a simpler Container structure
-    return Container(
-      // width: 324.h, // Avoid fixed widths, let content or parent define
-      padding: EdgeInsets.symmetric(
-          horizontal: 12.h, vertical: 8.h), // Added padding
-      decoration: AppDecoration.fillIndigo.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder14,
-      ),
-      child: Row(
-        // mainAxisAlignment: MainAxisAlignment.center, // Let padding handle spacing
-        mainAxisSize: MainAxisSize.min, // Take minimum space if centered
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgContrastIndigo50,
-            height: 14.h,
-            width: 20.h,
-            // alignment: Alignment.bottomCenter, // Usually not needed in Row
-          ),
-          SizedBox(width: 10.h), // Spacing
-          // Use Flexible or Expanded if text needs to wrap within available space
-          Flexible(
-            child: Container(
-              // width: 282.h, // Avoid fixed width
-              // margin: EdgeInsets.only( // Handled by Row spacing and parent padding
-              //   top: 4.h,
-              //   bottom: 6.h,
-              // ),
-              child: Text(
-                "msg_storytime_mood".tr(),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: CustomTextStyles.titleSmallRobotoSecondaryContainer
-                    .copyWith(
-                  height: 1.47, // Line height
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget - Settings/Book Details (Blurred Card)
-  Widget _buildSettingsone(BuildContext context) {
-    // This seems identical to the parent blurred container structure.
-    // Consider refactoring if it's truly separate content.
-    // For now, formatting the inner content.
-    return Container(
-      // width: double.maxFinite, // Already takes available width from Column
-      padding: EdgeInsets.all(12.h), // Adjusted padding
-      // Decoration inherited from outer blurred container if nested,
-      // or define it here if it's standalone.
-      // decoration: AppDecoration.windowsGlassBlur.copyWith(
-      //   borderRadius: BorderRadiusStyle.roundedBorder32,
-      // ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 2.h),
-            child: Text(
-              "msg_murder_on_the_orient".tr(),
-              style: CustomTextStyles.titleLargeRobotoOnPrimarySemiBold,
-            ),
-          ),
-          SizedBox(height: 4.h), // Spacing
-          Padding(
-            padding: EdgeInsets.only(left: 2.h),
-            child: Text(
-              "msg_agatha_christie".tr(),
-              style: CustomTextStyles.labelLargeRobotoOnPrimary13,
-            ),
-          ),
-          SizedBox(height: 12.h), // Spacing
-          Padding(
-            padding: EdgeInsets.only(left: 2.h),
-            child: Text(
-              "lbl_about".tr(),
-              style: CustomTextStyles.labelLargeRobotoOnPrimary13,
-            ),
-          ),
-          SizedBox(height: 4.h), // Spacing
-          Padding(
-            // Use Padding instead of Container+Stack for layout
-            padding: EdgeInsets.only(left: 2.h),
-            child: Column(
-              // Changed Stack to Column for simpler layout
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "msg_just_after_midnight".tr(),
-                  // maxLines: 6, // Let it take needed lines or constrain height
-                  // overflow: TextOverflow.ellipsis, // Use if height is constrained
-                  style: CustomTextStyles.labelMediumRobotoOnPrimarySemiBold
-                      .copyWith(
-                    height: 1.8, // Adjusted line height
                   ),
-                ),
-                SizedBox(height: 16.h), // Spacing before buttons
-                Row(
-                  // Use Row for buttons side-by-side
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween, // Space buttons
-                  children: [
-                    CustomElevatedButton(
-                      height: 42.h,
-                      // width: 120.h, // Let button size itself or use Expanded
-                      text: "lbl_get_the_book".tr(),
-                      leftIcon: Container(
-                        margin: EdgeInsets.only(right: 8.h),
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgUserOnprimary,
-                          height: 18.h,
-                          width: 20.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      buttonStyle: CustomButtonStyles.none, // Keep if custom
-                      decoration:
-                          CustomButtonStyles.gradientPrimaryToPrimaryDecoration,
-                      buttonTextStyle: CustomTextStyles.labelSmallRoboto,
-                      onPressed: () {
-                        // Add action for getting the book
-                        print("Get the book tapped");
-                      },
-                    ),
-                    CustomElevatedButton(
-                      height: 42.h,
-                      // width: 78.h, // Let button size itself
-                      text: "lbl_save".tr(),
-                      // margin: EdgeInsets.only(right: 2.h), // Handled by Row spacing
-                      leftIcon: Container(
-                        margin: EdgeInsets.only(right: 4.h), // Adjust spacing
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgBookmarkOnprimary18x20,
-                          height: 18.h,
-                          width: 20.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      buttonStyle: CustomButtonStyles.none,
-                      decoration:
-                          CustomButtonStyles.gradientPrimaryToPrimaryDecoration,
-                      buttonTextStyle:
-                          CustomTextStyles.labelMediumRobotoSemiBold,
-                      onPressed: () {
-                        // Add action for saving
-                        print("Save tapped");
-                      },
-                      // alignment: Alignment.bottomRight, // Handled by Row
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 8.h), // Final spacing at the bottom
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  void _launchPurchaseLink() {
+    if (_currentBookRecommendation != null) {
+      final info = extractBookInfo(_currentBookRecommendation!);
+      if (info['link']?.isNotEmpty == true) {
+        launchUrl(Uri.parse(info['link']!));
+      }
+    }
   }
 }
