@@ -555,7 +555,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                                         builder: (context, snapshot) {
                                           if (!snapshot.hasData) {
                                             return Center(
-                                              child: CupertinoActivityIndicator(),
+                                              child: CupertinoActivityIndicator(color: Colors.white),
                                             );
                                           }
                                           

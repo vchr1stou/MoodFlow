@@ -512,7 +512,7 @@ class MusicScreenState extends State<MusicScreen> with SingleTickerProviderState
                                                 height: 176,
                                                 fit: BoxFit.cover,
                                                 placeholder: (context, url) => Center(
-                                                  child: CupertinoActivityIndicator(),
+                                                  child: CupertinoActivityIndicator(color: Colors.white),
                                                 ),
                                                 errorWidget: (context, url, error) => Container(
                                                   width: 313,

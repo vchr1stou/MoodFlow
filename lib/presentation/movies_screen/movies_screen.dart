@@ -256,7 +256,7 @@ class MoviePoster extends StatelessWidget {
           return SizedBox(
             width: 313,
             height: 176,
-            child: Center(child: CupertinoActivityIndicator()),
+            child: Center(child: CupertinoActivityIndicator(color: Colors.white)),
           );
         }
         
@@ -276,7 +276,7 @@ class MoviePoster extends StatelessWidget {
                 future: _verifyImageUrl(posterUrl),
                 builder: (context, verifySnapshot) {
                   if (verifySnapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CupertinoActivityIndicator());
+                    return Center(child: CupertinoActivityIndicator(color: Colors.white));
                   }
                   
                   if (verifySnapshot.hasData && verifySnapshot.data == true) {
@@ -291,7 +291,7 @@ class MoviePoster extends StatelessWidget {
                       maxHeightDiskCache: 352,
                       fadeInDuration: Duration(milliseconds: 300),
                       placeholder: (context, url) => Center(
-                        child: CupertinoActivityIndicator(),
+                        child: CupertinoActivityIndicator(color: Colors.white),
                       ),
                       errorWidget: (context, url, error) => _buildErrorContainer(),
                     );
@@ -732,7 +732,7 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
                                               child: Column(
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  CupertinoActivityIndicator(),
+                                                  CupertinoActivityIndicator(color: Colors.white),
                                                   SizedBox(height: 16),
                                                   Text(
                                                     'Finding the perfect movie...',

@@ -260,7 +260,7 @@ class RecipeImage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child: CupertinoActivityIndicator(),
+              child: CupertinoActivityIndicator(color: Colors.white),
             ),
           ),
           errorWidget: (context, url, error) {

@@ -539,7 +539,7 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                                       borderRadius: BorderRadius.circular(16),
                                                     ),
                                                     child: Center(
-                                                      child: CupertinoActivityIndicator(),
+                                                      child: CupertinoActivityIndicator(color: Colors.white),
                                                     ),
                                                   );
                                                 }
@@ -579,7 +579,7 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                                     height: 176,
                                                     fit: BoxFit.cover,
                                                     placeholder: (context, url) => Center(
-                                                      child: CupertinoActivityIndicator(),
+                                                      child: CupertinoActivityIndicator(color: Colors.white),
                                                     ),
                                                     errorWidget: (context, url, error) => Container(
                                                       width: 313,
