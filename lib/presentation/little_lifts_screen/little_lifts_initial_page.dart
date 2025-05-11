@@ -112,48 +112,76 @@ class _GlowEffectState extends State<GlowEffect>
     });
   }
 
+  void _navigateToRandomScreen(BuildContext context) {
+    final screens = [
+      WorkoutScreen.builder(context),
+      MeditationScreen.builder(context),
+      BreathingmainScreen.builder(context),
+      MoviesScreen.builder(context),
+      MusicScreen.builder(context),
+      BookScreen.builder(context),
+      PositiveaffirmationsScreen.builder(context),
+      CookingScreen.builder(context),
+      TravelingScreen.builder(context),
+      SafetynetlittleliftsScreen.builder(context),
+      SoftthanksScreen.builder(context),
+    ];
+    
+    final random = math.Random();
+    final randomScreen = screens[random.nextInt(screens.length)];
+    
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => randomScreen,
+        fullscreenDialog: true,
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
       left: 269,
       top: 85,
-      child: Container(
-        width: 108,
-        height: 36,
-        child: Stack(
-          children: [
-            _buildEffect(width: 1, blur: 0),
-            _buildEffect(width: 3, blur: 2),
-            _buildEffect(width: 5, blur: 6),
-            _buildEffect(width: 7, blur: 8),
-            Positioned(
-              top: 8,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Surprise me",
-                    style: GoogleFonts.roboto(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _navigateToRandomScreen(context),
+        child: Container(
+          width: 108,
+          height: 36,
+          child: Stack(
+            children: [
+              _buildEffect(width: 1, blur: 0),
+              _buildEffect(width: 3, blur: 2),
+              _buildEffect(width: 5, blur: 6),
+              _buildEffect(width: 7, blur: 8),
+              Positioned.fill(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Surprise me",
+                      style: GoogleFonts.roboto(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 4), // Space between text and icon
-                  Transform.translate(
-                    offset: Offset(0, 1), // Move down 1 pixel
-                    child: SvgPicture.asset(
-                      'assets/images/shuffle.svg',
-                      width: 15,
-                      height: 12,
+                    SizedBox(width: 4),
+                    Transform.translate(
+                      offset: Offset(0, 1),
+                      child: SvgPicture.asset(
+                        'assets/images/shuffle.svg',
+                        width: 15,
+                        height: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -389,16 +417,6 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-            ),
-          ),
-          Positioned(
-            left: 269,
-            top: 0,
-            child: SvgPicture.asset(
-              'assets/images/surprise_me.svg',
-              fit: BoxFit.contain,
-              width: 112,
-              height: 37,
             ),
           ),
           // First row
