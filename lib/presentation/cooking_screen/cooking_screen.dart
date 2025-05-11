@@ -524,8 +524,42 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                     child: Builder(
                                       builder: (context) {
                                         final info = extractRecipeInfo(_currentRecipe!);
-                                        return RecipeImage(
-                                          imageUrl: info['imageUrl'] ?? '',
+                                        return FutureBuilder<String?>(
+                                          future: extractImageFromRecipeUrl(info['recipeUrl'] ?? ''),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              return Container(
+                                                width: 313,
+                                                height: 176,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey[300],
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Center(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      CupertinoActivityIndicator(
+                                                        color: Colors.white,
+                                                      ),
+                                                      SizedBox(height: 16),
+                                                      Text(
+                                                        'Finding the perfect recipe...',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return RecipeImage(
+                                              imageUrl: snapshot.data ?? info['imageUrl'] ?? '',
+                                            );
+                                          },
                                         );
                                       },
                                     ),
@@ -620,7 +654,7 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                   // View Recipe Button
                                   Positioned(
                                     top: 394,
-                                    left: 45,
+                                    left: 119,
                                     child: GestureDetector(
                                       onTap: _launchRecipeUrl,
                                       child: Container(
@@ -628,8 +662,27 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                         height: 42,
                                         child: Stack(
                                           children: [
+                                            SvgPicture.asset(
+                                              'assets/images/get_the_recipe.svg',
+                                              width: 203,
+                                              height: 42,
+                                              fit: BoxFit.contain,
+                                            ),
                                             Positioned(
-                                              left: 97,
+                                              left: 11,
+                                              top: 0,
+                                              bottom: 0,
+                                              child: Center(
+                                                child: SvgPicture.asset(
+                                                  'assets/images/recipe_icon.svg',
+                                                  width: 21,
+                                                  height: 21,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              left: 35.72,
                                               top: 14,
                                               child: Text(
                                                 'Get the Recipe',
@@ -700,24 +753,44 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                 ] else if (provider.isLoading)
                                   // Loading indicator
                                   Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        CupertinoActivityIndicator(
-                                          color: Colors.white,
-                                          radius: 15,
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          'Finding the perfect recipe...',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
+                                    child: Container(
+                                      width: 366,
+                                      height: 491,
+                                      child: Stack(
+                                        children: [
+                                          // Recipe time box background
+                                          Center(
+                                            child: SvgPicture.asset(
+                                              'assets/images/movie_time_box.svg',
+                                              width: 366,
+                                              height: 491,
+                                              fit: BoxFit.contain,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                          // Loading content
+                                          Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                CupertinoActivityIndicator(
+                                                  color: Colors.white,
+                                                  radius: 15,
+                                                ),
+                                                SizedBox(height: 16),
+                                                Text(
+                                                  'Finding the perfect recipe...',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                               ],

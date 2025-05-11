@@ -539,7 +539,23 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                                       borderRadius: BorderRadius.circular(16),
                                                     ),
                                                     child: Center(
-                                                      child: CupertinoActivityIndicator(color: Colors.white),
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          CupertinoActivityIndicator(
+                                                            color: Colors.white,
+                                                          ),
+                                                          SizedBox(height: 16),
+                                                          Text(
+                                                            'Finding the perfect destination...',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   );
                                                 }
@@ -578,8 +594,32 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                                     width: 313,
                                                     height: 176,
                                                     fit: BoxFit.cover,
-                                                    placeholder: (context, url) => Center(
-                                                      child: CupertinoActivityIndicator(color: Colors.white),
+                                                    placeholder: (context, url) => Container(
+                                                      width: 313,
+                                                      height: 176,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[300],
+                                                        borderRadius: BorderRadius.circular(16),
+                                                      ),
+                                                      child: Center(
+                                                        child: Column(
+                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          children: [
+                                                            CupertinoActivityIndicator(
+                                                              color: Colors.white,
+                                                            ),
+                                                            SizedBox(height: 16),
+                                                            Text(
+                                                              'Finding the perfect destination...',
+                                                              style: TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w500,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
                                                     ),
                                                     errorWidget: (context, url, error) => Container(
                                                       width: 313,
