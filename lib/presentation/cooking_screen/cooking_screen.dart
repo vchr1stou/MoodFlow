@@ -497,40 +497,39 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                   child: Stack(
                   children: [
                       // Recipe recommendation overlay
-                      if (_currentRecipe != null)
-                        Positioned(
-                          top: 120,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Container(
-                              width: 366,
-                              height: 491,
-                              child: Stack(
-                                children: [
-                                  // Recipe time box background
-                                  Center(
-                                    child: SvgPicture.asset(
-                                      'assets/images/movie_time_box.svg',
-                                      width: 366,
-                                      height: 491,
-                                      fit: BoxFit.contain,
+                      Positioned(
+                        top: 120,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Container(
+                            width: 366,
+                            height: 491,
+                            child: Stack(
+                              children: [
+                                // Recipe time box background
+                                Center(
+                                  child: SvgPicture.asset(
+                                    'assets/images/movie_time_box.svg',
+                                    width: 366,
+                                    height: 491,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                if (_currentRecipe != null) ...[
+                                  // Recipe image
+                                  Positioned(
+                                    top: 24,
+                                    left: 26,
+                                    child: Builder(
+                                      builder: (context) {
+                                        final info = extractRecipeInfo(_currentRecipe!);
+                                        return RecipeImage(
+                                          imageUrl: info['imageUrl'] ?? '',
+                                        );
+                                      },
                                     ),
                                   ),
-                                  // Recipe image
-                                  if (_currentRecipe != null)
-                                    Positioned(
-                                      top: 24,
-                                      left: 26,
-                                      child: Builder(
-                                        builder: (context) {
-                                          final info = extractRecipeInfo(_currentRecipe!);
-                                          return RecipeImage(
-                                            imageUrl: info['imageUrl'] ?? '',
-                                          );
-                                        },
-                                      ),
-                                    ),
                                   // Description box background
                                   Positioned(
                                     top: 216,
@@ -698,52 +697,34 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                       ),
                                     ),
                                   ),
-                                  Positioned(
-                                    top: 395,
-                                    right: 119,
-                                    child: GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () {
-                                        if (_currentRecipe != null) {
-                                          final recipeInfo = extractRecipeInfo(_currentRecipe!);
-                                          final recipeUrl = recipeInfo['recipeUrl'];
-                                          if (recipeUrl != null && recipeUrl.isNotEmpty) {
-                                            _launchRecipeUrl();
-                                          }
-                                        }
-                                      },
-                                      child: Container(
-                                        width: 150,
-                                        height: 42,
-                                        color: Colors.transparent,
-                                        child: Stack(
-                                          children: [
-                                            // Background SVG at the bottom
-                                            SvgPicture.asset(
-                                              'assets/images/get_the_recipe.svg',
-                                              width: 150,
-                                              height: 42,
-                                            ),
-                                            // Icon on top
-                                            Positioned(
-                                              left: 18,
-                                              top: (42 - 19.93) / 2,
-                                              child: SvgPicture.asset(
-                                                'assets/images/recipe_icon.svg',
-                                                width: 20.28,
-                                                height: 19.93,
-                                              ),
-                                            ),
-                                          ],
+                                ] else if (provider.isLoading)
+                                  // Loading indicator
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        CupertinoActivityIndicator(
+                                          color: Colors.white,
+                                          radius: 15,
                                         ),
-                                      ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'Finding the perfect recipe...',
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                              ],
                             ),
                           ),
                         ),
+                      ),
                       // Chat messages (show only the welcome message)
                       if (provider.showChat && provider.messages.isNotEmpty)
                         Positioned(

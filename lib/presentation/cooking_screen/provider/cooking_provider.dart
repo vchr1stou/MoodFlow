@@ -146,12 +146,12 @@ Do not add any extra text or formatting.
 class CookingProvider extends ChangeNotifier {
   final TextEditingController messageController = TextEditingController();
   bool showChat = true;
+  bool isLoading = false;
+  Function? onMessageAdded;
 
   late GenerativeModel _model;
   late ChatSession _chat;
   List<Map<String, String>> messages = [];
-  bool isLoading = false;
-  Function? onMessageAdded;
 
   CookingProvider() {
     _model = GenerativeModel(
@@ -171,8 +171,8 @@ class CookingProvider extends ChangeNotifier {
       debugPrint('👋 Sending initial greeting');
       _addMessageAndNotify("🫖 A cozy kitchen, a calm mood, and the perfect feel-good recipe. 💛", role: 'assistant');
       
-      // Try up to 5 different recipes
-      for (int attempt = 0; attempt < 5; attempt++) {
+      // Try up to 10 different recipes
+      for (int attempt = 0; attempt < 10; attempt++) {
         debugPrint('🤖 Requesting recipe from AI (attempt ${attempt + 1})');
         final response = await _chat.sendMessage(Content.text('''
 Format:
@@ -213,8 +213,8 @@ Suggest a completely different recipe than before, following this format exactly
         }
       }
       
-      // If we get here, we couldn't find a valid recipe after 5 attempts
-      debugPrint('❌ Could not find a valid recipe after 5 attempts');
+      // If we get here, we couldn't find a valid recipe after 10 attempts
+      debugPrint('❌ Could not find a valid recipe after 10 attempts');
       _addMessageAndNotify("I'm having trouble finding a recipe right now. Please try asking me again.", role: 'assistant');
     } catch (error) {
       debugPrint('❌ Error in sendInitialGreeting: $error');
@@ -245,41 +245,40 @@ Suggest a completely different recipe than before, following this format exactly
   Future<void> sendMessage(String message) async {
     if (message.trim().isEmpty) return;
 
+    // Add user message
+    messages.add({
+      'role': 'user',
+      'content': message,
+    });
+    notifyListeners();
+
+    // Set loading state
     isLoading = true;
     notifyListeners();
 
     try {
-      _addMessageAndNotify(message, role: 'user');
       messageController.clear();
       FocusManager.instance.primaryFocus?.unfocus();
 
-      for (int i = 0; i < modelNames.length; i++) {
-        try {
-          _chat = _model.startChat(history: [
-            Content.text(_systemPrompt),
-            ...messages.map((msg) => Content.text(msg['content']!)),
-          ]);
+      final response = await _chat.sendMessage(
+        Content.text(message),
+      );
 
-          final response = await _chat.sendMessage(Content.text(message));
-          if (response.text != null) {
-            final responseText = response.text!.trim();
-            _addMessageAndNotify(responseText, role: 'assistant');
-            break;
-          }
+      final responseText = response.text;
+      if (responseText != null && responseText.isNotEmpty) {
+        // Add assistant message
+        messages.add({
+          'role': 'assistant',
+          'content': responseText,
+        });
+        notifyListeners();
 
-          await _switchToNextModel();
-        } catch (error) {
-          debugPrint('Model error: $error');
-          if (i < modelNames.length - 1) {
-            await _switchToNextModel();
-          } else {
-            _addMessageAndNotify("I'm having trouble responding right now, but I'm still here for you.", role: 'assistant');
-          }
+        if (onMessageAdded != null) {
+          onMessageAdded!();
         }
       }
     } catch (error) {
       debugPrint('Error sending message: $error');
-      _addMessageAndNotify("Something went wrong. Please try again in a moment.", role: 'assistant');
     } finally {
       isLoading = false;
       notifyListeners();
