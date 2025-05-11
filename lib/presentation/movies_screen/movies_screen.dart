@@ -24,6 +24,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../little_lifts_screen/little_lifts_screen.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -238,10 +239,8 @@ class MoviePoster extends StatelessWidget {
   Future<bool> _verifyImageUrl(String url) async {
     try {
       final response = await http.head(Uri.parse(url));
-      debugPrint('Image URL verification status: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
-      debugPrint('Error verifying image URL: $e');
       return false;
     }
   }
@@ -255,53 +254,46 @@ class MoviePoster extends StatelessWidget {
           return SizedBox(
             width: 313,
             height: 176,
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: CupertinoActivityIndicator()),
           );
         }
         
         if (snapshot.hasError) {
-          debugPrint('Error loading poster for $title: ${snapshot.error}');
           return _buildErrorContainer();
         }
         
         if (snapshot.hasData && snapshot.data != null) {
           final posterUrl = 'https://image.tmdb.org/t/p/w780${snapshot.data}';
-          debugPrint('Loading image from URL: $posterUrl');
           
           return ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
               width: 313,
               height: 176,
-              color: Colors.black,
               child: FutureBuilder<bool>(
                 future: _verifyImageUrl(posterUrl),
                 builder: (context, verifySnapshot) {
                   if (verifySnapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CupertinoActivityIndicator());
                   }
                   
                   if (verifySnapshot.hasData && verifySnapshot.data == true) {
                     return CachedNetworkImage(
                       imageUrl: posterUrl,
-                      fit: BoxFit.contain,
-                      alignment: Alignment.center,
+                      fit: BoxFit.cover,
+                      width: 313,
+                      height: 176,
                       memCacheWidth: 626,
                       memCacheHeight: 352,
                       maxWidthDiskCache: 626,
                       maxHeightDiskCache: 352,
                       fadeInDuration: Duration(milliseconds: 300),
-                      placeholder: (context, url) => Container(
-                        color: Colors.black,
-                        child: Center(child: CircularProgressIndicator()),
+                      placeholder: (context, url) => Center(
+                        child: CupertinoActivityIndicator(),
                       ),
-                      errorWidget: (context, url, error) {
-                        debugPrint('Error loading image from $url: $error');
-                        return _buildErrorContainer();
-                      },
+                      errorWidget: (context, url, error) => _buildErrorContainer(),
                     );
                   } else {
-                    debugPrint('Image URL verification failed for: $posterUrl');
                     return _buildErrorContainer();
                   }
                 },
@@ -310,7 +302,6 @@ class MoviePoster extends StatelessWidget {
           );
         }
         
-        debugPrint('No poster data available for $title');
         return _buildErrorContainer();
       },
     );
@@ -321,7 +312,7 @@ class MoviePoster extends StatelessWidget {
       width: 313,
       height: 176,
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: Colors.grey[300],
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1217,7 +1208,7 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
             onTap: () {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
-                  builder: (context) => HomescreenScreen.builder(context),
+                  builder: (context) => LittleLiftsScreen.builder(context),
                 ),
                 (route) => false,
               );
