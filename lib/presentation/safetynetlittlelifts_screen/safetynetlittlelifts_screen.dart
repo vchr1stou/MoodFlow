@@ -125,7 +125,7 @@ class SafetynetlittleliftsScreenState extends State<SafetynetlittleliftsScreen> 
                               ? 275.h
                               : provider.safetynetlittleliftsModelObj.safetynetFileCount == 2
                                   ? 355.h
-                                  : 435.h,
+                                  : 405.h,
                       left: 0,
                       right: 0,
                       child: Stack(

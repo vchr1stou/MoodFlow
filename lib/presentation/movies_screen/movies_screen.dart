@@ -238,6 +238,11 @@ class MoviePoster extends StatelessWidget {
 
   const MoviePoster({required this.title, required this.year, Key? key}) : super(key: key);
 
+  Future<String?> _getCachedPosterUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('poster_url_${title}_$year');
+  }
+
   Future<bool> _verifyImageUrl(String url) async {
     try {
       final response = await http.head(Uri.parse(url));
@@ -250,7 +255,7 @@ class MoviePoster extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
-      future: fetchPosterPath(title, year),
+      future: _getCachedPosterUrl(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
@@ -265,46 +270,83 @@ class MoviePoster extends StatelessWidget {
         }
         
         if (snapshot.hasData && snapshot.data != null) {
-          final posterUrl = 'https://image.tmdb.org/t/p/w780${snapshot.data}';
+          final posterUrl = snapshot.data!;
           
           return ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
               width: 313,
               height: 176,
-              child: FutureBuilder<bool>(
-                future: _verifyImageUrl(posterUrl),
-                builder: (context, verifySnapshot) {
-                  if (verifySnapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CupertinoActivityIndicator(color: Colors.white));
-                  }
-                  
-                  if (verifySnapshot.hasData && verifySnapshot.data == true) {
-                    return CachedNetworkImage(
-                      imageUrl: posterUrl,
-                      fit: BoxFit.cover,
-                      width: 313,
-                      height: 176,
-                      memCacheWidth: 626,
-                      memCacheHeight: 352,
-                      maxWidthDiskCache: 626,
-                      maxHeightDiskCache: 352,
-                      fadeInDuration: Duration(milliseconds: 300),
-                      placeholder: (context, url) => Center(
-                        child: CupertinoActivityIndicator(color: Colors.white),
-                      ),
-                      errorWidget: (context, url, error) => _buildErrorContainer(),
-                    );
-                  } else {
-                    return _buildErrorContainer();
-                  }
-                },
+              child: CachedNetworkImage(
+                imageUrl: posterUrl,
+                fit: BoxFit.cover,
+                width: 313,
+                height: 176,
+                memCacheWidth: 626,
+                memCacheHeight: 352,
+                maxWidthDiskCache: 626,
+                maxHeightDiskCache: 352,
+                fadeInDuration: Duration(milliseconds: 300),
+                placeholder: (context, url) => Center(
+                  child: CupertinoActivityIndicator(color: Colors.white),
+                ),
+                errorWidget: (context, url, error) => _buildErrorContainer(),
               ),
             ),
           );
         }
         
-        return _buildErrorContainer();
+        // If no cached URL, fetch from TMDb
+        return FutureBuilder<String?>(
+          future: fetchPosterPath(title, year),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return SizedBox(
+                width: 313,
+                height: 176,
+                child: Center(child: CupertinoActivityIndicator(color: Colors.white)),
+              );
+            }
+            
+            if (snapshot.hasError) {
+              return _buildErrorContainer();
+            }
+            
+            if (snapshot.hasData && snapshot.data != null) {
+              final posterUrl = 'https://image.tmdb.org/t/p/w780${snapshot.data}';
+              
+              // Cache the URL for future use
+              SharedPreferences.getInstance().then((prefs) {
+                prefs.setString('poster_url_${title}_$year', posterUrl);
+              });
+              
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 313,
+                  height: 176,
+                  child: CachedNetworkImage(
+                    imageUrl: posterUrl,
+                    fit: BoxFit.cover,
+                    width: 313,
+                    height: 176,
+                    memCacheWidth: 626,
+                    memCacheHeight: 352,
+                    maxWidthDiskCache: 626,
+                    maxHeightDiskCache: 352,
+                    fadeInDuration: Duration(milliseconds: 300),
+                    placeholder: (context, url) => Center(
+                      child: CupertinoActivityIndicator(color: Colors.white),
+                    ),
+                    errorWidget: (context, url, error) => _buildErrorContainer(),
+                  ),
+                ),
+              );
+            }
+            
+            return _buildErrorContainer();
+          },
+        );
       },
     );
   }
@@ -890,10 +932,49 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
                                                 top: 394,
                                                 left: 256,
                                                 child: GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _isSaved = !_isSaved;
-                                                    });
+                                                  onTap: () async {
+                                                    print('🔘 Save button tapped');
+                                                    if (_currentMovieRecommendation != null) {
+                                                      print('🎬 Current movie recommendation exists');
+                                                      
+                                                      // Update UI state immediately
+                                                      setState(() {
+                                                        _isSaved = !_isSaved;
+                                                      });
+                                                      print('🔄 Save button state updated immediately: $_isSaved');
+                                                      
+                                                      final info = await extractMovieInfo(_currentMovieRecommendation!);
+                                                      print('📋 Movie info extracted: $info');
+                                                      
+                                                      if (!_isSaved) {  // Note: _isSaved is now the new state
+                                                        // If now unsaved, remove it
+                                                        await _removeMovieFromFirestore(info);
+                                                      } else {
+                                                        // If now saved, save it
+                                                        String? posterUrl;
+                                                        
+                                                        // Try to get cached poster URL first
+                                                        final cachedUrl = await _getCachedPosterUrl(info['title'] ?? '', info['year'] ?? '');
+                                                        if (cachedUrl != null) {
+                                                          print('🖼️ Using cached poster URL');
+                                                          posterUrl = cachedUrl;
+                                                        } else {
+                                                          print('🖼️ Fetching new poster URL');
+                                                          final posterPath = await fetchPosterPath(info['title'] ?? '', info['year'] ?? '');
+                                                          posterUrl = posterPath != null ? 'https://image.tmdb.org/t/p/w780$posterPath' : '';
+                                                          
+                                                          // Cache the new poster URL
+                                                          if (posterUrl.isNotEmpty) {
+                                                            await _cachePosterUrl(info['title'] ?? '', info['year'] ?? '', posterUrl);
+                                                          }
+                                                        }
+                                                        
+                                                        print('🔗 Poster URL: $posterUrl');
+                                                        await _saveMovieToFirestore(info, posterUrl ?? '');
+                                                      }
+                                                    } else {
+                                                      print('❌ No current movie recommendation');
+                                                    }
                                                   },
                                                   child: Stack(
                                                     children: [
@@ -1312,5 +1393,121 @@ class MoviesScreenState extends State<MoviesScreen> with SingleTickerProviderSta
         } catch (e) {}
       }
     }
+  }
+
+  Future<void> _saveMovieToFirestore(Map<String, String> info, String posterUrl) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved movies collection for the current user
+      final savedMoviesRef = userDocRef.collection('saved');
+      print('🎬 Saved movies collection reference created');
+
+      // Get the current count of saved movies to use as the new document ID
+      final countSnapshot = await savedMoviesRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the movie document
+      print('📝 Creating movie document with data:');
+      print('Title: ${info['title']}');
+      print('Subtitle: Film (${info['year']}) · ${info['genre']}');
+      print('Description: ${info['description']}');
+      print('YouTube Link: ${info['trailerUrl']}');
+      print('Image Link: $posterUrl');
+      
+      await savedMoviesRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': 'Film (${info['year']}) · ${info['genre']}',
+        'Description': info['description'] ?? '',
+        'Youtube Link': info['trailerUrl'] ?? '',
+        'Image Link': posterUrl,
+        'type': 'Movie',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Movie saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving movie: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeMovieFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved movies collection
+      final savedMoviesRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the movie with matching title
+      final querySnapshot = await savedMoviesRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Movie removed successfully');
+      } else {
+        print('❌ No matching movie found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing movie: $e');
+    }
+  }
+
+  Future<String?> _getCachedPosterUrl(String title, String year) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('poster_url_${title}_$year');
+  }
+
+  Future<void> _cachePosterUrl(String title, String year, String posterUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('poster_url_${title}_$year', posterUrl);
   }
 }

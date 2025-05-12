@@ -28,4 +28,9 @@ class UserService {
     }
     throw Exception('No user logged in');
   }
+
+  Future<String?> getCurrentUserEmail() async {
+    final userData = await getCurrentUserData();
+    return userData?['email'] as String?;
+  }
 }
