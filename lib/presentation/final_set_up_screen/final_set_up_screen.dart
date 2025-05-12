@@ -172,7 +172,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                 child: GestureDetector(
                                   onTap: () async {
                                     // Create user in Firebase
-                                    await context.read<SignUpProvider>().createUser();
+                                    await context.read<SignUpProvider>().createUser(ScaffoldMessenger.of(context));
                                     
                                     //Navigate to the home screen
                                     Navigator.pushReplacement(

@@ -762,7 +762,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                     final signUpProvider = context.read<SignUpProvider>();
                                     signUpProvider.updateStepTwoData(
                                       context.read<SignUpStepTwoProvider>().dailyCheckInTimes,
-                                       context.read<SignUpStepTwoProvider>().dailyCheckInEnabled,
+                                       context.read<SignUpStepTwoProvider>().enabledReminders,
                                       _quoteTime, _quoteEnabled
                                       );
                                       Navigator.pushNamed(context, AppRoutes.signUpStepThreeScreen);

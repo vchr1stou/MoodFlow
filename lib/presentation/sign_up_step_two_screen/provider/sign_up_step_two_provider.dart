@@ -12,9 +12,9 @@ class SignUpStepTwoProvider extends ChangeNotifier {
   SignUpStepTwoModel signUpStepTwoModelObj = SignUpStepTwoModel();
 
   // State of toggle switches
-  bool isSelectedSwitch = false;
-  bool isSelectedSwitch1 = false;
-  List<bool> dailyCheckInEnabled = [false, false, false, false];
+  bool isSelectedSwitch = true;
+  bool isSelectedSwitch1 = true;
+  List<bool> enabledReminders = [true, true, true, true];
   List<TimeOfDay> dailyCheckInTimes = [
     TimeOfDay(hour: 9, minute: 30),
     TimeOfDay(hour: 12, minute: 0),
@@ -43,8 +43,8 @@ class SignUpStepTwoProvider extends ChangeNotifier {
   }
 
   void toggleDailyCheckIn(int index, bool value) {
-    if (index >= 0 && index < dailyCheckInEnabled.length) {
-      dailyCheckInEnabled[index] = value;
+    if (index >= 0 && index < enabledReminders.length) {
+      enabledReminders[index] = value;
       notifyListeners();
     }
   }

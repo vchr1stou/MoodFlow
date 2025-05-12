@@ -38,7 +38,7 @@ class SignUpProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createUser() async {
+  Future<void> createUser(ScaffoldMessengerState messenger) async {
     try {
       // Create user in Firebase Authentication
       final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -80,8 +80,38 @@ class SignUpProvider extends ChangeNotifier {
       }
 
       debugPrint('User created and data saved: $userId');
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'email-already-in-use') {
+        message = 'This email is already registered. Please log in or use another email.';
+      } else {
+        message = 'Error creating user: ${e.message}';
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: const Color.fromARGB(255, 0, 0, 0)),
+              SizedBox(width: 8),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          action: SnackBarAction(
+            label: 'OK',
+            onPressed: () {},
+            textColor: const Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+      );
+      rethrow;
     } catch (e) {
-      debugPrint('Error creating user: $e');
+      messenger.showSnackBar(
+        SnackBar(content: Text('An unexpected error occurred.')),
+      );
       rethrow;
     }
   }
