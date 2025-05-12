@@ -17,6 +17,10 @@ class LogScreenStep2NegativeScreen extends StatefulWidget {
   // Add static method to clear all static data
   static void clearAllData() {
     debugPrint('[NEGATIVE] clearAllData called');
+    // Save current mood data
+    final savedMood = StorageService.getCurrentMood();
+    final savedMoodSource = StorageService.getMoodSource();
+    
     // Clear static variables
     selectedNegativeFeelings = [];
     storedSelectedButtons = {};
@@ -32,6 +36,12 @@ class LogScreenStep2NegativeScreen extends StatefulWidget {
     StorageService.saveNegativeFeelings([]);
     StorageService.saveNegativeIntensities({});
     debugPrint('[NEGATIVE] Negative feelings and intensities explicitly cleared');
+    
+    // Restore mood data
+    if (savedMood != null && savedMoodSource != null) {
+      StorageService.saveCurrentMood(savedMood, savedMoodSource);
+      debugPrint('[NEGATIVE] Restored mood data: $savedMood from $savedMoodSource');
+    }
   }
 
   // Static variables
@@ -62,15 +72,24 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     super.initState();
     debugPrint('[NEGATIVE] initState called');
     
-    // Clear all data first
+    // Load saved mood first before clearing other data
+    final savedMood = StorageService.getCurrentMood();
+    final savedMoodSource = StorageService.getMoodSource();
+    
+    // Clear all data except mood
     LogScreenStep2NegativeScreen.clearAllData();
+    
+    // Restore mood data
+    if (savedMood != null && savedMoodSource != null) {
+      StorageService.saveCurrentMood(savedMood, savedMoodSource);
+    }
     
     // Reset local state
     setState(() {
       selectedFeelings = [];
       intensities = {};
-      _currentMood = null;
-      _moodSource = null;
+      _currentMood = savedMood;
+      _moodSource = savedMoodSource;
     });
     
     debugPrint('[NEGATIVE] Local state reset - selectedFeelings: $selectedFeelings, intensities: $intensities');
@@ -132,9 +151,11 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     debugPrint('[NEGATIVE] _onFeelingSelected: $feeling');
     debugPrint('[NEGATIVE] Current state before change - selectedFeelings: $selectedFeelings, intensities: $intensities');
     
-    // Clear all data first
-    LogScreenStep2NegativeScreen.clearAllData();
+    // Save current mood data
+    final savedMood = StorageService.getCurrentMood();
+    final savedMoodSource = StorageService.getMoodSource();
     
+    // Clear only feelings data
     setState(() {
       if (selectedFeelings.contains(feeling)) {
         selectedFeelings.remove(feeling);
@@ -152,6 +173,11 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     // Save new data
     StorageService.saveNegativeFeelings(selectedFeelings);
     StorageService.saveNegativeIntensities(intensities);
+    
+    // Restore mood data
+    if (savedMood != null && savedMoodSource != null) {
+      StorageService.saveCurrentMood(savedMood, savedMoodSource);
+    }
     
     debugPrint('[NEGATIVE] After select - selectedFeelings: $selectedFeelings, intensities: $intensities');
     
@@ -272,13 +298,19 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
                                   GestureDetector(
                                     onTap: () {
                                       debugPrint('[NEGATIVE] Next tapped. Saving and navigating.');
-                                      // Clear all data first
-                                      LogScreenStep2NegativeScreen.clearAllData();
+                                      // Save current mood data
+                                      final savedMood = StorageService.getCurrentMood();
+                                      final savedMoodSource = StorageService.getMoodSource();
+                                      
                                       // Save feelings to storage before navigating
                                       StorageService.saveNegativeFeelings(selectedFeelings);
                                       StorageService.saveNegativeIntensities(intensities);
-                                      // Clear any stored slider values
-                                      LogScreenStep3NegativeScreenState.storedSliderValues.clear();
+                                      
+                                      // Restore mood data
+                                      if (savedMood != null && savedMoodSource != null) {
+                                        StorageService.saveCurrentMood(savedMood, savedMoodSource);
+                                      }
+                                      
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -299,13 +331,19 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
                                     child: GestureDetector(
                                       onTap: () {
                                         debugPrint('[NEGATIVE] Next (text) tapped. Saving and navigating.');
-                                        // Clear all data first
-                                        LogScreenStep2NegativeScreen.clearAllData();
+                                        // Save current mood data
+                                        final savedMood = StorageService.getCurrentMood();
+                                        final savedMoodSource = StorageService.getMoodSource();
+                                        
                                         // Save feelings to storage before navigating
                                         StorageService.saveNegativeFeelings(selectedFeelings);
                                         StorageService.saveNegativeIntensities(intensities);
-                                        // Clear any stored slider values
-                                        LogScreenStep3NegativeScreenState.storedSliderValues.clear();
+                                        
+                                        // Restore mood data
+                                        if (savedMood != null && savedMoodSource != null) {
+                                          StorageService.saveCurrentMood(savedMood, savedMoodSource);
+                                        }
+                                        
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(

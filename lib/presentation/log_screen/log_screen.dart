@@ -118,15 +118,14 @@ class LogScreenState extends State<LogScreen> {
     print('📝 LogScreen: Current saved mood: ${StorageService.getCurrentMood()}');
     print('📝 LogScreen: Current saved source: ${StorageService.getMoodSource()}');
     
-    // Only save if there isn't already a saved mood
-    if (StorageService.getCurrentMood() == null) {
-      print('💾 LogScreen: No saved mood found, saving widget feeling');
-      await StorageService.saveCurrentMood(widget.feeling, widget.emojiSource);
-    } else {
-      print('ℹ️ LogScreen: Mood already saved, not overwriting');
-    }
-    
+    // Always save the current mood and source
+    print('💾 LogScreen: Saving current mood and source');
+    await StorageService.saveCurrentMood(widget.feeling, widget.emojiSource);
     await StorageService.saveSelectedDateTime(_selectedDate);
+    
+    // Store the current mood and timestamp in static variables for direct access
+    _currentMood = widget.feeling;
+    _moodSource = widget.emojiSource;
     
     print('✅ LogScreen: Mood saved successfully');
     print('✅ LogScreen: New saved mood: ${StorageService.getCurrentMood()}');

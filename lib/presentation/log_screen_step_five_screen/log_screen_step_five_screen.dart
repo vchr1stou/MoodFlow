@@ -167,7 +167,7 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
 
       final logService = LogService();
       
-      // Get only the required data
+      // Get the mood and timestamp directly from LogScreen
       final mood = StorageService.getCurrentMood();
       final timestamp = await StorageService.getSelectedDateTime();
       final toggledIcons = StorageService.getToggledIcons();

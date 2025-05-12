@@ -1404,7 +1404,39 @@ class LogScreenStep2PositiveScreenState
               // Save the current state before navigating back
               LogScreenStep2PositiveScreen.storedSelectedButtons = Set.from(selectedButtons);
               LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
-              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => LogScreen.builder(
+                    context,
+                    source: 'log_screen',
+                    emojiSource: 'emoji_one',
+                    feeling: '',
+                  ),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    );
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: ScaleTransition(
+                        scale: scaleAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  transitionDuration: Duration(milliseconds: 400),
+                ),
+              );
             },
             child: Padding(
               padding: EdgeInsets.only(left: 16.h, top: 10.h),
