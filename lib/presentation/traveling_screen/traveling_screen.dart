@@ -731,10 +731,32 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                       top: 394,
                                       left: 256,
                                       child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _isSaved = !_isSaved;
-                                          });
+                                        onTap: () async {
+                                          print('🔘 Save button tapped');
+                                          if (_currentTravelRecommendation != null) {
+                                            print('✈️ Current travel recommendation exists');
+                                            
+                                            // Update UI state immediately
+                                            setState(() {
+                                              _isSaved = !_isSaved;
+                                            });
+                                            print('🔄 Save button state updated immediately: $_isSaved');
+                                            
+                                            final info = extractTravelInfo(_currentTravelRecommendation!);
+                                            print('📋 Travel info extracted: $info');
+                                            
+                                            if (!_isSaved) {  // Note: _isSaved is now the new state
+                                              // If now unsaved, remove it
+                                              await _removeTravelFromFirestore(info);
+                                            } else {
+                                              // If now saved, save it
+                                              final imageUrl = await getUnsplashImage(info['title'] ?? '');
+                                              print('🖼️ Image URL: $imageUrl');
+                                              await _saveTravelToFirestore(info, imageUrl ?? '');
+                                            }
+                                          } else {
+                                            print('❌ No current travel recommendation');
+                                          }
                                         },
                                         child: Stack(
                                           children: [
@@ -1081,6 +1103,110 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
         ],
       ),
     );
+  }
+
+  Future<void> _saveTravelToFirestore(Map<String, String> info, String imageUrl) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved travels collection for the current user
+      final savedTravelsRef = userDocRef.collection('saved');
+      print('✈️ Saved travels collection reference created');
+
+      // Get the current count of saved travels to use as the new document ID
+      final countSnapshot = await savedTravelsRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the travel document
+      print('📝 Creating travel document with data:');
+      print('Title: ${info['title']}');
+      print('Subtitle: ${info['location']}');
+      print('Description: ${info['description']}');
+      print('Image Link: $imageUrl');
+      
+      await savedTravelsRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': info['location'] ?? '',
+        'Description': info['description'] ?? '',
+        'Image Link': imageUrl,
+        'type': 'Travel',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Travel saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving travel: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeTravelFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved travels collection
+      final savedTravelsRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the travel with matching title
+      final querySnapshot = await savedTravelsRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Travel removed successfully');
+      } else {
+        print('❌ No matching travel found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing travel: $e');
+    }
   }
 }
 

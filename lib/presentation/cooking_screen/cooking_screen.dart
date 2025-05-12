@@ -14,6 +14,9 @@ import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:html/parser.dart' as parser;
 import 'dart:io';
+import '../../services/user_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../core/app_export.dart';
@@ -27,6 +30,8 @@ import '../../widgets/custom_text_form_field.dart';
 
 import 'models/cooking_model.dart';
 import 'provider/cooking_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -307,6 +312,7 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
   bool _isManualStop = false;
   late AnimationController _breathingController;
   late Animation<double> _breathingAnimation;
+  final UserService _userService = UserService();
 
   @override
   void initState() {
@@ -442,6 +448,112 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
           await launchUrl(uri, mode: LaunchMode.platformDefault);
         }
       } catch (e) {}
+    }
+  }
+
+  Future<void> _saveRecipeToFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved recipes collection for the current user
+      final savedRecipesRef = userDocRef.collection('saved');
+      print('🍳 Saved recipes collection reference created');
+
+      // Get the current count of saved recipes to use as the new document ID
+      final countSnapshot = await savedRecipesRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the recipe document
+      print('📝 Creating recipe document with data:');
+      print('Title: ${info['title']}');
+      print('Subtitle: ${info['time']} · ${info['servings']}');
+      print('Description: ${info['description']}');
+      print('Recipe Link: ${info['recipeUrl']}');
+      print('Image Link: ${info['imageUrl']}');
+      
+      await savedRecipesRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': '${info['time']} · ${info['servings']}',
+        'Description': info['description'] ?? '',
+        'Youtube Link': info['recipeUrl'] ?? '',
+        'Image Link': info['imageUrl'] ?? '',
+        'type': 'Cooking',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Recipe saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving recipe: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeRecipeFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved recipes collection
+      final savedRecipesRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the recipe with matching title
+      final querySnapshot = await savedRecipesRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Recipe removed successfully');
+      } else {
+        print('❌ No matching recipe found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing recipe: $e');
     }
   }
 
@@ -584,7 +696,7 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                   ),
                                   // Recipe title
                                   Positioned(
-                                    top: 229,
+                                    top: 233,
                                     left: 37,
                                     child: Builder(
                                       builder: (context) {
@@ -601,7 +713,7 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                                 color: Colors.white,
                                               ),
                                             ),
-                                            const SizedBox(height: 8),
+                                            const SizedBox(height:2),
                                             Text(
                                               '${info['time']} · ${info['servings']}',
                                               style: TextStyle(
@@ -704,10 +816,30 @@ class CookingScreenState extends State<CookingScreen> with SingleTickerProviderS
                                     top: 394,
                                     left: 256,
                                     child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _isSaved = !_isSaved;
-                                        });
+                                      onTap: () async {
+                                        print('🔘 Save button tapped');
+                                        if (_currentRecipe != null) {
+                                          print('🍳 Current recipe recommendation exists');
+                                          
+                                          // Update UI state immediately
+                                          setState(() {
+                                            _isSaved = !_isSaved;
+                                          });
+                                          print('🔄 Save button state updated immediately: $_isSaved');
+                                          
+                                          final info = extractRecipeInfo(_currentRecipe!);
+                                          print('📋 Recipe info extracted: $info');
+                                          
+                                          if (!_isSaved) {  // Note: _isSaved is now the new state
+                                            // If now unsaved, remove it
+                                            await _removeRecipeFromFirestore(info);
+                                          } else {
+                                            // If now saved, save it
+                                            await _saveRecipeToFirestore(info);
+                                          }
+                                        } else {
+                                          print('❌ No current recipe recommendation');
+                                        }
                                       },
                                       child: Stack(
                                         children: [

@@ -434,6 +434,112 @@ class _BookScreenState extends State<BookScreen> with SingleTickerProviderStateM
     };
   }
 
+  Future<void> _saveBookToFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved books collection for the current user
+      final savedBooksRef = userDocRef.collection('saved');
+      print('📚 Saved books collection reference created');
+
+      // Get the current count of saved books to use as the new document ID
+      final countSnapshot = await savedBooksRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the book document
+      print('📝 Creating book document with data:');
+      print('Title: ${info['title']}');
+      print('Subtitle: ${info['author']} (${info['published']}) · ${info['genre']}');
+      print('Description: ${info['description']}');
+      print('Link: ${info['link']}');
+      print('Cover URL: ${info['coverUrl']}');
+      
+      await savedBooksRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': '${info['author']} (${info['published']}) · ${info['genre']}',
+        'Description': info['description'] ?? '',
+        'Youtube Link': info['link'] ?? '',
+        'Image Link': info['coverUrl'] ?? '',
+        'type': 'Book',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Book saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving book: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeBookFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved books collection
+      final savedBooksRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the book with matching title
+      final querySnapshot = await savedBooksRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Book removed successfully');
+      } else {
+        print('❌ No matching book found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing book: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -666,10 +772,30 @@ class _BookScreenState extends State<BookScreen> with SingleTickerProviderStateM
                                       top: 394,
                                       left: 256,
                                       child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _isSaved = !_isSaved;
-                                          });
+                                        onTap: () async {
+                                          print('🔘 Save button tapped');
+                                          if (_currentBookRecommendation != null) {
+                                            print('📚 Current book recommendation exists');
+                                            
+                                            // Update UI state immediately
+                                            setState(() {
+                                              _isSaved = !_isSaved;
+                                            });
+                                            print('🔄 Save button state updated immediately: $_isSaved');
+                                            
+                                            final info = extractBookInfo(_currentBookRecommendation!);
+                                            print('📋 Book info extracted: $info');
+                                            
+                                            if (!_isSaved) {  // Note: _isSaved is now the new state
+                                              // If now unsaved, remove it
+                                              await _removeBookFromFirestore(info);
+                                            } else {
+                                              // If now saved, save it
+                                              await _saveBookToFirestore(info);
+                                            }
+                                          } else {
+                                            print('❌ No current book recommendation');
+                                          }
                                         },
                                         child: Stack(
                                           children: [

@@ -14,6 +14,8 @@ import 'provider/workout_provider.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/user_service.dart';
 
 const String youtubeApiKey = 'AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw';
 
@@ -156,6 +158,7 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderStateMixin {
+  final UserService _userService = UserService();
   final FocusNode _focusNode = FocusNode();
   bool _isTyping = false;
   late stt.SpeechToText _speech;
@@ -725,10 +728,30 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
                                                 top: 394,
                                                 left: 256,
                                                 child: GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _isSaved = !_isSaved;
-                                                    });
+                                                  onTap: () async {
+                                                    print('🔘 Save button tapped');
+                                                    if (_currentWorkoutRecommendation != null) {
+                                                      print('💪 Current workout recommendation exists');
+                                                      
+                                                      // Update UI state immediately
+                                                      setState(() {
+                                                        _isSaved = !_isSaved;
+                                                      });
+                                                      print('🔄 Save button state updated immediately: $_isSaved');
+                                                      
+                                                      final info = await extractWorkoutInfo(_currentWorkoutRecommendation!);
+                                                      print('📋 Workout info extracted: $info');
+                                                      
+                                                      if (!_isSaved) {  // Note: _isSaved is now the new state
+                                                        // If now unsaved, remove it
+                                                        await _removeWorkoutFromFirestore(info);
+                                                      } else {
+                                                        // If now saved, save it
+                                                        await _saveWorkoutToFirestore(info);
+                                                      }
+                                                    } else {
+                                                      print('❌ No current workout recommendation');
+                                                    }
                                                   },
                                                   child: Stack(
                                                     children: [
@@ -1078,5 +1101,111 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   Widget _buildWorkoutDescription(BuildContext context, String? recommendation) {
     if (recommendation == null) return Container();
     return Container(); // This is now handled in the main FutureBuilder
+  }
+
+  Future<void> _saveWorkoutToFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved workouts collection for the current user
+      final savedWorkoutsRef = userDocRef.collection('saved');
+      print('💪 Saved workouts collection reference created');
+
+      // Get the current count of saved workouts to use as the new document ID
+      final countSnapshot = await savedWorkoutsRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the workout document
+      print('📝 Creating workout document with data:');
+      print('Title: ${info['title']}');
+      print('Summary: ${info['summary']}');
+      print('Description: ${info['description']}');
+      print('YouTube Link: ${info['videoUrl']}');
+      print('Image Link: ${info['imageUrl']}');
+      
+      await savedWorkoutsRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': info['summary'] ?? '',
+        'Description': info['description'] ?? '',
+        'Youtube Link': info['videoUrl'] ?? '',
+        'Image Link': info['imageUrl'] ?? '',
+        'type': 'Workout',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Workout saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving workout: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeWorkoutFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved workouts collection
+      final savedWorkoutsRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the workout with matching title
+      final querySnapshot = await savedWorkoutsRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Workout removed successfully');
+      } else {
+        print('❌ No matching workout found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing workout: $e');
+    }
   }
 } 

@@ -527,6 +527,30 @@ class MeditationScreenState extends State<MeditationScreen> with SingleTickerPro
 
     // Cache the result
     _meditationInfoCache[response] = meditationInfo;
+
+    // Check if this meditation is already saved
+    try {
+      final userData = await _userService.getCurrentUserData();
+      if (userData != null && userData['email'] != null) {
+        final userEmail = userData['email'] as String;
+        final firestore = FirebaseFirestore.instance;
+        
+        final querySnapshot = await firestore
+            .collection('users')
+            .doc(userEmail)
+            .collection('saved')
+            .where('Title', isEqualTo: title)
+            .get();
+
+        if (mounted) {
+          setState(() {
+            _isSaved = querySnapshot.docs.isNotEmpty;
+          });
+        }
+      }
+    } catch (e) {
+      print('❌ Error checking if meditation is saved: $e');
+    }
     
     return meditationInfo;
   }
@@ -978,10 +1002,46 @@ class MeditationScreenState extends State<MeditationScreen> with SingleTickerPro
                                                 top: 394,
                                                 left: 256,
                                                 child: GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _isSaved = !_isSaved;
-                                                    });
+                                                  onTap: () async {
+                                                    print('🔘 Save button tapped');
+                                                    if (_currentMeditationRecommendation != null) {
+                                                      print('🧘 Current meditation recommendation exists');
+                                                      
+                                                      try {
+                                                        // Update UI state immediately
+                                                        setState(() {
+                                                          _isSaved = !_isSaved;
+                                                        });
+                                                        print('🔄 Save button state updated immediately: $_isSaved');
+                                                        
+                                                        final info = await extractMeditationInfo(_currentMeditationRecommendation!);
+                                                        print('📋 Meditation info extracted: $info');
+                                                        
+                                                        if (info.isEmpty) {
+                                                          print('❌ Failed to extract meditation info');
+                                                          setState(() {
+                                                            _isSaved = !_isSaved; // Revert the state
+                                                          });
+                                                          return;
+                                                        }
+                                                        
+                                                        if (!_isSaved) {  // Note: _isSaved is now the new state
+                                                          // If now unsaved, remove it
+                                                          await _removeMeditationFromFirestore(info);
+                                                        } else {
+                                                          // If now saved, save it
+                                                          await _saveMeditationToFirestore(info);
+                                                        }
+                                                      } catch (e) {
+                                                        print('❌ Error in save button handler: $e');
+                                                        // Revert the state on error
+                                                        setState(() {
+                                                          _isSaved = !_isSaved;
+                                                        });
+                                                      }
+                                                    } else {
+                                                      print('❌ No current meditation recommendation');
+                                                    }
                                                   },
                                                   child: Stack(
                                                     children: [
@@ -1373,6 +1433,112 @@ class MeditationScreenState extends State<MeditationScreen> with SingleTickerPro
           );
         } catch (e) {}
       }
+    }
+  }
+
+  Future<void> _saveMeditationToFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved meditations collection for the current user
+      final savedMeditationsRef = userDocRef.collection('saved');
+      print('🧘 Saved meditations collection reference created');
+
+      // Get the current count of saved meditations to use as the new document ID
+      final countSnapshot = await savedMeditationsRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the meditation document
+      print('📝 Creating meditation document with data:');
+      print('Title: ${info['title']}');
+      print('Summary: ${info['summary']}');
+      print('Description: ${info['description']}');
+      print('YouTube Link: ${info['videoUrl']}');
+      print('Image Link: ${info['imageUrl']}');
+      
+      await savedMeditationsRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': info['summary'] ?? '',
+        'Description': info['description'] ?? '',
+        'Youtube Link': info['videoUrl'] ?? '',
+        'Image Link': info['imageUrl'] ?? '',
+        'type': 'Meditation',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Meditation saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving meditation: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeMeditationFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved meditations collection
+      final savedMeditationsRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the meditation with matching title
+      final querySnapshot = await savedMeditationsRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Meditation removed successfully');
+      } else {
+        print('❌ No matching meditation found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing meditation: $e');
     }
   }
 }

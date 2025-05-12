@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/user_service.dart';
-import '../little_lifts_screen/little_lifts_screen.dart';
+import '../../services/spotify_track_service.dart';
+import '../saved_screen/saved_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../widgets/album_landscape_card.dart';
 
 class SavedPreviewScreen extends StatefulWidget {
   final String title;
@@ -39,9 +42,9 @@ class SavedPreviewScreen extends StatefulWidget {
 
 class SavedPreviewScreenState extends State<SavedPreviewScreen> {
   final UserService _userService = UserService();
+  final SpotifyTrackService _spotifyService = SpotifyTrackService();
   String? userEmail;
   bool _isInitialized = false;
-  Map<String, dynamic>? _movieData;
 
   @override
   void initState() {
@@ -65,12 +68,9 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
   }
 
   Future<void> _launchTrailerUrl() async {
-    if (_movieData == null) return;
-    
-    final trailerUrl = _movieData!['Youtube Link'];
-    if (trailerUrl != null && trailerUrl.isNotEmpty) {
+    if (widget.youtubeLink != null && widget.youtubeLink!.isNotEmpty) {
       try {
-        final uri = Uri.parse(trailerUrl);
+        final uri = Uri.parse(widget.youtubeLink!);
         await launchUrl(
           uri,
           mode: LaunchMode.platformDefault,
@@ -120,58 +120,29 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
               child: Column(
                 children: [
                   if (_isInitialized && userEmail != null)
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userEmail)
-                          .collection('saved')
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        }
-
-                        if (!snapshot.hasData) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-
-                        final savedCount = snapshot.data!.docs.length;
-                        
-                        if (savedCount == 0) {
-                          return SizedBox.shrink();
-                        }
-
-                        // Get the first movie data
-                        final doc = snapshot.data!.docs[0];
-                        _movieData = doc.data() as Map<String, dynamic>;
-
-                        return Container(
-                          width: 366,
-                          height: 491,
-                          child: Stack(
-                            children: [
-                              // Movie time box background
-                              Center(
-                                child: SvgPicture.asset(
-                                  'assets/images/movie_time_box.svg',
-                                  width: 366,
-                                  height: 491,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              // Movie poster image
-                              Positioned(
-                                top: 24,
-                                left: 26,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    _movieData!['Image Link'] ?? '',
-                                    width: 313,
-                                    height: 176,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
+                    Container(
+                      width: 366,
+                      height: 491,
+                      child: Stack(
+                        children: [
+                          // Movie time box background
+                          Center(
+                            child: SvgPicture.asset(
+                              'assets/images/movie_time_box.svg',
+                              width: 366,
+                              height: 491,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          // Image or Album Art
+                          Positioned(
+                            top: 24,
+                            left: 26,
+                            child: widget.type == 'Music'
+                              ? FutureBuilder<Map<String, dynamic>?>(
+                                  future: _spotifyService.searchTrack(widget.title),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
                                       return Container(
                                         width: 313,
                                         height: 176,
@@ -185,8 +156,9 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                                           ),
                                         ),
                                       );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
+                                    }
+                                    
+                                    if (snapshot.hasError || !snapshot.hasData) {
                                       return Container(
                                         width: 313,
                                         height: 176,
@@ -197,10 +169,10 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.error_outline, color: Colors.grey[600]),
+                                            Icon(Icons.music_note, color: Colors.grey[600], size: 40),
                                             SizedBox(height: 8),
                                             Text(
-                                              'Image not available',
+                                              'Album art not available',
                                               style: TextStyle(
                                                 color: Colors.grey[600],
                                                 fontSize: 12,
@@ -209,206 +181,291 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
                                           ],
                                         ),
                                       );
-                                    },
+                                    }
+
+                                    final trackInfo = snapshot.data!;
+                                    return AlbumLandscapeCard(
+                                      imageUrl: trackInfo['albumArtUrl'] ?? '',
+                                      title: '',
+                                      artist: '',
+                                    );
+                                  },
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: CachedNetworkImage(
+                                    imageUrl: widget.imageLink ?? '',
+                                    width: 313,
+                                    height: 176,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      width: 313,
+                                      height: 176,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      width: 313,
+                                      height: 176,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            widget.type == 'Book' ? Icons.book : Icons.error_outline,
+                                            color: Colors.grey[600],
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            widget.type == 'Book' ? 'Book cover not available' : 'Image not available',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
+                          ),
+                          // Description box background
+                          Positioned(
+                            top: 216,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Container(
+                                width: 332,
+                                height: 238,
+                                child: SvgPicture.asset(
+                                  'assets/images/desc_box.svg',
+                                  width: 332,
+                                  height: 238,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
-                              // Description box background
-                              Positioned(
-                                top: 216,
-                                left: 0,
-                                right: 0,
-                                child: Center(
-                                  child: Container(
-                                    width: 332,
-                                    height: 238,
-                                    child: SvgPicture.asset(
-                                      'assets/images/desc_box.svg',
-                                      width: 332,
-                                      height: 238,
+                            ),
+                          ),
+                          // Title
+                          Positioned(
+                            top: widget.type == 'Book' ? 230 : widget.type == 'Cooking' ? 233 : widget.type == 'Workout' ? 222 : 222,
+                            left: widget.type == 'Book' ? 34 : 37,
+                            child: Text(
+                              widget.title,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: widget.type == 'Book' ? 18 : widget.type == 'Cooking' ? 19 : widget.type == 'Workout' ? 19 : 24,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          // Subtitle
+                          Positioned(
+                            top: 256,
+                            left: 37,
+                            child: Text(
+                              widget.subtitle,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          // About text
+                          Positioned(
+                            top: 279,
+                            left: 37,
+                            child: Text(
+                              'About',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          // Description text
+                          Positioned(
+                            top: 296,
+                            left: 37,
+                            right: 37,
+                            child: Text(
+                              widget.description,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          // YouTube/Spotify/Book Button
+                          if (widget.type != 'Travel') Positioned(
+                            top: 394,
+                            left: widget.type == 'Music' 
+                              ? 117 
+                              : widget.type == 'Book'
+                                ? 128
+                                : widget.type == 'Cooking'
+                                  ? 119
+                                  : widget.type == 'Meditation'
+                                    ? 92
+                                    : 92,
+                            child: GestureDetector(
+                              onTap: _launchTrailerUrl,
+                              child: Container(
+                                width: 203,
+                                height: 42,
+                                child: Stack(
+                                  children: [
+                                    SvgPicture.asset(
+                                      widget.type == 'Music'
+                                        ? 'assets/images/play_on_spotify_box.svg'
+                                        : widget.type == 'Book'
+                                          ? 'assets/images/get_the_book.svg'
+                                          : widget.type == 'Cooking'
+                                            ? 'assets/images/get_the_recipe.svg'
+                                            : widget.type == 'Meditation'
+                                              ? 'assets/images/watch_workout_ytb.svg'
+                                              : 'assets/images/watch_workout_ytb.svg',
+                                      width: 203,
+                                      height: 42,
                                       fit: BoxFit.contain,
                                     ),
-                                  ),
-                                ),
-                              ),
-                              // Movie title
-                              Positioned(
-                                top: 222,
-                                left: 37,
-                                child: Text(
-                                  _movieData!['Title'] ?? '',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              // Subtitle
-                              Positioned(
-                                top: 256,
-                                left: 37,
-                                child: Text(
-                                  _movieData!['Subtitle'] ?? '',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              // About text
-                              Positioned(
-                                top: 279,
-                                left: 37,
-                                child: Text(
-                                  'About',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              // Description text
-                              Positioned(
-                                top: 296,
-                                left: 37,
-                                right: 37,
-                                child: Text(
-                                  _movieData!['Description'] ?? '',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                              // YouTube Watch Button
-                              Positioned(
-                                top: 394,
-                                left: 45,
-                                child: GestureDetector(
-                                  onTap: _launchTrailerUrl,
-                                  child: Container(
-                                    width: 203,
-                                    height: 42,
-                                    child: Stack(
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/images/watch_ytb.svg',
-                                          width: 203,
-                                          height: 42,
-                                          fit: BoxFit.contain,
-                                        ),
-                                        // YouTube Icon
-                                        Positioned(
-                                          left: 10,
-                                          top: 13,
-                                          child: SvgPicture.asset(
-                                            'assets/images/youtube.svg',
-                                            width: 20,
-                                            height: 16,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        ),
-                                        // Watch trailer text
-                                        Positioned(
-                                          left: 34,
-                                          top: 13,
-                                          child: Text(
-                                            'Watch the trailer on YouTube',
-                                            style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Save Button
-                              Positioned(
-                                top: 394,
-                                left: 256,
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    try {
-                                      // Delete the movie from Firebase
-                                      await FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(userEmail)
-                                          .collection('saved')
-                                          .doc(doc.id)
-                                          .delete();
-                                      
-                                      // Navigate back to saved screen
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (context) => LittleLiftsScreen.builder(context),
-                                        ),
-                                        (route) => false,
-                                      );
-                                    } catch (e) {
-                                      print('Error deleting movie: $e');
-                                    }
-                                  },
-                                  child: Stack(
-                                    children: [
-                                      SvgPicture.asset(
-                                        'assets/images/save_box2.svg',
-                                        width: 78,
-                                        height: 42,
+                                    // Icon
+                                    Positioned(
+                                      left: 13,
+                                      top: 13,
+                                      child: SvgPicture.asset(
+                                        widget.type == 'Music'
+                                          ? 'assets/images/spotify.svg'
+                                          : widget.type == 'Book'
+                                            ? 'assets/images/book_icon.svg'
+                                            : widget.type == 'Cooking'
+                                              ? 'assets/images/recipe_icon.svg'
+                                              : 'assets/images/youtube.svg',
+                                        width: widget.type == 'Music' ? 18 : 20,
+                                        height: widget.type == 'Music' ? 18 : 16,
                                         fit: BoxFit.contain,
                                       ),
-                                      // Save Icon
-                                      Positioned(
-                                        left: 10,
-                                        top: 0,
-                                        bottom: 0,
-                                        child: Center(
-                                          child: SvgPicture.asset(
-                                            'assets/images/save_icon.svg',
-                                            width: 21,
-                                            height: 21,
-                                            fit: BoxFit.contain,
-                                          ),
+                                    ),
+                                    // Text
+                                    Positioned(
+                                      left: 34,
+                                      top: 13,
+                                      child: Text(
+                                        widget.type == 'Music'
+                                          ? 'Play on Spotify'
+                                          : widget.type == 'Book'
+                                            ? 'Get the book'
+                                            : widget.type == 'Cooking'
+                                              ? 'Get the Recipe'
+                                              : 'Watch it on YouTube',
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                      // Save Text
-                                      Positioned(
-                                        left: 35,
-                                        top: 0,
-                                        bottom: 0,
-                                        child: Center(
-                                          child: Text(
-                                            'Saved',
-                                            style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        );
-                      },
+                          // Save Button
+                          Positioned(
+                            top: 394,
+                            left: 256,
+                            child: GestureDetector(
+                              onTap: () async {
+                                try {
+                                  // Delete the item from Firebase
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(userEmail)
+                                      .collection('saved')
+                                      .where('Title', isEqualTo: widget.title)
+                                      .get()
+                                      .then((snapshot) {
+                                        if (snapshot.docs.isNotEmpty) {
+                                          snapshot.docs.first.reference.delete();
+                                        }
+                                      });
+                                  
+                                  // Navigate back to saved screen
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => SavedScreen.builder(context),
+                                    ),
+                                    (route) => false,
+                                  );
+                                } catch (e) {
+                                  print('Error deleting item: $e');
+                                }
+                              },
+                              child: Stack(
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/save_box2.svg',
+                                    width: 78,
+                                    height: 42,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  // Save Icon
+                                  Positioned(
+                                    left: 10,
+                                    top: 0,
+                                    bottom: 0,
+                                    child: Center(
+                                      child: SvgPicture.asset(
+                                        'assets/images/save_icon.svg',
+                                        width: 21,
+                                        height: 21,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                  // Save Text
+                                  Positioned(
+                                    left: 35,
+                                    top: 0,
+                                    bottom: 0,
+                                    child: Center(
+                                      child: Text(
+                                        'Saved',
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
@@ -430,7 +487,7 @@ class SavedPreviewScreenState extends State<SavedPreviewScreen> {
             onTap: () {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
-                  builder: (context) => LittleLiftsScreen.builder(context),
+                  builder: (context) => SavedScreen.builder(context),
                 ),
                 (route) => false,
               );
