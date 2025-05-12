@@ -11,7 +11,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/sign_up_step_one_model.dart';
 import 'provider/sign_up_step_one_provider.dart';
-import '../../providers/sign_up_step_provider.dart';
+import '../../providers/sign_up_provider.dart';
 
 class SignUpStepOneScreen extends StatefulWidget {
   const SignUpStepOneScreen({Key? key}) : super(key: key);

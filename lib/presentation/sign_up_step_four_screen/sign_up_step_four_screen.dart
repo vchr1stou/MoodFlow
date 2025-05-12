@@ -11,6 +11,7 @@ import 'models/sign_up_step_four_model.dart';
 import 'provider/sign_up_step_four_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import '../../providers/sign_up_provider.dart';
 
 class SignUpStepFourScreen extends StatefulWidget {
   const SignUpStepFourScreen({Key? key}) : super(key: key);
@@ -282,6 +283,7 @@ class SignUpStepFourScreenState extends State<SignUpStepFourScreen> {
                       child: GestureDetector(
                         onTap: () {
                           // Handle next step
+                    
                           Navigator.pushNamed(context, AppRoutes.finalSetUpScreen);
                         },
                         child: Container(

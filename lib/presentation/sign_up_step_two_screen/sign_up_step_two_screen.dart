@@ -12,6 +12,7 @@ import '../../widgets/custom_switch.dart';
 import 'models/sign_up_step_two_model.dart';
 import 'provider/sign_up_step_two_provider.dart';
 import 'package:provider/provider.dart';
+import '../../providers/sign_up_provider.dart';
 
 class SignUpStepTwoScreen extends StatefulWidget {
   const SignUpStepTwoScreen({Key? key}) : super(key: key);
@@ -627,7 +628,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                       ),
                                   ],
                                 ),
-                              ),
+                              ),                              
                               SizedBox(height: 7.h),
                               Container(
                                 width: 340.h,
@@ -758,7 +759,13 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                 alignment: Alignment.centerRight,
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.signUpStepThreeScreen);
+                                    final signUpProvider = context.read<SignUpProvider>();
+                                    signUpProvider.updateStepTwoData(
+                                      context.read<SignUpStepTwoProvider>().dailyCheckInTimes,
+                                       context.read<SignUpStepTwoProvider>().dailyCheckInEnabled,
+                                      _quoteTime, _quoteEnabled
+                                      );
+                                      Navigator.pushNamed(context, AppRoutes.signUpStepThreeScreen);
                                   },
                                   child: Container(
                                     width: 130.h,
@@ -846,90 +853,5 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
     );
   }
 
-  Widget _buildDailyCheckInSection(BuildContext context, SignUpStepTwoProvider provider) {
-  return Column(
-    children: [
-      Container(
-        width: 340.h,
-        height: _dailyCheckInEnabled ? 283.h : 79.h,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            SvgPicture.asset(
-              _dailyCheckInEnabled
-                  ? 'assets/images/daily_checkin.svg'
-                  : 'assets/images/daily_toggle_off.svg',
-              width: 340.h,
-              height: _dailyCheckInEnabled ? 283.h : 79.h,
-            ),
-            Positioned(
-              top: 12.h,
-              left: 0,
-              right: 0,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SvgPicture.asset('assets/images/daily_toggle.svg'),
-                  Positioned(
-                    left: 30.h,
-                    child: Text(
-                      "Daily Check-in",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 30.h,
-                    child: Transform.scale(
-                      scale: 0.9,
-                      child: CupertinoSwitch(
-                        value: _dailyCheckInEnabled,
-                        onChanged: (bool value) {
-                          setState(() {
-                            _dailyCheckInEnabled = value;
-                          });
-                        },
-                        activeColor: CupertinoColors.systemGreen,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_dailyCheckInEnabled)
-              Positioned(
-                top: 12.h + 55.h + 7.h,
-                child: _buildDailyCheckInTimes(context, provider),
-              ),
-          ],
-        ),
-      ),
-    ],
-  );
-  }
 
-  Widget _buildDailyCheckInTimes(BuildContext context, SignUpStepTwoProvider provider) {
-    return Column(
-      children: List.generate(provider.dailyCheckInTimes.length, (index) {
-        return GestureDetector(
-          onTap: () => _selectDailyTime(context, index),
-          child: Text(
-            provider.isAddingDailyReminders[index]
-                ? "Add a Gentle Reminder"
-                : "${provider.dailyCheckInTimes[index].hour.toString().padLeft(2, '0')}:${provider.dailyCheckInTimes[index].minute.toString().padLeft(2, '0')}",
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Colors.white.withOpacity(0.96),
-              fontFamily: 'Roboto',
-            ),
-          ),
-        );
-      }),
-    );
-  }
 }
