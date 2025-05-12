@@ -279,6 +279,12 @@ Suggest a completely different recipe than before, following this format exactly
       }
     } catch (error) {
       debugPrint('Error sending message: $error');
+      // Add error message
+      messages.add({
+        'role': 'assistant',
+        'content': "I'm having trouble processing your request. Please try again.",
+      });
+      notifyListeners();
     } finally {
       isLoading = false;
       notifyListeners();

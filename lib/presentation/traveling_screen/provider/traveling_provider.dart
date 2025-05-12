@@ -29,7 +29,7 @@ Important Guidelines:
 ⚠️ Your response must follow this exact format with no additional text, emojis, or explanation:
 
 Title: [Name of Place]  
-Summary: [Up to 10 words capturing the emotional essence of the destination]  
+Summary: [Up to 5 words capturing the emotional essence of the destination]  
 Description: [No more than 60 words, painting a vivid, calming picture of the experience]  
 Image: [Direct URL to a landscape photo that visually matches the destination]
 ''';

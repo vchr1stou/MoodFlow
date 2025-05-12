@@ -10,9 +10,35 @@ import '../models/safetynetlittlelifts_model.dart';
 // ignore_for_file: must_be_immutable
 class SafetynetlittleliftsProvider extends ChangeNotifier {
   TextEditingController searchfieldoneController = TextEditingController();
+  bool showChat = true;
+  List<Map<String, String>> messages = [
+    {
+      'role': 'assistant',
+      'content': 'Sometimes, all you need is the voice of someone who makes you feel safe 💞 Take a deep breath — comfort is just one call away 📞'
+    }
+  ];
 
-  SafetynetlittleliftsModel safetynetlittleliftsModelObj =
-      SafetynetlittleliftsModel();
+  late final SafetynetlittleliftsModel safetynetlittleliftsModelObj;
+  bool _isInitialized = false;
+
+  SafetynetlittleliftsProvider() {
+    safetynetlittleliftsModelObj = SafetynetlittleliftsModel();
+    _initializeSafetynet();
+  }
+
+  Future<void> _initializeSafetynet() async {
+    try {
+      await safetynetlittleliftsModelObj.fetchSafetynetFiles();
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      print('Error initializing safetynet: $e');
+      _isInitialized = true;
+      notifyListeners();
+    }
+  }
+
+  bool get isInitialized => _isInitialized;
 
   @override
   void dispose() {

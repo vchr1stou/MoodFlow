@@ -511,31 +511,50 @@ class MusicScreenState extends State<MusicScreen> with SingleTickerProviderState
                                                 width: 313,
                                                 height: 176,
                                                 fit: BoxFit.cover,
-                                                placeholder: (context, url) => Center(
-                                                  child: CupertinoActivityIndicator(),
-                                                ),
-                                                errorWidget: (context, url, error) => Container(
+                                                memCacheWidth: 626,
+                                                memCacheHeight: 352,
+                                                maxWidthDiskCache: 626,
+                                                maxHeightDiskCache: 352,
+                                                fadeInDuration: Duration(milliseconds: 300),
+                                                placeholder: (context, url) => Container(
                                                   width: 313,
                                                   height: 176,
                                                   decoration: BoxDecoration(
                                                     color: Colors.grey[300],
                                                     borderRadius: BorderRadius.circular(16),
                                                   ),
-                                                  child: Column(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
-                                                      Icon(Icons.image_not_supported, color: Colors.grey[600]),
-                                                      SizedBox(height: 8),
-                                                      Text(
-                                                        'Album art not available',
-                                                        style: TextStyle(
-                                                          color: Colors.grey[600],
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                  child: Center(
+                                                    child: CupertinoActivityIndicator(
+                                                      color: Colors.grey[600],
+                                                    ),
                                                   ),
                                                 ),
+                                                errorWidget: (context, url, error) {
+                                                  print('Error loading album art: $error');
+                                                  print('URL: $url');
+                                                  return Container(
+                                                    width: 313,
+                                                    height: 176,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.grey[300],
+                                                      borderRadius: BorderRadius.circular(16),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Icon(Icons.music_note, color: Colors.grey[600], size: 40),
+                                                        SizedBox(height: 8),
+                                                        Text(
+                                                          'Album art not available',
+                                                          style: TextStyle(
+                                                            color: Colors.grey[600],
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                             );
                                           },
@@ -684,10 +703,30 @@ class MusicScreenState extends State<MusicScreen> with SingleTickerProviderState
                                       top: 394,
                                       left: 256,
                                       child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _isSaved = !_isSaved;
-                                          });
+                                        onTap: () async {
+                                          print('🔘 Save button tapped');
+                                          if (_currentMusicRecommendation != null) {
+                                            print('🎵 Current music recommendation exists');
+                                            
+                                            // Update UI state immediately
+                                            setState(() {
+                                              _isSaved = !_isSaved;
+                                            });
+                                            print('🔄 Save button state updated immediately: $_isSaved');
+                                            
+                                            final info = extractMusicInfo(_currentMusicRecommendation!);
+                                            print('📋 Music info extracted: $info');
+                                            
+                                            if (!_isSaved) {  // Note: _isSaved is now the new state
+                                              // If now unsaved, remove it
+                                              await _removeMusicFromFirestore(info);
+                                            } else {
+                                              // If now saved, save it
+                                              await _saveMusicToFirestore(info);
+                                            }
+                                          } else {
+                                            print('❌ No current music recommendation');
+                                          }
                                         },
                                         child: Stack(
                                           children: [
@@ -1034,5 +1073,110 @@ class MusicScreenState extends State<MusicScreen> with SingleTickerProviderState
         ],
       ),
     );
+  }
+
+  Future<void> _saveMusicToFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting save process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      print('👤 User data: $userData');
+      
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      print('📧 User email: $userEmail');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to user document
+      final userDocRef = firestore.collection('users').doc(userEmail);
+      print('📄 User document reference created');
+      
+      // Check if user document exists, if not create it
+      final userDoc = await userDocRef.get();
+      print('🔍 User document exists: ${userDoc.exists}');
+      
+      if (!userDoc.exists) {
+        print('📝 Creating new user document...');
+        await userDocRef.set({
+          'email': userEmail,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ User document created');
+      }
+      
+      // Get the saved music collection for the current user
+      final savedMusicRef = userDocRef.collection('saved');
+      print('🎵 Saved music collection reference created');
+
+      // Get the current count of saved items to use as the new document ID
+      final countSnapshot = await savedMusicRef.count().get();
+      final newDocId = ((countSnapshot.count ?? 0) + 1).toString();
+      print('🔢 New document ID: $newDocId');
+
+      // Create the music document
+      print('📝 Creating music document with data:');
+      print('Title: ${info['title']}');
+      print('Subtitle: ${info['artist']} · ${info['album']} (${info['year']})');
+      print('Description: ${info['description']}');
+      print('Spotify Link: ${info['spotifyUrl']}');
+      
+      await savedMusicRef.doc(newDocId).set({
+        'Title': info['title'] ?? '',
+        'Subtitle': '${info['artist']} · ${info['album']} (${info['year']})',
+        'Description': info['description'] ?? '',
+        'Youtube Link': info['spotifyUrl'] ?? '',
+        'Image Link': null,
+        'type': 'Music',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Music saved successfully with ID: $newDocId');
+    } catch (e, stackTrace) {
+      print('❌ Error saving music: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> _removeMusicFromFirestore(Map<String, String> info) async {
+    try {
+      print('🔄 Starting remove process...');
+      
+      // Get current user's email
+      final userData = await _userService.getCurrentUserData();
+      if (userData == null || userData['email'] == null) {
+        print('❌ No user email found');
+        return;
+      }
+
+      final userEmail = userData['email'] as String;
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get reference to saved music collection
+      final savedMusicRef = firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('saved');
+
+      // Query for the music with matching title
+      final querySnapshot = await savedMusicRef
+          .where('Title', isEqualTo: info['title'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Delete the first matching document
+        await querySnapshot.docs.first.reference.delete();
+        print('✅ Music removed successfully');
+      } else {
+        print('❌ No matching music found to remove');
+      }
+    } catch (e) {
+      print('❌ Error removing music: $e');
+    }
   }
 }

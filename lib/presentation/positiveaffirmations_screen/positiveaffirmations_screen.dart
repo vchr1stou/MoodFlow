@@ -516,10 +516,7 @@ class PositiveaffirmationsScreenState extends State<PositiveaffirmationsScreen> 
                                                 ] else ...[
                                                   Positioned.fill(
                                                     child: Center(
-                                                      child: CupertinoActivityIndicator(
-                                                        color: Colors.white,
-                                                        radius: 10,
-                                                      ),
+                                                      child: CupertinoActivityIndicator(color: Colors.white),
                                                     ),
                                                   ),
                                                 ],

@@ -198,9 +198,6 @@ class ImageConstant {
 
   static String imgPhonefill1 = '$imagePath/img_phonefill_1.svg';
 
-  static String imgDropDownMenuIndicator =
-      '$imagePath/img_drop_down_menu_indicator.png';
-
   static String imgScreenshot20250329 =
       '$imagePath/img_screenshot_2025_03_29.png';
 
