@@ -27,8 +27,14 @@ class LogScreenStep2PositiveScreen extends StatefulWidget {
 
   // Add static method to clear all static data
   static void clearAllData() {
+    debugPrint('[POSITIVE] clearAllData called');
+    // Clear static variables
     selectedPositiveFeelings = [];
     storedSelectedButtons = {};
+    // Clear storage
+    StorageService.savePositiveFeelings([]);
+    StorageService.savePositiveIntensities({});
+    debugPrint('[POSITIVE] All data cleared');
   }
 
   static void resetSvgTypes() {
@@ -49,10 +55,24 @@ class LogScreenStep2PositiveScreenState
   @override
   void initState() {
     super.initState();
-    // Initialize selectedButtons from stored values
-    selectedButtons.addAll(LogScreenStep2PositiveScreen.storedSelectedButtons);
-    // Update the static variable
-    LogScreenStep2PositiveScreen.selectedPositiveFeelings = getSelectedFeelings();
+    debugPrint('[POSITIVE] initState called');
+    
+    // Clear all data first
+    LogScreenStep2PositiveScreen.clearAllData();
+    LogScreenStep2PositiveScreen.resetSvgTypes();
+    
+    // Reset local state
+    setState(() {
+      selectedButtons.clear();
+      selectedFeelings = [];
+    });
+    
+    debugPrint('[POSITIVE] Local state reset - selectedButtons: $selectedButtons, selectedFeelings: $selectedFeelings');
+    
+    // Force a rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {});
+    });
   }
 
   @override

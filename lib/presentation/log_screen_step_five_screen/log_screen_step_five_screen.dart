@@ -16,10 +16,9 @@ import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/services/storage_service.dart';
 import '../../services/log_service.dart';
 import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.dart';
-import '../log_screen_step_2_negative_screen/log_screen_step_2_negative_screen.dart' as negative_screen;
+import '../log_screen_step_2_negative_screen/log_screen_step_2_negative_screen.dart';
 import '../log_screen_step_3_negative_screen/log_screen_step_3_negative_screen.dart';
 import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
-import '../log_screen_step_2_negative_page/log_screen_step_2_negative_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -194,7 +193,8 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       final year = timestamp.year.toString();
       final hour = timestamp.hour.toString().padLeft(2, '0');
       final minute = timestamp.minute.toString().padLeft(2, '0');
-      final subcollectionName = '${day}_${month}_${year}_${hour}_${minute}';
+      final second = timestamp.second.toString().padLeft(2, '0');
+      final subcollectionName = '${day}_${month}_${year}_${hour}_${minute}_${second}';
 
       print('Attempting to save log with subcollection name: $subcollectionName');
 
@@ -255,31 +255,38 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       }
 
       // Save negative feelings and their intensities
-      final selectedNegativeFeelings = negative_screen.LogScreenStep2NegativeScreen.selectedNegativeFeelings;
       final negativeFeelingIntensities = LogScreenStep3NegativeScreenState.storedSliderValues;
 
-      if (selectedNegativeFeelings.isNotEmpty) {
-        print('Saving negative feelings and intensities');
-        final negativeFeelingsData = selectedNegativeFeelings.map((feeling) {
-          return {
-            'name': feeling,
-            'intensity': negativeFeelingIntensities[feeling]?.round() ?? 0,
-            'timestamp': timestamp,
-            'createdAt': FieldValue.serverTimestamp(),
-          };
-        }).toList();
+      print('Negative feeling intensities: $negativeFeelingIntensities');
 
-        // Save each negative feeling as a separate document
-        for (var feelingData in negativeFeelingsData) {
+      if (negativeFeelingIntensities.isNotEmpty) {
+        print('Saving negative feelings and intensities');
+        
+        // Save each negative feeling as a separate document in the negative_feelings subcollection
+        for (var entry in negativeFeelingIntensities.entries) {
+          final feeling = entry.key;
+          final intensity = entry.value.round();
+          
+          print('Saving negative feeling: $feeling with intensity: $intensity');
+          
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.email)
               .collection('logs')
               .doc(subcollectionName)
               .collection('negative_feelings')
-              .doc(feelingData['name'] as String)
-              .set(feelingData);
+              .doc(feeling)  // Use feeling name as document ID
+              .set({
+            'intensity': intensity,
+            'timestamp': timestamp,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+          
+          print('Successfully saved negative feeling document: $feeling');
         }
+        print('Successfully saved all negative feelings data');
+      } else {
+        print('No negative feelings to save');
       }
 
       // Save journal text and Spotify track
@@ -352,18 +359,25 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
         print('Successfully saved photo names to Firestore');
       }
 
-      print('Log saved successfully, clearing local storage...');
-
       // Clear all local storage data
       await StorageService.clearAll();
+      
+      // Reset all static data first
+      LogScreenStep2PositiveScreen.resetSvgTypes();
+      LogScreenStep2NegativeScreen.resetSvgTypes();
+      LogScreenStep3PositiveScreenState.storedSliderValues.clear();
+      LogScreenStep3NegativeScreenState.storedSliderValues.clear();
+      
+      // Clear all data again to ensure nothing remains
+      await StorageService.clearAll();
+      
+      // Initialize with empty data
       await StorageService.saveSelectedDateTime(DateTime.now());
       await StorageService.saveCurrentMood('', '');
-
-      // Reset all SVG types to their default state
-      LogScreenStep2PositiveScreen.resetSvgTypes();
-      negative_screen.LogScreenStep2NegativeScreen.resetSvgTypes();
-      LogScreenStep3PositiveScreen.resetSvgTypes();
-      LogScreenStep3NegativeScreenState.resetSvgTypes();
+      await StorageService.savePositiveFeelings([]);
+      await StorageService.saveNegativeFeelings([]);
+      await StorageService.savePositiveIntensities({});
+      await StorageService.saveNegativeIntensities({});
 
       // Navigate to the home screen
       if (mounted) {

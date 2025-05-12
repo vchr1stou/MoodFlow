@@ -5,10 +5,24 @@ import '../../core/services/storage_service.dart';
 import '../../core/utils/size_utils.dart';
 import '../log_screen/log_screen.dart';
 import '../log_screen_step_3_negative_screen/log_screen_step_3_negative_screen.dart';
-import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
 
 class LogScreenStep2NegativeScreen extends StatefulWidget {
   const LogScreenStep2NegativeScreen({Key? key}) : super(key: key);
+
+  // Static variables
+  static List<String> selectedNegativeFeelings = [];
+  static Set<int> storedSelectedButtons = {};
+
+  static void resetSvgTypes() {
+    // Reset all SVG types to their default state
+    StorageService.saveNegativeFeelings([]);
+    StorageService.saveNegativeIntensities({});
+    // Clear stored slider values from step 3
+    LogScreenStep3NegativeScreenState.storedSliderValues.clear();
+    // Clear static variables
+    selectedNegativeFeelings.clear();
+    storedSelectedButtons.clear();
+  }
 
   @override
   State<LogScreenStep2NegativeScreen> createState() => _LogScreenStep2NegativeScreenState();
@@ -27,6 +41,19 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     _loadSavedData();
   }
 
+  @override
+  void dispose() {
+    // Save state when the screen is disposed
+    LogScreenStep2NegativeScreen.selectedNegativeFeelings = List.from(selectedFeelings);
+    LogScreenStep2NegativeScreen.storedSelectedButtons = Set.from(selectedFeelings.map((feeling) => _getFeelingIndex(feeling)));
+    super.dispose();
+  }
+
+  int _getFeelingIndex(String feeling) {
+    final feelings = ['Sad', 'Angry', 'Anxious', 'Stressed', 'Tired', 'Bored', 'Lonely', 'Frustrated', 'Ashamed', 'Exhausted'];
+    return feelings.indexOf(feeling);
+  }
+
   void _resetSelectedFeelings() {
     setState(() {
       selectedFeelings = [];
@@ -34,6 +61,11 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     });
     StorageService.saveNegativeFeelings([]);
     StorageService.saveNegativeIntensities({});
+    // Clear stored slider values
+    LogScreenStep3NegativeScreenState.storedSliderValues.clear();
+    // Clear static variables
+    LogScreenStep2NegativeScreen.selectedNegativeFeelings.clear();
+    LogScreenStep2NegativeScreen.storedSelectedButtons.clear();
   }
 
   Future<void> _loadSavedData() async {
@@ -56,7 +88,11 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
     setState(() {
       selectedFeelings = savedFeelings;
       intensities = savedIntensities;
+      // Update static variables
+      LogScreenStep2NegativeScreen.selectedNegativeFeelings = List.from(savedFeelings);
+      LogScreenStep2NegativeScreen.storedSelectedButtons = Set.from(savedFeelings.map((feeling) => _getFeelingIndex(feeling)));
     });
+    print('Loaded negative feelings: ${LogScreenStep2NegativeScreen.selectedNegativeFeelings}');
   }
 
   void _onFeelingSelected(String feeling) {
@@ -64,13 +100,20 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
       if (selectedFeelings.contains(feeling)) {
         selectedFeelings.remove(feeling);
         intensities.remove(feeling);
+        // Also remove from static list
+        LogScreenStep2NegativeScreen.selectedNegativeFeelings.remove(feeling);
+        LogScreenStep2NegativeScreen.storedSelectedButtons.remove(_getFeelingIndex(feeling));
       } else {
         selectedFeelings.add(feeling);
         intensities[feeling] = 0.5; // Default intensity
+        // Also add to static list
+        LogScreenStep2NegativeScreen.selectedNegativeFeelings.add(feeling);
+        LogScreenStep2NegativeScreen.storedSelectedButtons.add(_getFeelingIndex(feeling));
       }
     });
     StorageService.saveNegativeFeelings(selectedFeelings);
     StorageService.saveNegativeIntensities(intensities);
+    print('Selected negative feelings updated: ${LogScreenStep2NegativeScreen.selectedNegativeFeelings}');
   }
 
   void _onIntensityChanged(String feeling, double value) {
@@ -155,9 +198,25 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
                               ),
                             ),
                             SizedBox(height: 23.h),
-                            // Your feelings selection UI here
-                            // ... existing code ...
-                            
+                            // Feelings grid
+                            Wrap(
+                              spacing: 10.h,
+                              runSpacing: 10.h,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                _buildFeelingButton('Sad', 0),
+                                _buildFeelingButton('Angry', 1),
+                                _buildFeelingButton('Anxious', 2),
+                                _buildFeelingButton('Stressed', 3),
+                                _buildFeelingButton('Tired', 4),
+                                _buildFeelingButton('Bored', 5),
+                                _buildFeelingButton('Lonely', 6),
+                                _buildFeelingButton('Frustrated', 7),
+                                _buildFeelingButton('Ashamed', 8),
+                                _buildFeelingButton('Exhausted', 9),
+                              ],
+                            ),
+                            SizedBox(height: 50.h),
                             // Next button
                             Positioned(
                               right: 12.h,
@@ -221,6 +280,46 @@ class _LogScreenStep2NegativeScreenState extends State<LogScreenStep2NegativeScr
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeelingButton(String feeling, int index) {
+    final isSelected = selectedFeelings.contains(feeling);
+    return GestureDetector(
+      onTap: () => _onFeelingSelected(feeling),
+      child: Container(
+        width: 100.h,
+        height: 100.h,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20.h),
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.3),
+            width: 2.h,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/images/negative_$index.svg',
+              width: 40.h,
+              height: 40.h,
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              feeling,
+              style: TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
               ),
             ),
           ],

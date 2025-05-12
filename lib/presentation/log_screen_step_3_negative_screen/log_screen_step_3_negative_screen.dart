@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
+import '../../core/services/storage_service.dart';
 import '../log_screen_step_four_screen/log_screen_step_four_screen.dart';
 import '../log_screen_step_3_positive_screen/log_screen_step_3_positive_screen.dart';
 import '../log_screen_step_2_positive_screen/log_screen_step_2_positive_screen.dart';
@@ -17,31 +18,38 @@ class LogScreenStep3NegativeScreen extends StatefulWidget {
     required this.selectedFeelings,
   }) : super(key: key);
 
+  // Static method to clear all data
+  static void clearAllData() {
+    LogScreenStep3NegativeScreenState.storedSliderValues.clear();
+  }
+
   @override
   LogScreenStep3NegativeScreenState createState() =>
       LogScreenStep3NegativeScreenState();
 
   static Widget builder(BuildContext context) {
-    return const LogScreenStep3NegativeScreen(selectedFeelings: []);
+    return LogScreenStep3NegativeScreen(
+      selectedFeelings: LogScreenStep2NegativeScreen.selectedNegativeFeelings,
+    );
   }
 }
 
 class LogScreenStep3NegativeScreenState
     extends State<LogScreenStep3NegativeScreen> {
-  // Map to store slider values for each feeling
-  final Map<String, double> sliderValues = {};
+  // Static map to store slider values
+  static Map<String, double> storedSliderValues = {};
+  Map<String, double> sliderValues = {};
   final ScrollController _scrollController = ScrollController();
   bool _showGradient = true;
-
-  // Static map to store slider values across screen switches
-  static Map<String, double> storedSliderValues = {};
 
   @override
   void initState() {
     super.initState();
-    // Initialize slider values from stored values or default to 0.0
+    // Clear any previous stored values
+    storedSliderValues.clear();
+    // Initialize slider values for selected feelings
     for (var feeling in widget.selectedFeelings) {
-      sliderValues[feeling] = storedSliderValues[feeling] ?? 0.0;
+      sliderValues[feeling] = 0.0; // Start from 0 instead of 0.5
     }
 
     // Add scroll listener
@@ -67,6 +75,45 @@ class LogScreenStep3NegativeScreenState
     setState(() {
       _showGradient = currentScroll < maxScroll - delta;
     });
+  }
+
+  void _onIntensityChanged(String feeling, double value) {
+    setState(() {
+      sliderValues[feeling] = value;
+      // Update stored values immediately
+      storedSliderValues[feeling] = value;
+    });
+    print('Updated intensity for $feeling: $value');
+    print('Current stored slider values: $storedSliderValues');
+  }
+
+  void _handleNext() async {
+    // Clear previous stored values
+    storedSliderValues.clear();
+    
+    // Save current intensities
+    for (var feeling in widget.selectedFeelings) {
+      if (sliderValues.containsKey(feeling)) {
+        storedSliderValues[feeling] = sliderValues[feeling]!;
+      }
+    }
+    print('Saving intensities before navigation: $storedSliderValues');
+    
+    // Clear all storage data before navigation
+    await StorageService.clearAll();
+    // Re-save the intensities after clearing
+    for (var feeling in widget.selectedFeelings) {
+      if (sliderValues.containsKey(feeling)) {
+        storedSliderValues[feeling] = sliderValues[feeling]!;
+      }
+    }
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LogScreenStepFourScreen.builder(context),
+      ),
+    );
   }
 
   @override
@@ -291,11 +338,7 @@ class LogScreenStep3NegativeScreenState
                                                         max: 100,
                                                         value: sliderValues[feeling] ?? 0.0,
                                                         onChanged: (value) {
-                                                          setState(() {
-                                                            sliderValues[feeling] = value;
-                                                            // Update stored values immediately
-                                                            storedSliderValues[feeling] = value;
-                                                          });
+                                                          _onIntensityChanged(feeling, value);
                                                         },
                                                         inactiveColor: const Color(0xFFE5E5E5).withOpacity(0.3),
                                                       ),
@@ -352,14 +395,7 @@ class LogScreenStep3NegativeScreenState
                 alignment: Alignment.center,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LogScreenStepFourScreen.builder(context),
-                        ),
-                      );
-                    },
+                    onTap: _handleNext,
                     child: SvgPicture.asset(
                       'assets/images/next_log.svg',
                       width: 142.h,
@@ -369,14 +405,7 @@ class LogScreenStep3NegativeScreenState
                   Positioned(
                     top: 8.h,
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LogScreenStepFourScreen.builder(context),
-                          ),
-                        );
-                      },
+                      onTap: _handleNext,
                       child: Text(
                         "Next",
                         style: TextStyle(
@@ -452,7 +481,8 @@ class LogScreenStep3NegativeScreenState
 
   static void resetSvgTypes() {
     // Reset all SVG types to their default state
-    storedSliderValues = {};
+    storedSliderValues.clear();
+    print('Reset negative slider values');
   }
 }
 

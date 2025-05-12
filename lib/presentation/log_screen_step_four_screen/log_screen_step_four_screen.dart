@@ -39,6 +39,10 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
   @override
   void initState() {
     super.initState();
+    // Clear any previous track and journal text when opening the screen
+    StorageService.saveSelectedTrack({});
+    StorageService.saveJournalText('');
+    _journalPreview = '';
     _loadSelectedTrack();
     _loadSelectedPhotos();
   }
@@ -179,11 +183,12 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            // If text was deleted, reset preview
+                            // If text was deleted, reset preview and clear storage
                             if (_journalController.text.isEmpty) {
                               setState(() {
                                 _journalPreview = '';
                               });
+                              StorageService.saveJournalText('');
                             }
                             Navigator.pop(context);
                           },
@@ -194,22 +199,21 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Save the journal entry
+                            // Save the journal entry only if it's not empty
                             if (_journalController.text.isNotEmpty) {
                               setState(() {
                                 _journalPreview = _journalController.text;
                               });
                               // Save to StorageService
                               StorageService.saveJournalText(_journalController.text);
-                              Navigator.pop(context);
                             } else {
-                              // If text is empty, reset preview and close
+                              // If text is empty, reset preview and clear storage
                               setState(() {
                                 _journalPreview = '';
                               });
                               StorageService.saveJournalText('');
-                              Navigator.pop(context);
                             }
+                            Navigator.pop(context);
                           },
                           child: Text(
                             'Save',
@@ -817,64 +821,18 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                     onTap: () async {
                       if (_isSaving) return;
                       
-                      // Save journal text to Firestore
+                      // Save journal text to StorageService only
                       if (_journalPreview.isNotEmpty) {
                         setState(() {
                           _isSaving = true;
                         });
                         
                         try {
-                          final user = FirebaseAuth.instance.currentUser;
-                          print('Current user: ${user?.email}');
-                          
-                          if (user != null) {
-                            // Get current date in YYYY-MM-DD format
-                            final now = DateTime.now();
-                            final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-                            
-                            print('Creating document at: users/${user.email}/logs/$dateStr');
-                            
-                            // First ensure the date document exists
-                            final dateDoc = FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(user.email)
-                                .collection('logs')
-                                .doc(dateStr);
-                            
-                            // Create the date document if it doesn't exist
-                            await dateDoc.set({
-                              'created_at': FieldValue.serverTimestamp(),
-                            }, SetOptions(merge: true));
-                            
-                            print('Adding journal entry to: users/${user.email}/logs/$dateStr/Journal');
-                            
-                            // Add the journal entry
-                            await dateDoc.collection('Journal').add({
-                              'text': _journalPreview,
-                              'timestamp': FieldValue.serverTimestamp(),
-                            });
-                            
-                            print('Successfully saved journal text');
-                            
-                            // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Journal entry saved successfully'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } else {
-                            print('No user logged in');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('You must be logged in to save journal entries'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
+                          // Save to StorageService
+                          await StorageService.saveJournalText(_journalPreview);
+                          print('Successfully saved journal text to StorageService');
                         } catch (e) {
                           print('Error saving journal text: $e');
-                          // Show error to user
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Failed to save journal entry: ${e.toString()}'),
@@ -933,64 +891,18 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                       onTap: () async {
                         if (_isSaving) return;
                         
-                        // Save journal text to Firestore
+                        // Save journal text to StorageService only
                         if (_journalPreview.isNotEmpty) {
                           setState(() {
                             _isSaving = true;
                           });
                           
                           try {
-                            final user = FirebaseAuth.instance.currentUser;
-                            print('Current user: ${user?.email}');
-                            
-                            if (user != null) {
-                              // Get current date in YYYY-MM-DD format
-                              final now = DateTime.now();
-                              final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-                              
-                              print('Creating document at: users/${user.email}/logs/$dateStr');
-                              
-                              // First ensure the date document exists
-                              final dateDoc = FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(user.email)
-                                  .collection('logs')
-                                  .doc(dateStr);
-                              
-                              // Create the date document if it doesn't exist
-                              await dateDoc.set({
-                                'created_at': FieldValue.serverTimestamp(),
-                              }, SetOptions(merge: true));
-                              
-                              print('Adding journal entry to: users/${user.email}/logs/$dateStr/Journal');
-                              
-                              // Add the journal entry
-                              await dateDoc.collection('Journal').add({
-                                'text': _journalPreview,
-                                'timestamp': FieldValue.serverTimestamp(),
-                              });
-                              
-                              print('Successfully saved journal text');
-                              
-                              // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Journal entry saved successfully'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            } else {
-                              print('No user logged in');
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('You must be logged in to save journal entries'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
+                            // Save to StorageService
+                            await StorageService.saveJournalText(_journalPreview);
+                            print('Successfully saved journal text to StorageService');
                           } catch (e) {
                             print('Error saving journal text: $e');
-                            // Show error to user
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Failed to save journal entry: ${e.toString()}'),

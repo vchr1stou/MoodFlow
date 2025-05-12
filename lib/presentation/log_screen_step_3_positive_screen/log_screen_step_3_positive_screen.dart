@@ -23,7 +23,8 @@ class LogScreenStep3PositiveScreen extends StatefulWidget {
   // Add static method to reset all SVG types
   static void resetSvgTypes() {
     // Reset all SVG types to their default state
-    LogScreenStep3PositiveScreenState.storedSliderValues = {};
+    LogScreenStep3PositiveScreenState.storedSliderValues.clear();
+    print('Reset positive slider values');
   }
 }
 
@@ -68,6 +69,55 @@ class LogScreenStep3PositiveScreenState
     setState(() {
       _showGradient = currentScroll < maxScroll - delta;
     });
+  }
+
+  void _onIntensityChanged(String feeling, double value) {
+    setState(() {
+      sliderValues[feeling] = value;
+      // Update stored values immediately
+      storedSliderValues[feeling] = value;
+    });
+    print('Updated intensity for $feeling: $value');
+    print('Current stored slider values: $storedSliderValues');
+  }
+
+  void _handleNext() async {
+    // Save all intensities before navigating
+    for (var feeling in LogScreenStep2PositiveScreen.selectedPositiveFeelings) {
+      if (sliderValues.containsKey(feeling)) {
+        storedSliderValues[feeling] = sliderValues[feeling]!;
+      }
+    }
+    print('Saving intensities before navigation: $storedSliderValues');
+    
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFourScreen.builder(context),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+          );
+          var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+          );
+          return FadeTransition(
+            opacity: fadeAnimation,
+            child: ScaleTransition(
+              scale: scaleAnimation,
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 400),
+      ),
+    );
   }
 
   @override
@@ -294,11 +344,7 @@ class LogScreenStep3PositiveScreenState
                                                         max: 100,
                                                         value: sliderValues[feeling] ?? 0.0,
                                                         onChanged: (value) {
-                                                          setState(() {
-                                                            sliderValues[feeling] = value;
-                                                            // Update stored values immediately
-                                                            storedSliderValues[feeling] = value;
-                                                          });
+                                                          _onIntensityChanged(feeling, value);
                                                         },
                                                         inactiveColor: const Color(0xFFE5E5E5).withOpacity(0.3),
                                                       ),
@@ -355,36 +401,7 @@ class LogScreenStep3PositiveScreenState
                 alignment: Alignment.center,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFourScreen.builder(context),
-                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                            var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOut,
-                              ),
-                            );
-                            var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOut,
-                              ),
-                            );
-                            return FadeTransition(
-                              opacity: fadeAnimation,
-                              child: ScaleTransition(
-                                scale: scaleAnimation,
-                                child: child,
-                              ),
-                            );
-                          },
-                          transitionDuration: Duration(milliseconds: 400),
-                        ),
-                      );
-                    },
+                    onTap: _handleNext,
                     child: SvgPicture.asset(
                       'assets/images/next_log.svg',
                       width: 142.h,
@@ -394,36 +411,7 @@ class LogScreenStep3PositiveScreenState
                   Positioned(
                     top: 8.h,
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => LogScreenStepFourScreen.builder(context),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                ),
-                              );
-                              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                ),
-                              );
-                              return FadeTransition(
-                                opacity: fadeAnimation,
-                                child: ScaleTransition(
-                                  scale: scaleAnimation,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            transitionDuration: Duration(milliseconds: 400),
-                          ),
-                        );
-                      },
+                      onTap: _handleNext,
                       child: Text(
                         "Next",
                         style: TextStyle(
