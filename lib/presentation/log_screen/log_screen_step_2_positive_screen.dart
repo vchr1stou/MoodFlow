@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/utils/size_utils.dart';
@@ -96,10 +97,11 @@ class _LogScreenStep2PositiveScreenState extends State<LogScreenStep2PositiveScr
               await StorageService.clearAll();
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
+                CupertinoPageRoute(
                   builder: (context) => LogScreen.builder(
                     context,
                     feeling: "Bright 😊",
+                    source: _moodSource ?? "home",
                   ),
                 ),
               );

@@ -15,8 +15,21 @@ class ThemeHelper {
           iconTheme: IconThemeData(color: Colors.white),
         ),
         textTheme: TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
+          bodyLarge: TextStyle(
+            color: Colors.white,
+            decoration: TextDecoration.none,
+            decorationColor: Colors.transparent,
+          ),
+          bodyMedium: TextStyle(
+            color: Colors.white,
+            decoration: TextDecoration.none,
+            decorationColor: Colors.transparent,
+          ),
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor: Colors.transparent,
+          selectionHandleColor: Colors.transparent,
+          cursorColor: Colors.transparent,
         ),
       );
 
