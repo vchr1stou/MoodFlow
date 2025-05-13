@@ -24,12 +24,7 @@ class StatisticsmoodTabPageState extends State<StatisticsmoodTabPage> {
       child: Column(
         children: [
           Expanded(
-            child: Center(
-              child: Text(
-                "No data available",
-                style: CustomTextStyles.titleMediumOnPrimary,
-              ),
-            ),
+            child: Container(),
           ),
         ],
       ),
