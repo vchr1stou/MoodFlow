@@ -16,6 +16,7 @@ import 'models/statistics_mood_charts_model.dart';
 import 'provider/statistics_mood_charts_provider.dart';
 import 'statisticsmood_tab_page.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class StatisticsMoodChartsScreen extends StatefulWidget {
   const StatisticsMoodChartsScreen({Key? key}) : super(key: key);
@@ -56,6 +57,47 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
     'Bright': 0,
   };
   bool _isLoading = true;
+
+  // Mood image mapping
+  static const List<Map<String, String>> moodImageRows = [
+    { 'mood': 'Bright',  'asset': 'emoji_star_struck.png' },
+    { 'mood': 'Light',   'asset': 'light.png' },
+    { 'mood': 'Neutral', 'asset': 'neutral.png' },
+    { 'mood': 'Low',     'asset': 'low.png' },
+    { 'mood': 'Heavy',   'asset': 'heavy.png' },
+  ];
+
+  // Helper: mood to numeric value
+  static const Map<String, int> moodToValue = {
+    'Heavy': 0,
+    'Low': 1,
+    'Neutral': 2,
+    'Light': 3,
+    'Bright': 4,
+  };
+  static const List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Store mood logs for the week/month
+  List<List<int>> _weeklyMoodValues = List.generate(7, (_) => []);
+  List<double> _weeklyMoodAverages = List.filled(7, 0);
+  List<DateTime> _weekDates = List.generate(7, (index) => DateTime.now().subtract(Duration(days: 6 - index)));
+  
+  // Store mood logs for the month
+  List<List<int>> _monthlyMoodValues = List.generate(30, (_) => []);
+  List<double> _monthlyMoodAverages = List.filled(30, 0);
+  List<DateTime> _monthDates = List.generate(30, (index) => DateTime.now().subtract(Duration(days: 29 - index)));
+
+  // Store mood logs for all time
+  List<List<int>> _allTimeMoodValues = [];
+  List<double> _allTimeMoodAverages = [];
+  List<DateTime> _allTimeDates = [];
+  String _allTimePeriod = 'months'; // 'months' or 'years'
+
+  // Store mood logs for custom range
+  List<List<int>> _customMoodValues = [];
+  List<double> _customMoodAverages = [];
+  List<DateTime> _customDates = [];
+  String _customPeriod = 'days'; // 'days', 'weeks', 'months', or 'years'
 
   @override
   void initState() {
@@ -99,21 +141,66 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
           // Set end time to 23:59:59 of today
           endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
           // Set start time to midnight of 7 days ago
-          startDate = now.subtract(Duration(days: 7));
+          startDate = now.subtract(Duration(days: 6));
           startDate = DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0);
+          
+          // Update week dates for display
+          _weekDates = List.generate(7, (index) => startDate.add(Duration(days: index)));
           break;
         case 'Past Month':
           // Set end time to 23:59:59 of today
           endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
           // Set start time to midnight of 30 days ago
-          startDate = now.subtract(Duration(days: 30));
+          startDate = now.subtract(Duration(days: 29));
           startDate = DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0);
+          
+          // Update month dates for display
+          _monthDates = List.generate(30, (index) => startDate.add(Duration(days: index)));
+          
+          // Reset monthly mood values
+          _monthlyMoodValues = List.generate(30, (_) => []);
+          _monthlyMoodAverages = List.filled(30, 0);
           break;
         case 'All Time':
           // Set end time to 23:59:59 of today
           endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
           // Set start time to a very old date (e.g., 10 years ago)
           startDate = DateTime(now.year - 10, now.month, now.day, 0, 0, 0);
+          
+          // Reset all time mood values
+          _allTimeMoodValues = [];
+          _allTimeMoodAverages = [];
+          _allTimeDates = [];
+          break;
+        case 'Custom':
+          if (_rangeStart != null && _rangeEnd != null) {
+            // Set start time to 00:00:00 of start date
+            startDate = DateTime(_rangeStart!.year, _rangeStart!.month, _rangeStart!.day, 0, 0, 0);
+            // Set end time to 23:59:59 of end date
+            endDate = DateTime(_rangeEnd!.year, _rangeEnd!.month, _rangeEnd!.day, 23, 59, 59);
+            
+            // Reset custom mood values
+            _customMoodValues = [];
+            _customMoodAverages = [];
+            _customDates = [];
+            
+            // Determine the appropriate period based on the date range
+            final daysDifference = endDate.difference(startDate).inDays;
+            if (daysDifference <= 7) {
+              _customPeriod = 'days';
+            } else if (daysDifference <= 31) {
+              _customPeriod = 'weeks';
+            } else if (daysDifference <= 365) {
+              _customPeriod = 'months';
+            } else {
+              _customPeriod = 'years';
+            }
+          } else {
+            // Fallback to past week if custom range is not set
+            endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+            startDate = now.subtract(Duration(days: 6));
+            startDate = DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0);
+          }
           break;
         default:
           // Custom date range
@@ -154,6 +241,10 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
 
       print('DEBUG: Found ${filteredDocs.length} logs in date range');
 
+      // Reset weekly mood values
+      _weeklyMoodValues = List.generate(7, (_) => []);
+      _weeklyMoodAverages = List.filled(7, 0);
+
       // Print all document IDs for debugging
       for (var doc in filteredDocs) {
         print('DEBUG: Found document with ID: ${doc.id}');
@@ -161,16 +252,143 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
         print('DEBUG: Log data: $data');
         final mood = data['mood'] as String?;
         if (mood != null) {
-          // Extract just the mood name without emoji
           final moodName = mood.split(' ')[0];
-          print('DEBUG: Processing mood: $mood, extracted name: $moodName');
           if (_moodCounts.containsKey(moodName)) {
             _moodCounts[moodName] = (_moodCounts[moodName] ?? 0) + 1;
-            print('DEBUG: Updated count for $moodName: ${_moodCounts[moodName]}');
-          } else {
-            print('DEBUG: Unknown mood name: $moodName');
+          }
+          
+          // For all graph types: collect mood values
+          if ((_selectedPeriod == 'Past Week' || _selectedPeriod == 'Past Month' || 
+               _selectedPeriod == 'All Time' || _selectedPeriod == 'Custom') && 
+              moodToValue.containsKey(moodName)) {
+            final timestamp = data['timestamp'] as Timestamp?;
+            if (timestamp != null) {
+              final logDate = timestamp.toDate();
+              if (_selectedPeriod == 'Past Week') {
+                int weekday = logDate.weekday;
+                _weeklyMoodValues[weekday-1].add(moodToValue[moodName]!);
+              } else if (_selectedPeriod == 'Past Month') {
+                int daysFromStart = logDate.difference(startDate).inDays;
+                if (daysFromStart >= 0 && daysFromStart < 30) {
+                  _monthlyMoodValues[daysFromStart].add(moodToValue[moodName]!);
+                }
+              } else if (_selectedPeriod == 'All Time') {
+                DateTime periodDate;
+                if (logDate.year == now.year) {
+                  periodDate = DateTime(logDate.year, logDate.month, 1);
+                  _allTimePeriod = 'months';
+                } else {
+                  periodDate = DateTime(logDate.year, 1, 1);
+                  _allTimePeriod = 'years';
+                }
+                
+                int periodIndex = _allTimeDates.indexWhere((date) => 
+                  _allTimePeriod == 'months' 
+                    ? (date.year == periodDate.year && date.month == periodDate.month)
+                    : (date.year == periodDate.year)
+                );
+                
+                if (periodIndex == -1) {
+                  _allTimeDates.add(periodDate);
+                  _allTimeMoodValues.add([]);
+                  periodIndex = _allTimeDates.length - 1;
+                }
+                
+                _allTimeMoodValues[periodIndex].add(moodToValue[moodName]!);
+              } else if (_selectedPeriod == 'Custom') {
+                DateTime periodDate;
+                switch (_customPeriod) {
+                  case 'days':
+                    periodDate = DateTime(logDate.year, logDate.month, logDate.day);
+                    break;
+                  case 'weeks':
+                    // Get the Monday of the week
+                    final weekDay = logDate.weekday;
+                    periodDate = logDate.subtract(Duration(days: weekDay - 1));
+                    periodDate = DateTime(periodDate.year, periodDate.month, periodDate.day);
+                    break;
+                  case 'months':
+                    periodDate = DateTime(logDate.year, logDate.month, 1);
+                    break;
+                  case 'years':
+                    periodDate = DateTime(logDate.year, 1, 1);
+                    break;
+                  default:
+                    periodDate = DateTime(logDate.year, logDate.month, logDate.day);
+                }
+                
+                int periodIndex = _customDates.indexWhere((date) {
+                  switch (_customPeriod) {
+                    case 'days':
+                      return date.year == periodDate.year && 
+                             date.month == periodDate.month && 
+                             date.day == periodDate.day;
+                    case 'weeks':
+                      return date.year == periodDate.year && 
+                             date.month == periodDate.month && 
+                             date.day == periodDate.day;
+                    case 'months':
+                      return date.year == periodDate.year && 
+                             date.month == periodDate.month;
+                    case 'years':
+                      return date.year == periodDate.year;
+                    default:
+                      return false;
+                  }
+                });
+                
+                if (periodIndex == -1) {
+                  _customDates.add(periodDate);
+                  _customMoodValues.add([]);
+                  periodIndex = _customDates.length - 1;
+                }
+                
+                _customMoodValues[periodIndex].add(moodToValue[moodName]!);
+              }
+            }
           }
         }
+      }
+
+      // Calculate averages for each period
+      if (_selectedPeriod == 'Past Week') {
+        for (int i = 0; i < 7; i++) {
+          if (_weeklyMoodValues[i].isNotEmpty) {
+            _weeklyMoodAverages[i] = _weeklyMoodValues[i].reduce((a, b) => a + b) / _weeklyMoodValues[i].length;
+          } else {
+            _weeklyMoodAverages[i] = double.nan;
+          }
+        }
+      } else if (_selectedPeriod == 'Past Month') {
+        for (int i = 0; i < 30; i++) {
+          if (_monthlyMoodValues[i].isNotEmpty) {
+            _monthlyMoodAverages[i] = _monthlyMoodValues[i].reduce((a, b) => a + b) / _monthlyMoodValues[i].length;
+          } else {
+            _monthlyMoodAverages[i] = double.nan;
+          }
+        }
+      } else if (_selectedPeriod == 'All Time') {
+        final sortedIndices = List<int>.generate(_allTimeDates.length, (i) => i)
+          ..sort((a, b) => _allTimeDates[a].compareTo(_allTimeDates[b]));
+        
+        _allTimeDates = sortedIndices.map((i) => _allTimeDates[i]).toList();
+        _allTimeMoodValues = sortedIndices.map((i) => _allTimeMoodValues[i]).toList();
+        
+        _allTimeMoodAverages = _allTimeMoodValues.map((values) {
+          if (values.isEmpty) return double.nan;
+          return values.reduce((a, b) => a + b) / values.length;
+        }).toList();
+      } else if (_selectedPeriod == 'Custom') {
+        final sortedIndices = List<int>.generate(_customDates.length, (i) => i)
+          ..sort((a, b) => _customDates[a].compareTo(_customDates[b]));
+        
+        _customDates = sortedIndices.map((i) => _customDates[i]).toList();
+        _customMoodValues = sortedIndices.map((i) => _customMoodValues[i]).toList();
+        
+        _customMoodAverages = _customMoodValues.map((values) {
+          if (values.isEmpty) return double.nan;
+          return values.reduce((a, b) => a + b) / values.length;
+        }).toList();
       }
 
       print('DEBUG: Final mood counts: $_moodCounts');
@@ -374,6 +592,159 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
                                                             strokeWidth: 48,
                                                           ),
                                                   ),
+                                                  SizedBox(height: 20),
+                                                  if (_selectedPeriod == 'Past Week' || _selectedPeriod == 'Past Month' || 
+                                                      _selectedPeriod == 'All Time' || _selectedPeriod == 'Custom')
+                                                    Stack(
+                                                      alignment: Alignment.center,
+                                                      children: [
+                                                        SvgPicture.asset(
+                                                          'assets/images/graph_box.svg',
+                                                          width: 352,
+                                                          height: 218,
+                                                        ),
+                                                        Positioned(
+                                                          top: 38,
+                                                          child: SizedBox(
+                                                            width: 300,
+                                                            height: 200,
+                                                            child: Stack(
+                                                              alignment: Alignment.center,
+                                                              children: [
+                                                                if (_selectedPeriod == 'Past Week' && _weeklyMoodValues.every((values) => values.isEmpty) ||
+                                                                    _selectedPeriod == 'Past Month' && _monthlyMoodValues.every((values) => values.isEmpty) ||
+                                                                    _selectedPeriod == 'All Time' && _allTimeMoodValues.every((values) => values.isEmpty) ||
+                                                                    _selectedPeriod == 'Custom' && _customMoodValues.every((values) => values.isEmpty))
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'No data available',
+                                                                      style: GoogleFonts.roboto(
+                                                                        fontSize: 11,
+                                                                        fontWeight: FontWeight.bold,
+                                                                        color: Colors.white,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                else
+                                                                  Padding(
+                                                                    padding: const EdgeInsets.only(bottom: 40.0),
+                                                                    child: LineChart(
+                                                                      LineChartData(
+                                                                        minY: 0,
+                                                                        maxY: 4,
+                                                                        titlesData: FlTitlesData(
+                                                                          leftTitles: AxisTitles(
+                                                                            sideTitles: SideTitles(
+                                                                              showTitles: true,
+                                                                              interval: 1,
+                                                                              getTitlesWidget: (value, meta) {
+                                                                                final moods = ['😔', '😕', '😐', '😃', '😊'];
+                                                                                if (value % 1 == 0 && value >= 0 && value <= 4) {
+                                                                                  return Padding(
+                                                                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                                                                    child: Text(moods[value.toInt()], style: TextStyle(color: Colors.white, fontSize: 18)),
+                                                                                  );
+                                                                                }
+                                                                                return Container();
+                                                                              },
+                                                                              reservedSize: 32,
+                                                                            ),
+                                                                          ),
+                                                                          bottomTitles: AxisTitles(
+                                                                            sideTitles: SideTitles(
+                                                                              showTitles: true,
+                                                                              interval: _selectedPeriod == 'Past Week' ? 1 : 
+                                                                                       _selectedPeriod == 'Past Month' ? 5 : 
+                                                                                       _selectedPeriod == 'Custom' ? 
+                                                                                         (_customPeriod == 'days' ? 1 :
+                                                                                          _customPeriod == 'weeks' ? 1 :
+                                                                                          _customPeriod == 'months' ? 1 : 1) :
+                                                                                       _allTimePeriod == 'months' ? 1 : 1,
+                                                                              reservedSize: 30,
+                                                                              getTitlesWidget: (value, meta) {
+                                                                                if (_selectedPeriod == 'Past Week' && value >= 0 && value < 7) {
+                                                                                  return Padding(
+                                                                                    padding: const EdgeInsets.only(top: 8.0),
+                                                                                    child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                  );
+                                                                                } else if (_selectedPeriod == 'Past Month' && value >= 0 && value < 30) {
+                                                                                  return Padding(
+                                                                                    padding: const EdgeInsets.only(top: 8.0),
+                                                                                    child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                  );
+                                                                                } else if (_selectedPeriod == 'All Time' && value >= 0 && value < _allTimeDates.length) {
+                                                                                  return Padding(
+                                                                                    padding: const EdgeInsets.only(top: 8.0),
+                                                                                    child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                  );
+                                                                                } else if (_selectedPeriod == 'Custom' && value >= 0 && value < _customDates.length) {
+                                                                                  return Padding(
+                                                                                    padding: const EdgeInsets.only(top: 8.0),
+                                                                                    child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                  );
+                                                                                }
+                                                                                return Container();
+                                                                              },
+                                                                            ),
+                                                                          ),
+                                                                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                                                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                                                        ),
+                                                                        gridData: FlGridData(
+                                                                          show: true,
+                                                                          horizontalInterval: 1,
+                                                                          verticalInterval: _selectedPeriod == 'Past Week' ? 1 : 
+                                                                                           _selectedPeriod == 'Past Month' ? 5 : 
+                                                                                           _selectedPeriod == 'Custom' ? 
+                                                                                             (_customPeriod == 'days' ? 1 :
+                                                                                              _customPeriod == 'weeks' ? 1 :
+                                                                                              _customPeriod == 'months' ? 1 : 1) :
+                                                                                           _allTimePeriod == 'months' ? 1 : 1,
+                                                                          getDrawingHorizontalLine: (value) => FlLine(
+                                                                            color: Colors.white24,
+                                                                            strokeWidth: 1,
+                                                                            dashArray: [5, 5],
+                                                                          ),
+                                                                          getDrawingVerticalLine: (value) => FlLine(
+                                                                            color: Colors.white24,
+                                                                            strokeWidth: 1,
+                                                                            dashArray: [5, 5],
+                                                                          ),
+                                                                        ),
+                                                                        borderData: FlBorderData(show: false),
+                                                                        lineBarsData: [
+                                                                          LineChartBarData(
+                                                                            spots: [
+                                                                              for (int i = 0; i < (_selectedPeriod == 'Past Week' ? 7 : 
+                                                                                         _selectedPeriod == 'Past Month' ? 30 : 
+                                                                                         _selectedPeriod == 'Custom' ? _customDates.length :
+                                                                                         _allTimeDates.length); i++)
+                                                                                if (!(_selectedPeriod == 'Past Week' ? _weeklyMoodAverages[i] : 
+                                                                                      _selectedPeriod == 'Past Month' ? _monthlyMoodAverages[i] : 
+                                                                                      _selectedPeriod == 'Custom' ? _customMoodAverages[i] :
+                                                                                      _allTimeMoodAverages[i]).isNaN)
+                                                                                  FlSpot(i.toDouble(), _selectedPeriod == 'Past Week' ? _weeklyMoodAverages[i] : 
+                                                                                                      _selectedPeriod == 'Past Month' ? _monthlyMoodAverages[i] : 
+                                                                                                      _selectedPeriod == 'Custom' ? _customMoodAverages[i] :
+                                                                                                      _allTimeMoodAverages[i])
+                                                                            ],
+                                                                            isCurved: true,
+                                                                            color: Colors.amberAccent,
+                                                                            barWidth: 4,
+                                                                            dotData: FlDotData(show: true),
+                                                                            belowBarData: BarAreaData(show: false),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  SizedBox(height: 18),
                                                   Expanded(
                                                     child: StatisticsmoodTabPage.builder(context),
                                                   ),
@@ -824,5 +1195,66 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
         );
       },
     );
+  }
+
+  String _getDayLabel(int index) {
+    if (_selectedPeriod == 'Past Week') {
+      final date = _weekDates[index];
+      final today = DateTime.now();
+      final yesterday = today.subtract(Duration(days: 1));
+      
+      if (date.year == today.year && date.month == today.month && date.day == today.day) {
+        return 'Tdy';
+      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+        return 'Yst';
+      } else {
+        return DateFormat('EEE').format(date);
+      }
+    } else if (_selectedPeriod == 'Past Month') {
+      final date = _monthDates[index];
+      final today = DateTime.now();
+      final yesterday = today.subtract(Duration(days: 1));
+      
+      if (date.year == today.year && date.month == today.month && date.day == today.day) {
+        return 'Tdy';
+      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+        return 'Yst';
+      } else {
+        return DateFormat('d').format(date);
+      }
+    } else if (_selectedPeriod == 'All Time') {
+      if (_allTimeDates.isEmpty) return '';
+      final date = _allTimeDates[index];
+      if (_allTimePeriod == 'months') {
+        return DateFormat('MMM').format(date);
+      } else {
+        return DateFormat('yyyy').format(date);
+      }
+    } else if (_selectedPeriod == 'Custom') {
+      if (_customDates.isEmpty) return '';
+      final date = _customDates[index];
+      final today = DateTime.now();
+      final yesterday = today.subtract(Duration(days: 1));
+      
+      if (date.year == today.year && date.month == today.month && date.day == today.day) {
+        return 'Tdy';
+      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+        return 'Yst';
+      } else {
+        switch (_customPeriod) {
+          case 'days':
+            return DateFormat('d').format(date);
+          case 'weeks':
+            return 'W${DateFormat('w').format(date)}';
+          case 'months':
+            return DateFormat('MMM').format(date);
+          case 'years':
+            return DateFormat('yyyy').format(date);
+          default:
+            return DateFormat('d').format(date);
+        }
+      }
+    }
+    return '';
   }
 }
