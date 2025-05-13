@@ -195,7 +195,7 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
               ),
               // Period Picker positioned 6 pixels down from picker_mood_charts_selected
               Positioned(
-                top: 178, // 18 (top) + 44 (picker_mood_charts_selected height) + 6 (spacing)
+                top: 178, // moved further down
                 left: 0,
                 right: 0,
                 child: Center(
@@ -325,232 +325,130 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
   }
 
   void _showCustomDatePicker(BuildContext context) {
-    showModalBottomSheet(
+    showCupertinoModalPopup(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+      builder: (BuildContext context) => Container(
+        height: 600,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: MediaQuery.of(context).size.height * 0.08,
+        ),
         decoration: BoxDecoration(
           color: Color(0xFFBCBCBC).withOpacity(0.04),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Color(0xFFBCBCBC).withOpacity(0.04),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(height: 12),
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 44,
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  margin: EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (_rangeStart != null && _rangeEnd != null) {
+                            setState(() {
+                              _selectedPeriod =
+                                  '${DateFormat('dd/MM/yyyy').format(_rangeStart!)} - ${DateFormat('dd/MM/yyyy').format(_rangeEnd!)}';
+                            });
+                          }
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        CupertinoButton(
-                          child: Text('Cancel', style: TextStyle(color: Colors.white70)),
-                          onPressed: () => Navigator.of(context).pop(),
+                        SizedBox(height: 12),
+                        Text(
+                          'From',
+                          style: TextStyle(
+                            color: const Color(0xFFFFFFFF),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        CupertinoButton(
-                          child: Text('Done', style: TextStyle(color: Colors.white)),
-                          onPressed: () {
-                            if (_rangeStart != null && _rangeEnd != null) {
+                        SizedBox(height: 8),
+                        SizedBox(
+                          height: 180,
+                          child: CupertinoDatePicker(
+                            initialDateTime: _rangeStart ?? DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            onDateTimeChanged: (DateTime newDateTime) {
                               setState(() {
-                                _selectedPeriod =
-                                    '${DateFormat('dd/MM/yyyy').format(_rangeStart!)} - ${DateFormat('dd/MM/yyyy').format(_rangeEnd!)}';
+                                _rangeStart = newDateTime;
+                                if (_rangeEnd != null && _rangeEnd!.isBefore(_rangeStart!)) {
+                                  _rangeEnd = _rangeStart;
+                                }
                               });
-                            }
-                            Navigator.of(context).pop();
-                          },
+                            },
+                          ),
                         ),
+                        SizedBox(height: 10),
+                        Text(
+                          'To',
+                          style: TextStyle(
+                            color: const Color(0xFFFFFFFF),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 8),
+                        SizedBox(
+                          height: 180,
+                          child: CupertinoDatePicker(
+                            initialDateTime: _rangeEnd ?? DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            onDateTimeChanged: (DateTime newDateTime) {
+                              setState(() {
+                                _rangeEnd = newDateTime;
+                                if (_rangeStart != null && _rangeEnd!.isBefore(_rangeStart!)) {
+                                  _rangeStart = _rangeEnd;
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 24),
                       ],
                     ),
                   ),
-                  // Start Date Card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      padding: EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Start Date',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.yellow,
-                              decorationThickness: 2,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            _rangeStart != null ? DateFormat('dd/MM/yyyy').format(_rangeStart!) : 'Select date',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.yellow,
-                              decorationThickness: 2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Calendar
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: TableCalendar(
-                        firstDay: DateTime.utc(2020, 1, 1),
-                        lastDay: DateTime.now(),
-                        focusedDay: _focusedDay,
-                        rangeStartDay: _rangeStart,
-                        rangeEndDay: _rangeEnd,
-                        calendarFormat: CalendarFormat.month,
-                        rangeSelectionMode: _rangeSelectionMode,
-                        onDaySelected: (selectedDay, focusedDay) {
-                          setState(() {
-                            if (_rangeSelectionMode == RangeSelectionMode.toggledOn) {
-                              _rangeEnd = selectedDay;
-                              _rangeSelectionMode = RangeSelectionMode.toggledOff;
-                            } else {
-                              _rangeStart = selectedDay;
-                              _rangeEnd = null;
-                              _rangeSelectionMode = RangeSelectionMode.toggledOn;
-                            }
-                            _focusedDay = focusedDay;
-                          });
-                        },
-                        onRangeSelected: (start, end, focusedDay) {
-                          setState(() {
-                            _rangeStart = start;
-                            _rangeEnd = end;
-                            _focusedDay = focusedDay;
-                          });
-                        },
-                        headerStyle: HeaderStyle(
-                          formatButtonVisible: false,
-                          titleCentered: true,
-                          titleTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.yellow,
-                            decorationThickness: 2,
-                          ),
-                          leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white),
-                          rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white),
-                        ),
-                        calendarStyle: CalendarStyle(
-                          defaultTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                          todayTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.yellow,
-                            decorationThickness: 2,
-                          ),
-                          selectedTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.yellow,
-                            decorationThickness: 2,
-                          ),
-                          selectedDecoration: BoxDecoration(
-                            color: Colors.transparent,
-                            shape: BoxShape.circle,
-                          ),
-                          todayDecoration: BoxDecoration(
-                            color: Colors.transparent,
-                            shape: BoxShape.circle,
-                          ),
-                          rangeHighlightColor: Colors.yellow.withOpacity(0.15),
-                          rangeStartDecoration: BoxDecoration(
-                            color: Colors.yellow,
-                            shape: BoxShape.circle,
-                          ),
-                          rangeEndDecoration: BoxDecoration(
-                            color: Colors.yellow,
-                            shape: BoxShape.circle,
-                          ),
-                          outsideDaysVisible: false,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // End Date Card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      padding: EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'End Date',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.yellow,
-                              decorationThickness: 2,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            _rangeEnd != null ? DateFormat('dd/MM/yyyy').format(_rangeEnd!) : 'Select date',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.yellow,
-                              decorationThickness: 2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -567,10 +465,11 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
       builder: (BuildContext context) {
         print('DEBUG: Building CupertinoModalPopup');
         return Container(
-          height: 300,
+          height: 500,
           padding: const EdgeInsets.only(top: 6.0),
           margin: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: MediaQuery.of(context).size.height * 0.6,
           ),
           decoration: BoxDecoration(
             color: Color(0xFFBCBCBC).withOpacity(0.04),
