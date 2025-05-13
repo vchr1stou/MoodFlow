@@ -151,6 +151,40 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
   }
 
   Future<void> _saveLogToFirestore() async {
+    // Navigate to home screen immediately
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              ),
+            );
+            var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              ),
+            );
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: ScaleTransition(
+                scale: scaleAnimation,
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: Duration(milliseconds: 400),
+        ),
+        (route) => false,
+      );
+    }
+
+    // Continue with the upload process in the background
     try {
       final auth = FirebaseAuth.instance;
       final user = auth.currentUser;
@@ -172,10 +206,8 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       final timestamp = await StorageService.getSelectedDateTime();
       final toggledIcons = StorageService.getToggledIcons();
       final contacts = await StorageService.getSelectedContacts();
-      final locationName = await StorageService.getSelectedLocation();
-      final locationCoords = await StorageService.getLocationCoordinates();
-
-      print('Retrieved data - Mood: $mood, Timestamp: $timestamp, Toggled Icons: $toggledIcons, Contacts: ${contacts.length}, Location: $locationName');
+      
+      print('Retrieved data - Mood: $mood, Timestamp: $timestamp, Toggled Icons: $toggledIcons, Contacts: ${contacts.length}');
 
       // Check each required field and create a list of missing fields
       List<String> missingFields = [];
@@ -207,23 +239,45 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
         contacts: contacts,
       );
 
-      // Save location data in map subcollection if available
-      if (locationName != null && locationCoords != null) {
+      // Get location data
+      final locationName = await StorageService.getSelectedLocation();
+      final locationCoords = await StorageService.getLocationCoordinates();
+      final mapsLink = await StorageService.getMapsLink();
+      
+      print('Location data retrieved:');
+      print('- Name: $locationName');
+      print('- Coordinates: $locationCoords');
+      print('- Maps Link: $mapsLink');
+      
+      if (locationCoords != null) {
         print('Saving location data to map subcollection');
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.email)
-            .collection('logs')
-            .doc(subcollectionName)
-            .collection('map')
-            .doc('location')
-            .set({
-          'name': locationName,
+        
+        final mapData = {
+          'name': locationName ?? 'Selected Location',
           'latitude': locationCoords['lat'],
           'longitude': locationCoords['lng'],
+          'mapsLink': mapsLink ?? 'https://www.google.com/maps/search/?api=1&query=${locationCoords['lat']},${locationCoords['lng']}',
           'timestamp': timestamp,
           'createdAt': FieldValue.serverTimestamp(),
-        });
+        };
+        print('Saving map data to Firebase: $mapData');
+        
+        try {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.email)
+              .collection('logs')
+              .doc(subcollectionName)
+              .collection('map')
+              .doc('location')
+              .set(mapData);
+              
+          print('Successfully saved map data to Firebase');
+        } catch (e) {
+          print('Error saving map data to Firebase: $e');
+        }
+      } else {
+        print('No location coordinates found, skipping map data save');
       }
 
       // Save positive feelings and their intensities
@@ -275,26 +329,19 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
               .collection('logs')
               .doc(subcollectionName)
               .collection('negative_feelings')
-              .doc(feeling)  // Use feeling name as document ID
+              .doc(feeling)
               .set({
             'intensity': intensity,
             'timestamp': timestamp,
             'createdAt': FieldValue.serverTimestamp(),
           });
-          
-          print('Successfully saved negative feeling document: $feeling');
         }
-        print('Successfully saved all negative feelings data');
-      } else {
-        print('No negative feelings to save');
       }
 
       // Save journal text and Spotify track
       final journalText = await StorageService.getJournalText();
       final selectedTrack = await StorageService.getSelectedTrack();
       final selectedPhotos = await StorageService.getSelectedPhotos();
-      
-      print('Selected track data: $selectedTrack'); // Debug log
       
       if (journalText != null && journalText.isNotEmpty) {
         print('Saving journal text');
@@ -337,32 +384,78 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       if (selectedPhotos != null && selectedPhotos.isNotEmpty) {
         print('Saving photos to Firebase Storage');
         final storage = FirebaseStorage.instance;
+        final List<String> photoUrls = [];
         
-        // Get the saved photo paths
-        final photoPaths = await StorageService.getSelectedPhotoPaths();
-        print('Retrieved photo paths: $photoPaths');
-        
-        // Create a document to store photo names
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.email)
-            .collection('logs')
-            .doc(subcollectionName)
-            .collection('Photos')
-            .doc('photo_names')
-            .set({
-          'names': photoPaths.map((path) => path.split('/').last).toList(),
-          'timestamp': timestamp,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-        
-        print('Successfully saved photo names to Firestore');
+        // Upload each photo to Firebase Storage
+        for (var photo in selectedPhotos) {
+          try {
+            // Create a unique filename using timestamp and user ID
+            final timestamp = DateTime.now().millisecondsSinceEpoch;
+            final userID = user.uid;
+            final fileName = '${userID}_${timestamp}_${path.basename(photo.path)}';
+            
+            // Create a reference to the file location
+            final storageRef = storage.ref()
+                .child('users')
+                .child(userID)
+                .child('photos')
+                .child(fileName);
+
+            // Create file metadata including the content type
+            final metadata = SettableMetadata(
+              contentType: 'image/jpeg',
+              customMetadata: {
+                'userId': userID,
+                'timestamp': timestamp.toString(),
+              },
+            );
+
+            // Upload the file with metadata
+            final uploadTask = await storageRef.putFile(photo, metadata);
+            
+            if (uploadTask.state == TaskState.success) {
+              // Get the download URL
+              final downloadUrl = await storageRef.getDownloadURL();
+              photoUrls.add(downloadUrl);
+              print('Successfully uploaded photo: $fileName');
+            } else {
+              print('Upload failed: ${uploadTask.state}');
+              throw Exception('Upload failed: ${uploadTask.state}');
+            }
+          } catch (e) {
+            print('Error uploading photo: $e');
+            continue;
+          }
+        }
+
+        // Only save to Firestore if we have successfully uploaded photos
+        if (photoUrls.isNotEmpty) {
+          try {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.email)
+                .collection('logs')
+                .doc(subcollectionName)
+                .collection('Photos')
+                .doc('photo_urls')
+                .set({
+              'urls': photoUrls,
+              'timestamp': timestamp,
+              'createdAt': FieldValue.serverTimestamp(),
+              'userId': user.uid,
+            });
+            
+            print('Successfully saved photo URLs to Firestore');
+          } catch (e) {
+            print('Error saving photo URLs to Firestore: $e');
+          }
+        }
       }
 
       // Clear all local storage data
       await StorageService.clearAll();
       
-      // Reset all static data first
+      // Reset all static data
       LogScreenStep2PositiveScreen.resetSvgTypes();
       LogScreenStep2NegativeScreen.resetSvgTypes();
       LogScreenStep3PositiveScreenState.storedSliderValues.clear();
@@ -379,56 +472,15 @@ class LogScreenStepFiveScreenState extends State<LogScreenStepFiveScreen> with T
       await StorageService.savePositiveIntensities({});
       await StorageService.saveNegativeIntensities({});
 
-      // Navigate to the home screen
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => HomescreenScreen.builder(context),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOut,
-                ),
-              );
-              var scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOut,
-                ),
-              );
-              return FadeTransition(
-                opacity: fadeAnimation,
-                child: ScaleTransition(
-                  scale: scaleAnimation,
-                  child: child,
-                ),
-              );
-            },
-            transitionDuration: Duration(milliseconds: 400),
-          ),
-          (route) => false,
-        );
-      }
-    } on FirebaseException catch (e) {
-      print('Firebase error saving log: ${e.code} - ${e.message}');
-      print('Error details: ${e.toString()}');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Firebase error: ${e.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     } catch (e) {
-      print('Error saving log: $e');
+      print('Error in background upload: $e');
+      // Show a snackbar on the home screen if there was an error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving log: $e'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
           ),
         );
       }

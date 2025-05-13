@@ -5,17 +5,27 @@ import 'history_preview_item_model.dart';
 
 // ignore_for_file: must_be_immutable
 class HistoryPreviewModel {
-  List<HistoryPreviewItemModel> historyPreviewItemList = [
-    HistoryPreviewItemModel(bagOne: ImageConstant.imgBag, work: "lbl_work".tr()),
-    HistoryPreviewItemModel(
-        bagOne: ImageConstant.imgMusicNote2, work: "lbl_music".tr()),
-    HistoryPreviewItemModel(
-        bagOne: ImageConstant.imgBooksVerticalFill, work: "lbl_study".tr()),
-    HistoryPreviewItemModel(work: "lbl_person1".tr()),
-    HistoryPreviewItemModel(work: "lbl_person2".tr()),
-    HistoryPreviewItemModel(),
-    HistoryPreviewItemModel(),
-    HistoryPreviewItemModel(),
-    HistoryPreviewItemModel()
-  ];
+  String? mood;
+  String? time;
+  String? date;
+  List<String>? photos;
+  List<String>? positiveFeelings;
+  List<String>? negativeFeelings;
+  Map<String, dynamic>? spotifyTrack;
+  List<String>? toggledIcons;
+  List<Map<String, dynamic>>? contacts;
+  List<HistoryPreviewItemModel> historyPreviewItemList;
+
+  HistoryPreviewModel({
+    this.mood,
+    this.time,
+    this.date,
+    this.photos,
+    this.positiveFeelings,
+    this.negativeFeelings,
+    this.spotifyTrack,
+    this.toggledIcons,
+    this.contacts,
+    this.historyPreviewItemList = const [],
+  });
 }

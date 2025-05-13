@@ -806,14 +806,34 @@ class LogScreenState extends State<LogScreen> {
                           onPressed: () async {
                             if (_markers.isNotEmpty) {
                               final selectedMarker = _markers.first;
+                              // Generate Google Maps link
+                              final mapsLink = 'https://www.google.com/maps/search/?api=1&query=${selectedMarker.position.latitude},${selectedMarker.position.longitude}';
+                              print('Generated maps link: $mapsLink');
+                              
                               // Save the selected location before closing
+                              print('Saving location coordinates: ${selectedMarker.position.latitude}, ${selectedMarker.position.longitude}');
                               await StorageService.saveLocationCoordinates(
                                 selectedMarker.position.latitude,
                                 selectedMarker.position.longitude
                               );
-                              if (_locationName != null) {
-                                await StorageService.saveSelectedLocation(_locationName!);
-                              }
+                              
+                              // Always save a location name, even if none was entered
+                              final locationNameToSave = _locationName ?? 'Selected Location';
+                              print('Saving location name: $locationNameToSave');
+                              await StorageService.saveSelectedLocation(locationNameToSave);
+                              
+                              // Save the Google Maps link
+                              print('Saving maps link to storage');
+                              await StorageService.saveMapsLink(mapsLink);
+                              
+                              // Verify all location data was saved
+                              final savedLink = await StorageService.getMapsLink();
+                              final savedLocation = await StorageService.getSelectedLocation();
+                              final savedCoords = await StorageService.getLocationCoordinates();
+                              print('Verified saved data:');
+                              print('- Maps link: $savedLink');
+                              print('- Location name: $savedLocation');
+                              print('- Coordinates: $savedCoords');
                               
                               // Capture the map area
                               if (_mapController != null) {
@@ -845,7 +865,7 @@ class LogScreenState extends State<LogScreen> {
                                       selectedMarker.position.longitude
                                     ),
                                     infoWindow: InfoWindow(
-                                      title: _locationName ?? 'Selected Location'
+                                      title: locationNameToSave
                                     ),
                                   ),
                                 );

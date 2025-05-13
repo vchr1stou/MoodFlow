@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
@@ -29,6 +30,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
   final TextEditingController _journalController = TextEditingController();
   String _journalPreview = '';
   List<File> _selectedPhotos = [];
+  List<String> _selectedPhotoBase64 = [];
   Map<String, dynamic>? _selectedTrack;
   bool _isSaving = false;
   
@@ -68,8 +70,18 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
     if (photos.isNotEmpty) {
       setState(() {
         _selectedPhotos = photos;
+        // Convert loaded photos to base64
+        _selectedPhotoBase64 = photos.map((file) {
+          final bytes = file.readAsBytesSync();
+          return base64Encode(bytes);
+        }).toList();
       });
     }
+  }
+
+  Future<String> _convertImageToBase64(File imageFile) async {
+    final bytes = await imageFile.readAsBytes();
+    return base64Encode(bytes);
   }
 
   @override
@@ -242,14 +254,20 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
     }
     final picker = ImagePicker();
     if (replaceIndex != null && !allowMulti) {
-      final picked = await picker.pickImage(source: ImageSource.gallery);
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85, // Adjust quality to balance size and quality
+      );
       if (picked != null) {
+        final file = File(picked.path);
+        final base64String = await _convertImageToBase64(file);
         setState(() {
-          _selectedPhotos[replaceIndex] = File(picked.path);
+          _selectedPhotos[replaceIndex] = file;
+          _selectedPhotoBase64[replaceIndex] = base64String;
         });
-        // Save both the File objects and their paths
+        // Save both the File objects and their base64 strings
         await StorageService.saveSelectedPhotos(_selectedPhotos);
-        await StorageService.saveSelectedPhotoPaths(_selectedPhotos.map((file) => file.path).toList());
+        await StorageService.saveSelectedPhotoBase64(_selectedPhotoBase64);
       }
     } else {
       final picked = await picker.pickMultiImage();
@@ -257,6 +275,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
         setState(() {
           final availableSlots = 4 - _selectedPhotos.length;
           final newPhotos = picked.take(availableSlots).map((x) => File(x.path)).toList();
+          
           if (_selectedPhotos.length == 1 && allowMulti) {
             // Merge the existing photo with the new ones, avoiding duplicates
             final allPhotos = [_selectedPhotos[0], ...newPhotos];
@@ -271,9 +290,18 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
             _selectedPhotos.addAll(filteredNewPhotos);
           }
         });
-        // Save both the File objects and their paths
+
+        // Convert new photos to base64
+        for (var photo in _selectedPhotos) {
+          if (!_selectedPhotoBase64.contains(photo.path)) {
+            final base64String = await _convertImageToBase64(photo);
+            _selectedPhotoBase64.add(base64String);
+          }
+        }
+
+        // Save both the File objects and their base64 strings
         await StorageService.saveSelectedPhotos(_selectedPhotos);
-        await StorageService.saveSelectedPhotoPaths(_selectedPhotos.map((file) => file.path).toList());
+        await StorageService.saveSelectedPhotoBase64(_selectedPhotoBase64);
       }
     }
   }

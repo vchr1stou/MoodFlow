@@ -9,10 +9,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 import '../../core/app_export.dart';
 import '../log_input_screen/log_input_screen.dart';
 import '../homescreen_screen/homescreen_screen.dart';
+import '../history_preview_screen/history_preview_screen.dart';
 
 import 'models/history_empty_model.dart';
 import 'provider/history_empty_provider.dart';
@@ -43,6 +46,10 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
   List<String> toggledIcons = [];
   List<Map<String, dynamic>> logContacts = [];
   List<String> positiveFeelings = [];
+  List<String> negativeFeelings = [];
+  Map<String, dynamic>? spotifyTrack;
+  List<String> photoUrls = [];
+  QuerySnapshot? logsSnapshot;
 
   @override
   void initState() {
@@ -86,20 +93,17 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
       toggledIcons = [];
       logContacts = [];
       positiveFeelings = [];
+      negativeFeelings = [];
+      spotifyTrack = null;
+      photoUrls = [];
     });
 
     try {
-      await _requestContactPermission();
       final user = FirebaseAuth.instance.currentUser;
       if (user == null || user.email == null) {
         setState(() {
           hasLogs = false;
           logCount = 0;
-          logTimes = [];
-          logMoods = [];
-          toggledIcons = [];
-          logContacts = [];
-          positiveFeelings = [];
           isLoading = false;
         });
         return;
@@ -109,7 +113,7 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
       final dateStr = '${selectedDate.day.toString().padLeft(2, '0')}_${selectedDate.month.toString().padLeft(2, '0')}_${selectedDate.year}';
       
       // Get all logs for this date
-      final logsSnapshot = await FirebaseFirestore.instance
+      logsSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.email)
           .collection('logs')
@@ -117,57 +121,38 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
           .where(FieldPath.documentId, isLessThan: dateStr + '_z')
           .get();
 
-      print('Found ${logsSnapshot.docs.length} logs for date: $dateStr');
+      if (logsSnapshot == null || logsSnapshot!.docs.isEmpty) {
+        setState(() {
+          hasLogs = false;
+          logCount = 0;
+          isLoading = false;
+        });
+        return;
+      }
 
-      // Extract timestamps, moods, and toggled icons from logs
-      final times = logsSnapshot.docs.map((doc) {
-        final data = doc.data();
-        print('Log data: ${data}');
-        final timestamp = data['createdAt'] as Timestamp?;
+      // Extract timestamps and moods
+      final times = logsSnapshot!.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final timestamp = data?['createdAt'] as Timestamp?;
         return timestamp?.toDate() ?? DateTime.now();
       }).toList();
 
-      final moods = logsSnapshot.docs.map((doc) {
-        final data = doc.data();
-        return data['mood'] as String? ?? 'N/A';
+      final moods = logsSnapshot!.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        return data?['mood'] as String? ?? 'N/A';
       }).toList();
 
-      // Get icons from whats_happening subcollection
-      List<List<String>> allIcons = [];
-      List<List<Map<String, dynamic>>> allContacts = [];
-      
-      for (var doc in logsSnapshot.docs) {
-        print('Processing log: ${doc.id}');
-        
-        // Get whats_happening data
-        final whatsHappeningSnapshot = await FirebaseFirestore.instance
+      // Run all subcollection fetches in parallel
+      final futures = logsSnapshot!.docs.map((doc) async {
+        final whatsHappeningFuture = FirebaseFirestore.instance
             .collection('users')
             .doc(user.email)
             .collection('logs')
             .doc(doc.id)
             .collection('whats_happening')
             .get();
-        
-        if (whatsHappeningSnapshot.docs.isNotEmpty) {
-          final whatsHappeningData = whatsHappeningSnapshot.docs.first.data();
-          
-          if (whatsHappeningData.containsKey('toggledIcons')) {
-            final iconsList = whatsHappeningData['toggledIcons'] as List<dynamic>?;
-            if (iconsList != null && iconsList.isNotEmpty) {
-              final firstThreeIcons = iconsList.take(3).map((icon) => icon.toString()).toList();
-              allIcons.add(firstThreeIcons);
-            } else {
-              allIcons.add([]);
-            }
-          } else {
-            allIcons.add([]);
-          }
-        } else {
-          allIcons.add([]);
-        }
 
-        // Get contacts data
-        final contactsSnapshot = await FirebaseFirestore.instance
+        final contactsFuture = FirebaseFirestore.instance
             .collection('users')
             .doc(user.email)
             .collection('logs')
@@ -175,21 +160,94 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
             .collection('contacts')
             .get();
 
-        print('Contacts snapshot for ${doc.id}: ${contactsSnapshot.docs.length} contacts found');
-        
-        if (contactsSnapshot.docs.isNotEmpty) {
-          final contactData = contactsSnapshot.docs.first.data();
-          print('Contact data: $contactData');
-          
-          if (contactData.containsKey('contacts')) {
-            final contactsArray = contactData['contacts'] as List<dynamic>;
+        final positiveFeelingsFuture = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(doc.id)
+            .collection('positive_feelings')
+            .get();
+
+        final negativeFeelingsFuture = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(doc.id)
+            .collection('negative_feelings')
+            .get();
+
+        final spotifyFuture = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(doc.id)
+            .collection('Spotify')
+            .get();
+
+        final photosFuture = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .collection('logs')
+            .doc(doc.id)
+            .collection('Photos')
+            .doc('photo_urls')
+            .get();
+
+        final results = await Future.wait([
+          whatsHappeningFuture,
+          contactsFuture,
+          positiveFeelingsFuture,
+          negativeFeelingsFuture,
+          spotifyFuture,
+          photosFuture,
+        ]);
+
+        return {
+          'whatsHappening': results[0],
+          'contacts': results[1],
+          'positiveFeelings': results[2],
+          'negativeFeelings': results[3],
+          'spotify': results[4],
+          'photos': results[5],
+        };
+      }).toList();
+
+      final allResults = await Future.wait(futures);
+
+      // Process results
+      List<List<String>> allIcons = [];
+      List<List<Map<String, dynamic>>> allContacts = [];
+      List<String> allPositiveFeelings = [];
+      List<String> allNegativeFeelings = [];
+      Map<String, dynamic>? allSpotifyTrack;
+      List<String> allPhotoUrls = [];
+
+      for (var result in allResults) {
+        // Process whats_happening
+        final whatsHappeningSnapshot = result['whatsHappening'] as QuerySnapshot?;
+        if (whatsHappeningSnapshot?.docs.isNotEmpty ?? false) {
+          final whatsHappeningData = whatsHappeningSnapshot!.docs.first.data() as Map<String, dynamic>?;
+          if (whatsHappeningData?.containsKey('toggledIcons') ?? false) {
+            final iconsList = whatsHappeningData!['toggledIcons'] as List<dynamic>?;
+            allIcons.add(iconsList?.take(3).map((icon) => icon.toString()).toList() ?? []);
+          } else {
+            allIcons.add([]);
+          }
+        } else {
+          allIcons.add([]);
+        }
+
+        // Process contacts
+        final contactsSnapshot = result['contacts'] as QuerySnapshot?;
+        if (contactsSnapshot?.docs.isNotEmpty ?? false) {
+          final contactData = contactsSnapshot!.docs.first.data() as Map<String, dynamic>?;
+          if (contactData?.containsKey('contacts') ?? false) {
+            final contactsArray = contactData!['contacts'] as List<dynamic>;
             List<Map<String, dynamic>> contactsList = [];
             
             for (var contact in contactsArray.take(3)) {
               final phoneNumber = (contact['phones'] as List<dynamic>?)?.first.toString() ?? '';
               final displayName = contact['displayName'] as String? ?? 'Unknown';
-              
-              // Find the contact in phone's contacts
               final phoneContact = await _findContactByPhone(phoneNumber);
               
               contactsList.add({
@@ -199,55 +257,93 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
               });
             }
             
-            print('Processed contacts list: $contactsList');
             allContacts.add(contactsList);
           } else {
-            print('No contacts array found in document');
             allContacts.add([]);
           }
         } else {
-          print('No contacts found for ${doc.id}');
           allContacts.add([]);
         }
 
-        // Get positive_feelings data
-        final positiveFeelingsSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.email)
-            .collection('logs')
-            .doc(doc.id)
-            .collection('positive_feelings')
-            .get();
-
-        if (positiveFeelingsSnapshot.docs.isNotEmpty) {
-          final feelingsList = positiveFeelingsSnapshot.docs.take(4).map((feelingDoc) {
-            final data = feelingDoc.data();
-            print('Positive feeling data: $data');
-            // Check if the document has a 'title' field
-            if (data.containsKey('title') && data['title'] != null) {
-              return data['title'] as String;
-            }
-            // If no title field, try to get the document ID
-            return feelingDoc.id;
-          }).where((title) => title.isNotEmpty).toList();
+        // Process feelings
+        final positiveFeelingsSnapshot = result['positiveFeelings'] as QuerySnapshot?;
+        if (positiveFeelingsSnapshot?.docs.isNotEmpty ?? false) {
+          final feelingsList = positiveFeelingsSnapshot!.docs.take(4).map((feelingDoc) {
+            final data = feelingDoc.data() as Map<String, dynamic>?;
+            final hasTitle = data?.containsKey('title') ?? false;
+            final title = data?['title'];
+            return hasTitle && title != null ? title as String : feelingDoc.id;
+          }).where((title) => title != null && title.isNotEmpty).toList();
           
-          print('Positive feelings: $feelingsList');
           if (feelingsList.isNotEmpty) {
-            positiveFeelings = feelingsList;
+            allPositiveFeelings = feelingsList;
+          }
+        }
+
+        final negativeFeelingsSnapshot = result['negativeFeelings'] as QuerySnapshot?;
+        if (negativeFeelingsSnapshot?.docs.isNotEmpty ?? false) {
+          final feelingsList = negativeFeelingsSnapshot!.docs.take(4).map((feelingDoc) {
+            final data = feelingDoc.data() as Map<String, dynamic>?;
+            final hasTitle = data?.containsKey('title') ?? false;
+            final title = data?['title'];
+            return hasTitle && title != null ? title as String : feelingDoc.id;
+          }).where((title) => title != null && title.isNotEmpty).toList();
+          
+          if (feelingsList.isNotEmpty) {
+            allNegativeFeelings = feelingsList;
+          }
+        }
+
+        // Process Spotify
+        final spotifySnapshot = result['spotify'] as QuerySnapshot?;
+        if (spotifySnapshot?.docs.isNotEmpty ?? false) {
+          final trackData = spotifySnapshot!.docs.first.data() as Map<String, dynamic>?;
+          final hasName = trackData?.containsKey('name') ?? false;
+          final hasArtist = trackData?.containsKey('artist') ?? false;
+          
+          if (hasName && hasArtist) {
+            allSpotifyTrack = {
+              'name': trackData!['name'],
+              'artist': trackData['artist'],
+            };
+          } else {
+            final hasTrack = trackData?.containsKey('track') ?? false;
+            if (hasTrack) {
+              final track = trackData!['track'] as Map<String, dynamic>?;
+              final trackHasName = track?.containsKey('name') ?? false;
+              final trackHasArtist = track?.containsKey('artist') ?? false;
+              
+              if (trackHasName && trackHasArtist) {
+                allSpotifyTrack = {
+                  'name': track!['name'],
+                  'artist': track['artist'],
+                };
+              }
+            }
+          }
+        }
+
+        // Process photos
+        final photosSnapshot = result['photos'] as DocumentSnapshot?;
+        if (photosSnapshot?.exists ?? false) {
+          final photoData = photosSnapshot!.data() as Map<String, dynamic>?;
+          if (photoData?.containsKey('urls') ?? false) {
+            final urls = photoData!['urls'] as List<dynamic>;
+            allPhotoUrls = urls.take(4).map((url) => url.toString()).toList();
           }
         }
       }
 
-      print('All contacts: $allContacts');
-      print('Final logContacts: ${allContacts.isNotEmpty ? allContacts.first : []}');
-
       setState(() {
-        logCount = logsSnapshot.docs.length;
+        logCount = logsSnapshot!.docs.length;
         logTimes = times;
         logMoods = moods;
         toggledIcons = allIcons.isNotEmpty ? allIcons.first : [];
         logContacts = allContacts.isNotEmpty ? allContacts.first : [];
-        print('State updated with ${logContacts.length} contacts');
+        positiveFeelings = allPositiveFeelings;
+        negativeFeelings = allNegativeFeelings;
+        spotifyTrack = allSpotifyTrack;
+        photoUrls = allPhotoUrls;
         hasLogs = logCount > 0;
         isLoading = false;
       });
@@ -256,11 +352,6 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
       setState(() {
         hasLogs = false;
         logCount = 0;
-        logTimes = [];
-        logMoods = [];
-        toggledIcons = [];
-        logContacts = [];
-        positiveFeelings = [];
         isLoading = false;
       });
     }
@@ -541,8 +632,9 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
               Expanded(
                 child: isLoading
                     ? Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        child: CupertinoActivityIndicator(
+                          radius: 12,
+                          color: Colors.white,
                         ),
                       )
                     : hasLogs && logTimes.isNotEmpty && logMoods.isNotEmpty
@@ -559,12 +651,286 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
                                     alignment: Alignment.topLeft,
                                     children: [
                                       Center(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            if (logsSnapshot != null) {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => HistoryPreviewScreen.builder(
+                                                    context,
+                                                    logData: {
+                                                      'mood': logMoods[index],
+                                                      'time': formatTime(logTimes[index]),
+                                                      'date': getFormattedDate(),
+                                                      'photos': photoUrls,
+                                                      'positiveFeelings': positiveFeelings,
+                                                      'negativeFeelings': negativeFeelings,
+                                                      'spotifyTrack': spotifyTrack,
+                                                      'toggledIcons': toggledIcons,
+                                                      'contacts': logContacts,
+                                                      'documentId': logsSnapshot!.docs[index].id,
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
                                         child: SvgPicture.asset(
                                           'assets/images/history_preview.svg',
                                           width: 340,
                                           height: 178,
                                         ),
                                       ),
+                                      ),
+                                      if (photoUrls.isNotEmpty)
+                                        Positioned(
+                                          left: 242,
+                                          top: 14,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              if (logsSnapshot != null) {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => HistoryPreviewScreen.builder(
+                                                      context,
+                                                      logData: {
+                                                        'mood': logMoods[index],
+                                                        'time': formatTime(logTimes[index]),
+                                                        'date': getFormattedDate(),
+                                                        'photos': photoUrls,
+                                                        'positiveFeelings': positiveFeelings,
+                                                        'negativeFeelings': negativeFeelings,
+                                                        'spotifyTrack': spotifyTrack,
+                                                        'toggledIcons': toggledIcons,
+                                                        'contacts': logContacts,
+                                                        'documentId': logsSnapshot!.docs[index].id,
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Column(
+                                                  children: [
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(12),
+                                                      child: Image.network(
+                                                        photoUrls[0],
+                                                        width: 40,
+                                                        height: 40,
+                                              fit: BoxFit.cover,
+                                                        errorBuilder: (context, error, stackTrace) {
+                                                          print('Error loading image: $error');
+                                                          return Container(
+                                                            width: 40,
+                                                            height: 40,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.grey[300],
+                                                              borderRadius: BorderRadius.circular(12),
+                                                            ),
+                                                            child: Icon(Icons.error, color: Colors.grey[600]),
+                                                          );
+                                                        },
+                                                        loadingBuilder: (context, child, loadingProgress) {
+                                                          if (loadingProgress == null) return child;
+                                                          return Container(
+                                                            width: 40,
+                                                            height: 40,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.grey[300],
+                                                              borderRadius: BorderRadius.circular(12),
+                                                            ),
+                                                            child: Center(
+                                                              child: CircularProgressIndicator(
+                                                                value: loadingProgress.expectedTotalBytes != null
+                                                                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                                    : null,
+                                                                strokeWidth: 2,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                    if (photoUrls.length > 2) ...[
+                                                      SizedBox(height: 1),
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        child: Image.network(
+                                                          photoUrls[2],
+                                                          width: 40,
+                                                          height: 40,
+                                                          fit: BoxFit.cover,
+                                                          errorBuilder: (context, error, stackTrace) {
+                                                            print('Error loading image: $error');
+                                                            return Container(
+                                                              width: 40,
+                                                              height: 40,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.grey[300],
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                              child: Icon(Icons.error, color: Colors.grey[600]),
+                                                            );
+                                                          },
+                                                          loadingBuilder: (context, child, loadingProgress) {
+                                                            if (loadingProgress == null) return child;
+                                                            return Container(
+                                                              width: 40,
+                                                              height: 40,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.grey[300],
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                              child: Center(
+                                                                child: CircularProgressIndicator(
+                                                                  value: loadingProgress.expectedTotalBytes != null
+                                                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                                      : null,
+                                                                  strokeWidth: 2,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                                if (photoUrls.length > 1) ...[
+                                                  SizedBox(width: 1),
+                                                  Column(
+                                                    children: [
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        child: Image.network(
+                                                          photoUrls[1],
+                                                          width: 40,
+                                                          height: 40,
+                                                          fit: BoxFit.cover,
+                                                          errorBuilder: (context, error, stackTrace) {
+                                                            print('Error loading image: $error');
+                                                            return Container(
+                                                              width: 40,
+                                                              height: 40,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.grey[300],
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                              child: Icon(Icons.error, color: Colors.grey[600]),
+                                                            );
+                                                          },
+                                                          loadingBuilder: (context, child, loadingProgress) {
+                                                            if (loadingProgress == null) return child;
+                                                            return Container(
+                                                              width: 40,
+                                                              height: 40,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.grey[300],
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                              child: Center(
+                                                                child: CircularProgressIndicator(
+                                                                  value: loadingProgress.expectedTotalBytes != null
+                                                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                                      : null,
+                                                                  strokeWidth: 2,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                      if (photoUrls.length > 3) ...[
+                                                        SizedBox(height: 1),
+                                                        ClipRRect(
+                                                          borderRadius: BorderRadius.circular(12),
+                                                          child: Image.network(
+                                                            photoUrls[3],
+                                                            width: 40,
+                                                            height: 40,
+                                                            fit: BoxFit.cover,
+                                                            errorBuilder: (context, error, stackTrace) {
+                                                              print('Error loading image: $error');
+                                                              return Container(
+                                                                width: 40,
+                                                                height: 40,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.grey[300],
+                                                                  borderRadius: BorderRadius.circular(12),
+                                                                ),
+                                                                child: Icon(Icons.error, color: Colors.grey[600]),
+                                                              );
+                                                            },
+                                                            loadingBuilder: (context, child, loadingProgress) {
+                                                              if (loadingProgress == null) return child;
+                                                              return Container(
+                                                                width: 40,
+                                                                height: 40,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.grey[300],
+                                                                  borderRadius: BorderRadius.circular(12),
+                                                                ),
+                                                                child: Center(
+                                                                  child: CircularProgressIndicator(
+                                                                    value: loadingProgress.expectedTotalBytes != null
+                                                                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                                        : null,
+                                                                    strokeWidth: 2,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      Positioned(
+                                        right: 40,
+                                        top: 3,
+                                        bottom: 0,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            if (logsSnapshot != null) {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => HistoryPreviewScreen.builder(
+                                                    context,
+                                                    logData: {
+                                                      'mood': logMoods[index],
+                                                      'time': formatTime(logTimes[index]),
+                                                      'date': getFormattedDate(),
+                                                      'photos': photoUrls,
+                                                      'positiveFeelings': positiveFeelings,
+                                                      'negativeFeelings': negativeFeelings,
+                                                      'spotifyTrack': spotifyTrack,
+                                                      'toggledIcons': toggledIcons,
+                                                      'contacts': logContacts,
+                                                      'documentId': logsSnapshot!.docs[index].id,
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: SvgPicture.asset(
+                                            'assets/images/right_chevron_history.svg',
+                                            width: 15.88,
+                                            height: 22.99,
+                                            ),
+                                          ),
+                                        ),
                                       Positioned(
                                         left: 51,
                                         top: 15,
@@ -649,6 +1015,58 @@ class HistoryEmptyScreenState extends State<HistoryEmptyScreen> {
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w600,
                                                 ),
+                                              ),
+                                            ] else ...[
+                                              SizedBox(height: 4),
+                                              Text(
+                                                'No positive feelings logged',
+                                                style: GoogleFonts.roboto(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                            if (negativeFeelings.isNotEmpty) ...[
+                                              SizedBox(height: 4),
+                                              Text(
+                                                negativeFeelings.join(' · '),
+                                                style: GoogleFonts.roboto(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ] else ...[
+                                              SizedBox(height: 4),
+                                              Text(
+                                                'No negative feelings logged',
+                                                style: GoogleFonts.roboto(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                            if (spotifyTrack != null) ...[
+                                              SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    'assets/images/spotify_small.svg',
+                                                    width: 16,
+                                                    height: 16,
+                                                  ),
+                                                  SizedBox(width: 3),
+                                                  Text(
+                                                    '${spotifyTrack!['name']} · ${spotifyTrack!['artist']}',
+                                                    style: GoogleFonts.roboto(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ],

@@ -19,6 +19,7 @@ class StorageService {
   static const String _mapScreenshotKey = 'map_screenshot';
   static const String _selectedPhotosKey = 'selected_photos';
   static const String _selectedPhotoPathsKey = 'selected_photo_paths';
+  static const String _selectedPhotoBase64Key = 'selected_photo_base64';
 
   static late SharedPreferences _prefs;
 
@@ -228,6 +229,24 @@ class StorageService {
     return _prefs.getStringList(_selectedPhotoPathsKey) ?? [];
   }
 
+  // Selected Photo Base64
+  static Future<void> saveSelectedPhotoBase64(List<String> base64Photos) async {
+    await _prefs.setStringList(_selectedPhotoBase64Key, base64Photos);
+  }
+
+  static Future<List<String>> getSelectedPhotoBase64() async {
+    return _prefs.getStringList(_selectedPhotoBase64Key) ?? [];
+  }
+
+  // Maps Link
+  static Future<void> saveMapsLink(String mapsLink) async {
+    await _prefs.setString('maps_link', mapsLink);
+  }
+
+  static Future<String?> getMapsLink() async {
+    return _prefs.getString('maps_link');
+  }
+
   // Clear all data
   static Future<void> clearAll() async {
     await _prefs.remove(_dateTimeKey);
@@ -244,5 +263,7 @@ class StorageService {
     await _prefs.remove(_mapScreenshotKey);
     await _prefs.remove(_selectedPhotosKey);
     await _prefs.remove(_selectedPhotoPathsKey);
+    await _prefs.remove(_selectedPhotoBase64Key);
+    await _prefs.remove('maps_link');
   }
 } 
