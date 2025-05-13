@@ -31,6 +31,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
 
+import '../../providers/user_provider.dart';
+import 'package:moodflow/services/auth_persistence_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
   NoSwipeBackRoute({required WidgetBuilder builder}) : super(builder: builder);
 
@@ -71,7 +75,16 @@ class HomescreenScreenState extends State<HomescreenScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
   }
+
+  Future<void> _loadUserData() async {
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
+  final userEmail = FirebaseAuth.instance.currentUser?.email;
+  if (userEmail != null) {
+    await userProvider.fetchUserData(userEmail);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +157,9 @@ class HomescreenScreenState extends State<HomescreenScreen> {
   }
 
   Widget _buildHeader() {
+    final userProvider = Provider.of<UserProvider>(context);
+    final userName = userProvider.name?.split(' ').first ?? 'User';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -160,31 +176,13 @@ class HomescreenScreenState extends State<HomescreenScreen> {
               ),
             ),
             SizedBox(height: 0.5),
-            StreamBuilder<DocumentSnapshot>(
-              stream: _userService.getCurrentUserStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  final userData =
-                      snapshot.data!.data() as Map<String, dynamic>;
-                  final userName = userData['name'] as String? ?? 'User';
-                  return Text(
-                    userName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                }
-                return Text(
-                  'User',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                );
-              },
+            Text(
+              userName,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

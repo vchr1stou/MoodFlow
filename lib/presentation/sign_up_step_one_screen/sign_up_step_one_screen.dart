@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:moodflow/providers/sign_up_provider.dart';
+import 'package:moodflow/providers/user_provider.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
@@ -11,7 +11,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/sign_up_step_one_model.dart';
 import 'provider/sign_up_step_one_provider.dart';
-import '../../providers/sign_up_provider.dart';
+import '../../providers/user_provider.dart';
 
 class SignUpStepOneScreen extends StatefulWidget {
   const SignUpStepOneScreen({Key? key}) : super(key: key);
@@ -128,8 +128,8 @@ class SignUpStepOneScreenState extends State<SignUpStepOneScreen> {
                           child: GestureDetector(
                             onTap: () {
                               if (_formKey.currentState!.validate()) {
-                                final signUpProvider = context.read<SignUpProvider>();
-                                signUpProvider.updateStepOneData(
+                                final userProvider = context.read<UserProvider>();
+                                userProvider.updateStepOneData(
                                   context.read<SignUpStepOneProvider>().nameController.text,
                                   context.read<SignUpStepOneProvider>().pronounsController.text,
                                   context.read<SignUpStepOneProvider>().emailController.text,

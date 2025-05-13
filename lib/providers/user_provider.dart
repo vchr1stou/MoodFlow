@@ -4,17 +4,39 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
-class SignUpProvider extends ChangeNotifier {
+class UserProvider extends ChangeNotifier {
   String? name;
   String? pronouns;
   String? email;
   String? password;
   List<TimeOfDay> dailyCheckInTimes = [];
-  List<bool> dailyCheckInEnabled = [false, false, false, false];
+  List<bool>? dailyCheckInEnabled;
   TimeOfDay? quoteReminderTime;
-  bool quoteReminderEnabled = false;
+  bool? quoteReminderEnabled;
   List<Contact> contacts = [];
   String? spotifyToken;
+  bool dailyStreakEnabled = true;
+  TimeOfDay dailyStreakTime = const TimeOfDay(hour: 23, minute: 30);
+  bool soundEnabled = true;
+  bool musicEnabled = true;
+  bool hapticEnabled = true;
+  
+  void toggleDailyStreak(bool value) {
+    dailyStreakEnabled = value;
+    notifyListeners();
+  }
+  void toggleSound(bool value) {
+    soundEnabled = value;
+    notifyListeners();
+  }
+  void toggleMusic(bool value) {
+    musicEnabled = value;
+    notifyListeners();
+  }
+  void toggleHaptic(bool value) {
+    hapticEnabled = value;
+    notifyListeners();
+  }
 
   void updateStepOneData(String name, String pronouns, String email, String password) {
     this.name = name;
@@ -36,6 +58,48 @@ class SignUpProvider extends ChangeNotifier {
   void updateStepThreeData(List<Contact> contacts) {
     this.contacts = contacts;
     notifyListeners();
+  }
+
+  Future<void> fetchUserData(String email) async {
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(email).get();
+    if (userDoc.exists) {
+      final data = userDoc.data()!;
+      name = data['name'];
+      pronouns = data['pronouns'];
+      this.email = data['email'];
+      dailyCheckInTimes = (data['dailyCheckInTimes'] as List)
+          .map((time) => TimeOfDay(hour: time['hour'], minute: time['minute']))
+          .toList();
+      dailyCheckInEnabled = (data['dailyCheckInEnabled'] as List).cast<bool>();
+      quoteReminderTime = TimeOfDay(
+        hour: data['quoteReminderTime']['hour'],
+         minute: data['quoteReminderTime']['minute']);
+      quoteReminderEnabled = data['quoteReminderEnabled'];
+
+      // Fetch contacts from the safetynet subcollection
+      final safetynetCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(email)
+          .collection('safetynet');
+      final contactsSnapshot = await safetynetCollection.get();
+      contacts = [];
+
+      for (var doc in contactsSnapshot.docs) {
+        final contactNumber = doc.data()['phone'];
+        if (contactNumber != null) {
+          final contact = Contact(phones: [Item(label: 'mobile', value: contactNumber)]);
+          contacts.add(contact);
+        }
+      }
+      notifyListeners();
+    }
+  }
+
+  Stream<DocumentSnapshot> get userStream {
+    if (email == null) {
+      throw Exception('Email is not set. Please fetch user data first.');
+    }
+    return FirebaseFirestore.instance.collection('users').doc(email).snapshots();
   }
 
   Future<void> createUser(ScaffoldMessengerState messenger) async {
@@ -67,6 +131,14 @@ class SignUpProvider extends ChangeNotifier {
               : null,
           'quoteReminderEnabled': quoteReminderEnabled,
           'createdAt': FieldValue.serverTimestamp(),
+          'dailyStreakEnabled': dailyStreakEnabled,
+          'dailyStreakTime': {
+            'hour': dailyStreakTime?.hour,
+            'minute': dailyStreakTime?.minute,
+          },
+          'soundEnabled': soundEnabled,
+          'musicEnabled': musicEnabled,
+          'hapticEnabled': hapticEnabled,
         });
 
         // Create safetynet subcollection

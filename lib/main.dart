@@ -22,7 +22,7 @@ import 'services/auth_service.dart';
 import 'services/auth_persistence_service.dart';
 import 'presentation/homescreen_screen/homescreen_screen.dart';
 import 'core/services/storage_service.dart';
-import 'providers/sign_up_provider.dart';
+import 'providers/user_provider.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -70,11 +70,7 @@ Future<void> main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => SpotifyProvider()),
           ChangeNotifierProvider(
-            create: (_) => SignUpStepFourProvider(),
-            lazy: false,
-          ),
-          ChangeNotifierProvider(
-            create: (_) => SignUpProvider(),
+            create: (_) => UserProvider(),
             lazy: false,
           ),
         ],

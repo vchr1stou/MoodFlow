@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:moodflow/providers/sign_up_provider.dart';
+import 'package:moodflow/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -14,7 +14,7 @@ import '../homescreen_screen/homescreen_screen.dart';
 
 import 'models/final_set_up_model.dart';
 import 'provider/final_set_up_provider.dart';
-import '../../providers/sign_up_provider.dart';
+import '../../providers/user_provider.dart';
 
 class FinalSetUpScreen extends StatefulWidget {
   const FinalSetUpScreen({Key? key}) : super(key: key);
@@ -172,7 +172,7 @@ class FinalSetUpScreenState extends State<FinalSetUpScreen> {
                                 child: GestureDetector(
                                   onTap: () async {
                                     // Create user in Firebase
-                                    await context.read<SignUpProvider>().createUser(ScaffoldMessenger.of(context));
+                                    await context.read<UserProvider>().createUser(ScaffoldMessenger.of(context));
                                     
                                     //Navigate to the home screen
                                     Navigator.pushReplacement(

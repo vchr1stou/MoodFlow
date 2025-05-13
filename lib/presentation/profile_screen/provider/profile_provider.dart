@@ -15,10 +15,4 @@ class ProfileProvider extends ChangeNotifier {
   void dispose() {
     super.dispose();
   }
-
-  /// Updates the switch value for the item at the given index
-  void changeSwitchBox(int index, bool value) {
-    profileModelObj.profileOneItemList[index].isSelectedSwitch = value;
-    notifyListeners();
-  }
 }

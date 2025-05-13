@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import '../../core/app_export.dart';
-import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import 'models/profile_model.dart';
-import 'models/profile_one_item_model.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'provider/profile_provider.dart';
 import 'widgets/profile_one_item_widget.dart';
-import '../../routes/app_routes.dart';
+
+import '../../providers/user_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../widgets/app_bar.dart';
+import 'package:moodflow/core/utils/size_utils.dart';
+import 'dart:ui';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -22,122 +24,239 @@ class ProfileScreen extends StatefulWidget {
     );
   }
 }
+// ...existing imports...
 
 class ProfileScreenState extends State<ProfileScreen> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        appBar: _buildAppbar(context),
-        body: Container(
-          width: double.maxFinite,
-          height: SizeUtils.height,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/background.png'),
-              fit: BoxFit.cover,
+    final provider = Provider.of<UserProvider>(context);
+
+    return Scaffold(
+      extendBody: true,
+          extendBodyBehindAppBar: true,
+          appBar: buildAppbar(context),
+          body: Container(
+            width: double.maxFinite,
+            height: SizeUtils.height,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+
+        child: Stack(
+        children: [
+          // Background blur overlay
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: Container(
+                color: Color(0xFFBCBCBC).withOpacity(0.04),
+              ),
             ),
           ),
-          child: Stack(
-            children: [
-              // Background blur overlay
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                  child: Container(
-                    color: Color(0xFFBCBCBC).withOpacity(0.04),
+          // Bottom SVG (settings background)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SvgPicture.asset(
+              'assets/images/Settings_profile.svg',
+              width: MediaQuery.of(context).size.width,
+              fit: BoxFit.fitWidth,
+            ),
+          ),
+          Positioned(
+            left: 18,
+            top: 116,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width - 36, // Adjust width as needed
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/profile_widget.svg',
+                    width: MediaQuery.of(context).size.width - 36,
+                    fit: BoxFit.fitWidth,
                   ),
-                ),
-              ),
-              // Content
-              SafeArea(
-                child: SingleChildScrollView(
-                  child: Container(
-                    width: double.maxFinite,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        SizedBox(height: 20.v),
-                        // Dummy button to navigate to welcome screen
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, AppRoutes.welcomeScreen);
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "My Account",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.chevron_right, color: Colors.white),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                provider.name ?? 'User',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                provider.email ?? '',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.emoji_emotions, size: 48, color: Colors.orange),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Main content with top SVG (profile card)
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                // Settings list
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSettingRow(
+                          icon: Icons.local_fire_department,
+                          text: "Daily Streak",
+                          trailing: Switch(
+                            value: provider.dailyStreakEnabled,
+                            onChanged: (bool value) => provider.toggleDailyStreak(value),
+                            activeColor: Colors.green,
+                          ),
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.music_note,
+                          text: "Sound",
+                          trailing: Switch(
+                            value: provider.soundEnabled,
+                            onChanged: (bool value) => provider.toggleSound(value),
+                            activeColor: Colors.green,
+                          ),
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.music_video,
+                          text: "Music",
+                          trailing: Switch(
+                            value: provider.musicEnabled,
+                            onChanged: (bool value) => provider.toggleMusic(value),
+                            activeColor: Colors.green,
+                          ),
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.vibration,
+                          text: "Haptic Feedback",
+                          trailing: Switch(
+                            value: provider.hapticEnabled,
+                            onChanged: (bool value) => provider.toggleHaptic(value),
+                            activeColor: Colors.green,
+                          ),
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.notifications_active,
+                          text: "Gentle Reminders",
+                          trailing: Icon(Icons.chevron_right, color: Colors.white),
+                          onTap: () {
+                            // Navigate to Gentle Reminders screen
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.v),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            'Go to Welcome Screen',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16.fSize,
-                            ),
-                          ),
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.lock,
+                          text: "Set PIN",
+                          trailing: Icon(Icons.chevron_right, color: Colors.white),
+                          onTap: () {
+                            // Navigate to Set PIN screen
+                          },
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.music_note,
+                          text: "Spotify Account",
+                          trailing: Icon(Icons.chevron_right, color: Colors.white),
+                          onTap: () {
+                            // Navigate to Spotify Account screen
+                          },
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.accessibility_new,
+                          text: "Accessibility",
+                          trailing: Icon(Icons.chevron_right, color: Colors.white),
+                          onTap: () {
+                            // Navigate to Accessibility screen
+                          },
+                        ),
+                        _buildSettingRow(
+                          icon: Icons.group,
+                          text: "Your Safety Net",
+                          trailing: Icon(Icons.chevron_right, color: Colors.white),
+                          onTap: () {
+                            // Navigate to Safety Net screen
+                          },
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 24),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
+    ),
     );
   }
 
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leadingWidth: 40,
-      leading: Align(
-        alignment: Alignment.centerLeft,
-        child: _buildBackButton(),
-      ),
-    );
-  }
-
-  Widget _buildBackButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pop();
-      },
-      child: Padding(
-        padding: EdgeInsets.only(left: 12.h),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.2),
-              ),
-            ),
-            Positioned(
-              child: Icon(
-                Icons.chevron_left,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ],
+  Widget _buildSettingRow({
+    required IconData icon,
+    required String text,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
         ),
       ),
+      trailing: trailing,
+      onTap: onTap,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      tileColor: Colors.transparent,
+      dense: true,
     );
   }
 }

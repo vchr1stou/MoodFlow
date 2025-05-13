@@ -11,7 +11,7 @@ import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/sign_up_step_three_model.dart';
 import 'provider/sign_up_step_three_provider.dart';
-import '../../providers/sign_up_provider.dart';
+import '../../providers/user_provider.dart';
 
 class SignUpStepThreeScreen extends StatefulWidget {
   const SignUpStepThreeScreen({Key? key}) : super(key: key);
@@ -535,8 +535,8 @@ class SignUpStepThreeScreenState extends State<SignUpStepThreeScreen> {
                       child: GestureDetector(
                         onTap: () {
                           // Update sign up provider contact list 
-                          final signUpProvider = context.read<SignUpProvider>();
-                          signUpProvider.updateStepThreeData(selectedContacts);
+                          final userProvider = context.read<UserProvider>();
+                          userProvider.updateStepThreeData(selectedContacts);
                           // Navigate to the next screen
                           Navigator.pushNamed(context, AppRoutes.finalSetUpScreen);
                         },

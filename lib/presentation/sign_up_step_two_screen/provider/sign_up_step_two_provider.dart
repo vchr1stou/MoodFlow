@@ -24,7 +24,6 @@ class SignUpStepTwoProvider extends ChangeNotifier {
   List<bool> isAddingDailyReminders = [false, false, false, false];
 
 
-
   @override
   void dispose() {
     super.dispose();

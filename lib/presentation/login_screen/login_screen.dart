@@ -10,6 +10,8 @@ import '../../services/auth_persistence_service.dart';
 import 'models/login_model.dart';
 import 'provider/login_provider.dart';
 
+import '../../providers/user_provider.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -356,6 +358,7 @@ class LoginScreenState extends State<LoginScreen> {
                       await AuthPersistenceService.clearSavedCredentials();
                     }
                     
+                    await Provider.of<UserProvider>(context, listen: false).fetchUserData(email);
                     // Navigate to home screen on success
                     Navigator.pushReplacementNamed(
                         context, AppRoutes.homescreenScreen);

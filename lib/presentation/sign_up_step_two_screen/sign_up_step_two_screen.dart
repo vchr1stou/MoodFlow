@@ -12,7 +12,7 @@ import '../../widgets/custom_switch.dart';
 import 'models/sign_up_step_two_model.dart';
 import 'provider/sign_up_step_two_provider.dart';
 import 'package:provider/provider.dart';
-import '../../providers/sign_up_provider.dart';
+import '../../providers/user_provider.dart';
 
 class SignUpStepTwoScreen extends StatefulWidget {
   const SignUpStepTwoScreen({Key? key}) : super(key: key);
@@ -385,6 +385,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                               child: CupertinoSwitch(
                                                 value: _dailyCheckInEnabled,
                                                 onChanged: (bool value) {
+                                                  provider.changeSwitchBox(value);
                                                   setState(() {
                                                     _dailyCheckInEnabled = value;
                                                   });
@@ -411,7 +412,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                               left: 20.h,
                                               top: 16.h,
                                               child: GestureDetector(
-                                                onTap: () => _selectDailyTime(context, 0),
+                                                onTap: () {
+                                                  provider.toggleDailyCheckIn(0, true);
+                                                  _selectDailyTime(context, 0);
+                                                },
                                                 child: Text(
                                                   provider.isAddingDailyReminders[0]
                                                     ? "Add a Gentle Reminder"
@@ -430,7 +434,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                 right: 20.h,
                                                 top: 20.h,
                                                 child: GestureDetector(
-                                                  onTap: () => _selectDailyTime(context, 0),
+                                                  onTap: () {
+                                                    provider.toggleDailyCheckIn(0, true);
+                                                    _selectDailyTime(context, 0);
+                                                  },
                                                   child: SvgPicture.asset(
                                                     'assets/images/plus_gr.svg',
                                                   ),
@@ -445,6 +452,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                   children: [
                                                     GestureDetector(
                                                       onTap: () {
+                                                        provider.toggleDailyCheckIn(0, false);
                                                         provider.toggleAddingReminder(0, true);
                                                       },
                                                       child: SvgPicture.asset(
@@ -465,7 +473,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                               left: 20.h,
                                               top: 65.h,
                                               child: GestureDetector(
-                                                onTap: () => _selectDailyTime(context, 1),
+                                                onTap: () {
+                                                  provider.toggleDailyCheckIn(1, true);
+                                                 _selectDailyTime(context, 1); 
+                                                },
                                                 child: Text(
                                                   provider.isAddingDailyReminders[1]
                                                     ? "Add a Gentle Reminder"
@@ -484,7 +495,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                 right: 20.h,
                                                 top: 68.h,
                                                 child: GestureDetector(
-                                                  onTap: () => _selectDailyTime(context, 1),
+                                                  onTap: () { 
+                                                    provider.toggleDailyCheckIn(1, true);
+                                                    _selectDailyTime(context, 1);
+                                                  },
                                                   child: SvgPicture.asset(
                                                     'assets/images/plus_gr.svg',
                                                   ),
@@ -499,6 +513,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                   children: [
                                                     GestureDetector(
                                                       onTap: () {
+                                                        provider.toggleDailyCheckIn(1, false);
                                                         provider.toggleAddingReminder(1, true);
                                                       },
                                                       child: SvgPicture.asset(
@@ -519,7 +534,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                               left: 20.h,
                                               top: 113.h,
                                               child: GestureDetector(
-                                                onTap: () => _selectDailyTime(context, 2),
+                                                onTap: () {
+                                                  provider.toggleDailyCheckIn(2, true);
+                                                  _selectDailyTime(context, 2);
+                                                 },
                                                 child: Text(
                                                   provider.isAddingDailyReminders[2]
                                                     ? "Add a Gentle Reminder"
@@ -538,7 +556,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                 right: 20.h,
                                                 top: 114.h,
                                                 child: GestureDetector(
-                                                  onTap: () => _selectDailyTime(context, 2),
+                                                  onTap: () {
+                                                    provider.toggleDailyCheckIn(2, true);
+                                                    _selectDailyTime(context, 2);
+                                                    },
                                                   child: SvgPicture.asset(
                                                     'assets/images/plus_gr.svg',
                                                   ),
@@ -553,6 +574,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                   children: [
                                                     GestureDetector(
                                                       onTap: () {
+                                                        provider.toggleDailyCheckIn(2, false);
                                                         provider.toggleAddingReminder(2, true);
                                                       },
                                                       child: SvgPicture.asset(
@@ -573,7 +595,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                               left: 20.h,
                                               top: 160.h,
                                               child: GestureDetector(
-                                                onTap: () => _selectDailyTime(context, 3),
+                                                onTap: () {
+                                                  provider.toggleDailyCheckIn(3, true);
+                                                  _selectDailyTime(context, 3);
+                                                },
                                                 child: Text(
                                                   provider.isAddingDailyReminders[3]
                                                     ? "Add a Gentle Reminder"
@@ -592,7 +617,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                 right: 20.h,
                                                 top: 161.h,
                                                 child: GestureDetector(
-                                                  onTap: () => _selectDailyTime(context, 3),
+                                                  onTap: () {
+                                                    provider.toggleDailyCheckIn(3, true);
+                                                    _selectDailyTime(context, 3);
+                                                  },
                                                   child: SvgPicture.asset(
                                                     'assets/images/plus_gr.svg',
                                                   ),
@@ -607,6 +635,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                   children: [
                                                     GestureDetector(
                                                       onTap: () {
+                                                        provider.toggleDailyCheckIn(3, false);
                                                         provider.toggleAddingReminder(3, true);
                                                       },
                                                       child: SvgPicture.asset(
@@ -672,6 +701,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                               child: CupertinoSwitch(
                                                 value: _quoteEnabled,
                                                 onChanged: (bool value) {
+                                                  provider.changeSwitchBox1(value);
                                                   setState(() {
                                                     _quoteEnabled = value;
                                                   });
@@ -719,7 +749,10 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                 alignment: Alignment.centerRight,
                                                 child: _isAddingReminder
                                                   ? GestureDetector(
-                                                      onTap: () => _selectTime(context),
+                                                      onTap: () {
+                                                        provider.changeSwitchBox1(true);
+                                                        _selectTime(context);
+                                                      },
                                                       child: SvgPicture.asset(
                                                         'assets/images/plus_gr.svg',
                                                       ),
@@ -729,6 +762,7 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                                       children: [
                                                         GestureDetector(
                                                           onTap: () {
+                                                            provider.changeSwitchBox1(false);
                                                             setState(() {
                                                               _isAddingReminder = true;
                                                             });
@@ -759,11 +793,11 @@ class SignUpStepTwoScreenState extends State<SignUpStepTwoScreen> {
                                 alignment: Alignment.centerRight,
                                 child: GestureDetector(
                                   onTap: () {
-                                    final signUpProvider = context.read<SignUpProvider>();
-                                    signUpProvider.updateStepTwoData(
+                                    final userProvider = context.read<UserProvider>();
+                                    userProvider.updateStepTwoData(
                                       context.read<SignUpStepTwoProvider>().dailyCheckInTimes,
                                        context.read<SignUpStepTwoProvider>().enabledReminders,
-                                      _quoteTime, _quoteEnabled
+                                      _quoteTime, provider.isSelectedSwitch1
                                       );
                                       Navigator.pushNamed(context, AppRoutes.signUpStepThreeScreen);
                                   },
