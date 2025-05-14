@@ -21,6 +21,7 @@ import '../safetynetlittlelifts_screen/safetynetlittlelifts_screen.dart';
 import '../softthanks_screen/softthanks_screen.dart';
 import '../saved_screen/saved_screen.dart';
 import '../homescreen_screen/homescreen_screen.dart';
+import '../beneathlittlelifts_one_screen/beneathlittlelifts_one_screen.dart';
 import 'models/little_lifts_initial_model.dart';
 import 'models/little_lifts_item_model.dart';
 import 'provider/little_lifts_provider.dart';
@@ -363,14 +364,22 @@ class LittleLiftsInitialPageState extends State<LittleLiftsInitialPage> {
       actions: [
         GestureDetector(
           onTap: () {
-            // Add your info button action here
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (context) => BeneathlittleliftsOneScreen.builder(context),
+                fullscreenDialog: true,
+              ),
+            );
           },
-          child: Padding(
+          child: Container(
             padding: EdgeInsets.only(
-              top: 6.h,
-              right: 22.h,
-              bottom: 13.h,
+              top: 0.h,
+              right: 16.h,
+              bottom: 0.h,
+              left: 16.h,
             ),
+            height: 50.h,
+            alignment: Alignment.center,
             child: SvgPicture.asset(
               'assets/images/info.svg',
               width: 30,
