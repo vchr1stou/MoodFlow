@@ -47,6 +47,7 @@ If someone seems deeply distressed, gently remind them they are not alone, and s
 
 Mission:
 Help users feel safe, heard, and a little more okay than before 🌈
+
 """;
 
 class AiScreenTextProvider extends ChangeNotifier {
@@ -165,29 +166,80 @@ class AiScreenTextProvider extends ChangeNotifier {
 
   bool _isValidMoodResponse(String responseText) {
     final moods = ['Heavy', 'Low', 'Neutral', 'Light', 'Bright'];
-    return moods.any((mood) => 
+    
+    // First check for the exact phrase format
+    bool exactMatch = moods.any((mood) => 
       responseText.contains("I sense you're feeling $mood") &&
       responseText.contains("your mood is safe with me")
     );
+    
+    if (exactMatch) return true;
+    
+    // Fallback checks for variations
+    for (final mood in moods) {
+      if ((responseText.contains("I sense you're feeling $mood") || 
+           responseText.contains("you seem to be feeling $mood") ||
+           responseText.contains("you might be feeling $mood") ||
+           responseText.contains("feeling $mood today") ||
+           responseText.contains("your mood is $mood")) && 
+          (responseText.contains("🌟") || 
+           responseText.contains("Did I get") || 
+           responseText.contains("is that right") ||
+           responseText.contains("mood"))) {
+        print("🎭 Found alternative mood pattern for: $mood");
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   void _detectMood(String responseText) {
     print('🔍 Starting mood detection with response: $responseText');
     final moods = ['Heavy', 'Low', 'Neutral', 'Light', 'Bright'];
+    
     for (final mood in moods) {
-      if (responseText.contains("I sense you're feeling $mood")) {
-        print('🎯 Found mood match: $mood');
-        currentMood = mood;
-        print('💡 Detected mood: $mood');
-        // Save the mood immediately after detection with the correct format
-        final moodWithEmoji = _getMoodWithEmoji(mood);
-        print('🎨 Formatted mood with emoji: $moodWithEmoji');
-        print('💾 Saving mood to storage: $moodWithEmoji with source: emoji_one');
-        StorageService.saveCurrentMood(moodWithEmoji, 'emoji_one');
-        print('✅ Mood saved successfully');
-        break;
+      // Check for various phrases that might contain the mood
+      List<String> moodPhrases = [
+        "I sense you're feeling $mood",
+        "you seem to be feeling $mood",
+        "you might be feeling $mood",
+        "feeling $mood today",
+        "your mood is $mood"
+      ];
+      
+      for (final phrase in moodPhrases) {
+        if (responseText.contains(phrase)) {
+          print('🎯 Found mood match via phrase "$phrase": $mood');
+          currentMood = mood;
+          print('💡 Detected mood: $mood');
+          // Save the mood immediately after detection with the correct format
+          final moodWithEmoji = _getMoodWithEmoji(mood);
+          print('🎨 Formatted mood with emoji: $moodWithEmoji');
+          print('💾 Saving mood to storage: $moodWithEmoji with source: emoji_one');
+          
+          try {
+            StorageService.saveCurrentMood(moodWithEmoji, 'emoji_one');
+            print('✅ Mood saved successfully');
+            
+            // Verify the mood was saved correctly
+            final savedMood = StorageService.getCurrentMood();
+            final savedSource = StorageService.getMoodSource();
+            print('🔎 Verification - Saved mood: $savedMood, Source: $savedSource');
+            
+            if (savedMood != moodWithEmoji) {
+              print('⚠️ Warning: Saved mood ($savedMood) doesn\'t match expected mood ($moodWithEmoji)');
+            }
+          } catch (e) {
+            print('❌ Error saving mood: $e');
+          }
+          
+          return; // Exit once we've found and saved a mood
+        }
       }
     }
+    
+    print('⚠️ No mood detected in the response');
   }
 
   void confirmMood() {
@@ -203,6 +255,7 @@ class AiScreenTextProvider extends ChangeNotifier {
   }
 
   String _getMoodWithEmoji(String mood) {
+    // Ensure this matches exactly the format expected by LogScreen
     switch (mood.toLowerCase()) {
       case 'heavy':
         return 'Heavy 😔';
@@ -211,9 +264,9 @@ class AiScreenTextProvider extends ChangeNotifier {
       case 'neutral':
         return 'Neutral 😐';
       case 'light':
-        return 'Light 😃';
+        return 'Light 😊';
       case 'bright':
-        return 'Bright 😊';
+        return 'Bright 😄';
       default:
         return 'Neutral 😐';
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../presentation/log_screen/log_screen.dart';
+import '../core/services/storage_service.dart';
 
 class UnlockSlider extends StatefulWidget {
   final VoidCallback? onUnlock;
@@ -9,6 +10,7 @@ class UnlockSlider extends StatefulWidget {
   final Color textColor;
   final double height;
   final double borderRadius;
+  final String? currentMood;
 
   const UnlockSlider({
     Key? key,
@@ -19,6 +21,7 @@ class UnlockSlider extends StatefulWidget {
     this.textColor = Colors.white,
     this.height = 50,
     this.borderRadius = 25,
+    this.currentMood,
   }) : super(key: key);
 
   @override
@@ -47,6 +50,23 @@ class _UnlockSliderState extends State<UnlockSlider> with SingleTickerProviderSt
     super.dispose();
   }
 
+  String _getMoodWithEmoji(String mood) {
+    switch (mood.toLowerCase()) {
+      case 'heavy':
+        return 'Heavy 😔';
+      case 'low':
+        return 'Low 😢';
+      case 'neutral':
+        return 'Neutral 😐';
+      case 'light':
+        return 'Light 😊';
+      case 'bright':
+        return 'Bright 😄';
+      default:
+        return 'Neutral 😐';
+    }
+  }
+
   void _onDragUpdate(DragUpdateDetails details) {
     if (_isUnlocked) return;
 
@@ -62,14 +82,29 @@ class _UnlockSliderState extends State<UnlockSlider> with SingleTickerProviderSt
       if (widget.onUnlock != null) {
         widget.onUnlock!();
       }
-      // Navigate to LogScreen
+      
+      String? moodToUse;
+      
+      if (widget.currentMood != null) {
+        moodToUse = _getMoodWithEmoji(widget.currentMood!);
+        StorageService.saveCurrentMood(moodToUse, 'aiscreen');
+      } else {
+        moodToUse = StorageService.getCurrentMood();
+      }
+      
+      if (moodToUse == null) {
+        moodToUse = 'Neutral 😐';
+      }
+      
+      final String finalMood = moodToUse;
+      
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => LogScreen(
-            source: 'homescreen',
-            emojiSource: 'emoji_one',
-            feeling: 'Happy',
+            source: 'aiscreen',
+            emojiSource: 'aiscreen',
+            feeling: finalMood,
           ),
         ),
       );
@@ -86,7 +121,6 @@ class _UnlockSliderState extends State<UnlockSlider> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    // Calculate text opacity based on drag position
     final maxDrag = 342 - widget.height;
     final textOpacity = 1.0 - (_dragPosition / maxDrag).clamp(0.0, 1.0);
 

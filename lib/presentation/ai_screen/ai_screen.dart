@@ -15,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ai_chat_main_provider.dart';
+import '../../utils/text_utils.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -404,7 +405,10 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
       if (provider.messages.isNotEmpty) {
         final lastMessage = provider.messages.last;
         if (lastMessage['role'] == 'assistant') {
-          return lastMessage['content'] as String;
+          final response = lastMessage['content'] as String;
+          // Apply markdown removal to clean the response
+          final cleanResponse = TextUtils.removeMarkdown(response);
+          return cleanResponse;
         }
       }
       return "I'm here to help you feel better. How can I assist you today?";
@@ -501,7 +505,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                               padding: EdgeInsets.only(bottom: 12),
                               child: message['isSender']
                                   ? BubbleSpecialThree(
-                                      text: message['text'],
+                                      text: TextUtils.removeMarkdown(message['text']),
                                       color: message['color'].withOpacity(0.3),
                                       tail: message['tail'],
                                       textStyle: TextStyle(
@@ -510,7 +514,7 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
                                       ),
                                     )
                                   : BubbleSpecialThree(
-                                      text: message['text'],
+                                      text: TextUtils.removeMarkdown(message['text']),
                                       color: message['color'].withOpacity(0.3),
                                       tail: message['tail'],
                                       isSender: false,

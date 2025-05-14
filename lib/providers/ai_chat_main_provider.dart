@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../../config/api_config.dart';
+import '../utils/text_utils.dart';
 
 const List<String> modelNames = [
   'models/gemini-2.5-pro',
@@ -19,7 +20,7 @@ Style:
 - Friendly, human, and kind 🫂
 - Clear, calm, and to the point
 - Creative and playful when helpful ✨
-- Use natural emojis to add warmth 😊 (but don’t overdo it)
+- Use natural emojis to add warmth 😊 (but don't overdo it)
 
 You do:
 - Help users talk through emotions, thoughts, and challenges
@@ -36,6 +37,8 @@ If someone seems deeply distressed, gently remind them they are not alone, and s
 
 Mission:
 Help users feel safe, heard, and a little more okay than before 🌈
+
+Please do not include any markdown formatting or symbols (like *, _, `, or #) in your responses.
 """;
 
 class AiChatMainProvider extends ChangeNotifier {
@@ -92,7 +95,7 @@ class AiChatMainProvider extends ChangeNotifier {
 
           final response = await _chat.sendMessage(Content.text(message));
           if (response.text != null) {
-            _addMessageAndNotify(response.text!.trim(), role: 'assistant');
+            _addMessageAndNotify(TextUtils.removeMarkdown(response.text!.trim()), role: 'assistant');
             break;
           }
 

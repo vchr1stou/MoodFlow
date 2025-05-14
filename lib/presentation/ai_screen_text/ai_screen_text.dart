@@ -20,6 +20,7 @@ import 'provider/ai_screen_text_provider.dart';
 import '../../widgets/unlock_slider.dart';
 import '../log_screen/log_screen.dart';
 import '../../core/services/storage_service.dart';
+import '../../utils/text_utils.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -241,6 +242,20 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
       setState(() {
         _showChat = true;
       });
+      
+      // Check the latest message for mood assessment
+      if (provider.messages.isNotEmpty) {
+        final lastMessage = provider.messages.last;
+        if (!lastMessage['isSender']) {
+          final messageText = lastMessage['text'] as String;
+          print('🔍 Checking last message for mood: ${messageText.substring(0, messageText.length > 50 ? 50 : messageText.length)}...');
+          
+          if (_containsMoodAssessment(messageText)) {
+            print('✅ Detected mood assessment in last message');
+          }
+        }
+      }
+      
       // Scroll to bottom after adding message
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
@@ -263,6 +278,9 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
         'tail': true,
       });
       setState(() {});
+      
+      // Log the confirmed mood
+      print('🎯 Mood confirmed: ${provider.currentMood}');
     };
   }
 
@@ -364,32 +382,62 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
   }
 
   void _handleCloseButton() async {
-    print('🔍 _handleCloseButton: Getting saved mood');
-    final savedMood = StorageService.getCurrentMood();
-    print('📝 _handleCloseButton: Saved mood is: $savedMood');
+    print('🔍 _handleCloseButton: Navigating to LogInputScreen');
     
+    // Navigate directly to LogInputScreen
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => LogInputScreen.builder(context, source: 'aiscreen'),
+        builder: (context) => LogInputScreen.builder(
+          context, 
+          source: 'aiscreen',
+        ),
       ),
     );
   }
 
-  String _getMoodWithEmoji(String mood) {
-    switch (mood.toLowerCase()) {
-      case 'heavy':
-        return 'Heavy 😔';
-      case 'low':
-        return 'Low 😢';
-      case 'neutral':
-        return 'Neutral 😐';
-      case 'light':
-        return 'Light 😊';
-      case 'bright':
-        return 'Bright 😄';
-      default:
-        return 'Neutral 😐';
+  bool _containsMoodAssessment(String text) {
+    // Check for mood assessment phrases
+    final moods = ['Heavy', 'Low', 'Neutral', 'Light', 'Bright'];
+    
+    // Check for the standard mood assessment format
+    for (final mood in moods) {
+      if (text.contains("I sense you're feeling $mood")) {
+        print("📊 Detected mood assessment for $mood");
+        return true;
+      }
+    }
+    
+    // Check for additional phrases that indicate mood assessment
+    bool containsMoodIndicator = 
+      text.contains("your mood is safe with me") || 
+      text.contains("Did I get your mood right") ||
+      text.contains("Let's gently flow through it together") || 
+      (text.contains("feeling") && text.contains("mood"));
+    
+    // Check for emoji indicators commonly used in mood assessments
+    bool containsEmojiIndicators = 
+      text.contains("🌟") && 
+      text.contains("✨") && 
+      (text.contains("😔") || text.contains("😕") || 
+       text.contains("😐") || text.contains("😃") || 
+       text.contains("😊"));
+    
+    return containsMoodIndicator || containsEmojiIndicators;
+  }
+
+  // Helper method to manually trigger mood confirmation
+  void _checkAndConfirmMood() {
+    final provider = Provider.of<AiScreenTextProvider>(context, listen: false);
+    if (provider.currentMood != null && !provider.moodConfirmed) {
+      print('🔄 Manually triggering mood confirmation for: ${provider.currentMood}');
+      provider.confirmMood();
+      
+      if (provider.onMoodConfirmed != null) {
+        provider.onMoodConfirmed!();
+      }
+    } else {
+      print('⚠️ Cannot confirm mood: ${provider.currentMood == null ? "No mood detected" : "Mood already confirmed"}');
     }
   }
 
@@ -491,13 +539,18 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: provider.messages.map((message) {
+                            final messageText = TextUtils.removeMarkdown(message['text']);
+                            
+                            // Check if this is a mood assessment message from the AI
+                            bool isMoodMessage = !message['isSender'] && _containsMoodAssessment(messageText);
+                            
                             return Padding(
                               padding: EdgeInsets.only(bottom: 12),
                               child: Column(
                                 children: [
                                   message['isSender']
                                       ? BubbleSpecialThree(
-                                          text: message['text'],
+                                          text: messageText,
                                           color: message['color'].withOpacity(0.3),
                                           tail: message['tail'],
                                           textStyle: TextStyle(
@@ -506,7 +559,7 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
                                           ),
                                         )
                                       : BubbleSpecialThree(
-                                          text: message['text'],
+                                          text: messageText,
                                           color: message['color'].withOpacity(0.3),
                                           tail: message['tail'],
                                           isSender: false,
@@ -515,7 +568,8 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
                                             fontSize: 17,
                                           ),
                                         ),
-                                  if (message['text'].toString().contains("I sense you're feeling") && !message['isSender'])
+                                  // Check for mood message using the helper function
+                                  if (isMoodMessage)
                                     Padding(
                                       padding: const EdgeInsets.only(top: 16.0),
                                       child: UnlockSlider(
@@ -529,6 +583,7 @@ class AiScreenTextState extends State<AiScreenText> with SingleTickerProviderSta
                                         textColor: Colors.white,
                                         height: 45.0,
                                         borderRadius: 22.5,
+                                        currentMood: Provider.of<AiScreenTextProvider>(context, listen: false).currentMood,
                                       ),
                                     ),
                                 ],

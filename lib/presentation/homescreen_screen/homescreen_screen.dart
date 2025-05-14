@@ -78,19 +78,16 @@ class HomescreenScreenState extends State<HomescreenScreen> {
   void initState() {
     super.initState();
     print('HomescreenScreen initialized');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Load data immediately instead of waiting for post frame callback
+    _loadMoodData();
+    _calculateCurrentStreak();
+    
+    // Set up a timer to refresh the streak count periodically (every 5 minutes)
+    Timer.periodic(Duration(minutes: 5), (timer) {
       if (mounted) {
-        _loadMoodData();
         _calculateCurrentStreak();
-        
-        // Set up a timer to refresh the streak count periodically (every 5 minutes)
-        Timer.periodic(Duration(minutes: 5), (timer) {
-          if (mounted) {
-            _calculateCurrentStreak();
-          } else {
-            timer.cancel();
-          }
-        });
+      } else {
+        timer.cancel();
       }
     });
   }
@@ -121,12 +118,10 @@ class HomescreenScreenState extends State<HomescreenScreen> {
 
       // Get today and previous two days
       final now = DateTime.now();
-      final dates = [
-        now.subtract(Duration(days: 2)),
-        now.subtract(Duration(days: 1)),
-        now,
-      ];
-
+      
+      // Get logs for the whole week instead of just 3 days
+      final dates = List.generate(7, (index) => now.subtract(Duration(days: index)));
+      
       print('Fetching data for dates: ${dates.map((d) => DateFormat('dd_MM_yyyy').format(d)).join(', ')}');
 
       // Initialize mood data for each day
@@ -163,9 +158,9 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         final logDate = timestamp.toDate();
         final dateStr = DateFormat('dd_MM_yyyy').format(logDate);
         
-        // Only process logs from the last 3 days
+        // Only process logs from the last 7 days
         if (!_moodData.containsKey(dateStr)) {
-          print('Skipping log from date $dateStr (not in last 3 days)');
+          print('Skipping log from date $dateStr (not in last 7 days)');
           continue;
         }
 
@@ -180,6 +175,36 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         if (_moodData[dateStr]!.containsKey(moodName)) {
           _moodData[dateStr]![moodName] = (_moodData[dateStr]![moodName] ?? 0) + 1;
           print('Added mood $moodName for date $dateStr');
+        }
+      }
+
+      // Debug output of mood data for each day
+      _moodData.forEach((date, moods) {
+        final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+        print('Date: $date - Total moods: $total');
+        if (total > 0) {
+          moods.forEach((mood, count) {
+            if (count > 0) {
+              print('  $mood: $count');
+            }
+          });
+        }
+      });
+
+      // For specific weekdays, check if we have data
+      final Map<String, String> weekdayToDate = {};
+      for (int i = 0; i < 7; i++) {
+        final weekday = now.subtract(Duration(days: now.weekday - 1 - i));
+        final weekdayString = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i];
+        final dateStr = DateFormat('dd_MM_yyyy').format(weekday);
+        weekdayToDate[weekdayString] = dateStr;
+        
+        final moods = _moodData[dateStr];
+        if (moods != null) {
+          final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+          print('$weekdayString ($dateStr): Total moods: $total');
+        } else {
+          print('$weekdayString ($dateStr): No data');
         }
       }
 
@@ -345,13 +370,24 @@ class HomescreenScreenState extends State<HomescreenScreen> {
 
   Widget _buildStatBar(String day, double height, {bool isSelected = false}) {
     final now = DateTime.now();
-    final dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day);
-    final date = now.subtract(Duration(days: now.weekday - dayIndex - 1));
+    
+    // Get the date for the specified day of this week
+    // First get to the Monday of this week
+    final mondayOfThisWeek = now.subtract(Duration(days: now.weekday - 1));
+    
+    // Then add days based on the specified day
+    final dayOffset = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5, 'Sun': 6}[day] ?? 0;
+    final date = mondayOfThisWeek.add(Duration(days: dayOffset));
+    
     final dateStr = DateFormat('dd_MM_yyyy').format(date);
+    
+    // Debug info
+    print('Building bar for $day - Date: ${date.toString()} - DateStr: $dateStr');
 
     final isFutureDate = date.isAfter(now);
     final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
 
+    // Get mood data for this date if available
     final moods = _moodData[dateStr] ?? {
       'Heavy': 0,
       'Low': 0,
@@ -359,7 +395,10 @@ class HomescreenScreenState extends State<HomescreenScreen> {
       'Light': 0,
       'Bright': 0,
     };
+    
     final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+    print('$day total moods: $total - $moods');
+    
     final percentages = {
       'Heavy': moods['Heavy']! / (total > 0 ? total : 1),
       'Low': moods['Low']! / (total > 0 ? total : 1),
@@ -367,11 +406,20 @@ class HomescreenScreenState extends State<HomescreenScreen> {
       'Light': moods['Light']! / (total > 0 ? total : 1),
       'Bright': moods['Bright']! / (total > 0 ? total : 1),
     };
-    final barHeight = 90 * 0.9;
+    
+    // Use a consistent bar height for all days
+    const double barHeight = 81.0; // 90 * 0.9
 
     // Find which moods are present (non-zero)
     final moodOrder = ['Bright', 'Light', 'Neutral', 'Low', 'Heavy'];
-    final presentMoods = moodOrder.where((m) => percentages[m]! > 0).toList();
+    final presentMoods = moodOrder.where((m) => percentages[m]! > 0 && moods[m]! > 0).toList();
+
+    // Add a print statement to debug
+    print('Building stat bar for $day (date: $dateStr): Total moods: $total');
+    print('Present moods: $presentMoods');
+    if (total > 0) {
+      print('Mood percentages: $percentages');
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -382,17 +430,19 @@ class HomescreenScreenState extends State<HomescreenScreen> {
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
+              // Background bar (always shown for visual consistency)
               Container(
                 width: 30,
                 height: barHeight,
                 decoration: BoxDecoration(
-                  color: isFutureDate || (isToday && total == 0) 
+                  color: isFutureDate || total == 0 
                       ? Colors.white.withOpacity(0.3)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
-              if (!isFutureDate && !(isToday && total == 0)) ...[
+              // Stack mood segments only if we have data
+              if (total > 0) ...[
                 // Stack segments from bottom (Bright) to top (Heavy)
                 ...(() {
                   List<Widget> segments = [];
@@ -400,7 +450,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                   
                   // Process moods from bottom to top
                   for (String mood in moodOrder) {
-                    if (percentages[mood]! > 0) {
+                    if (moods[mood]! > 0) {
                       final segmentHeight = barHeight * percentages[mood]!;
                       
                       segments.add(
@@ -548,13 +598,13 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildStatBar('Mon', 0.8, isSelected: currentDayIndex == 0),
-                              _buildStatBar('Tue', 0.6, isSelected: currentDayIndex == 1),
-                              _buildStatBar('Wed', 0.7, isSelected: currentDayIndex == 2),
-                              _buildStatBar('Thu', 0.9, isSelected: currentDayIndex == 3),
-                              _buildStatBar('Fri', 0.5, isSelected: currentDayIndex == 4),
-                              _buildStatBar('Sat', 0.6, isSelected: currentDayIndex == 5),
-                              _buildStatBar('Sun', 0.4, isSelected: currentDayIndex == 6),
+                              _buildStatBar('Mon', 1.0, isSelected: currentDayIndex == 0),
+                              _buildStatBar('Tue', 1.0, isSelected: currentDayIndex == 1),
+                              _buildStatBar('Wed', 1.0, isSelected: currentDayIndex == 2),
+                              _buildStatBar('Thu', 1.0, isSelected: currentDayIndex == 3),
+                              _buildStatBar('Fri', 1.0, isSelected: currentDayIndex == 4),
+                              _buildStatBar('Sat', 1.0, isSelected: currentDayIndex == 5),
+                              _buildStatBar('Sun', 1.0, isSelected: currentDayIndex == 6),
                             ],
                           ),
                       ],
