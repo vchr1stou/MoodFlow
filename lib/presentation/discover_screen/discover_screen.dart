@@ -1,11 +1,14 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/app_export.dart';
-import '../../widgets/app_bar/appbar_leading_image.dart';
-import '../../widgets/app_bar/appbar_subtitle_one.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
+import '../homescreen_screen/homescreen_screen.dart';
 
 import 'models/discover_model.dart';
 import 'provider/discover_provider.dart';
@@ -32,322 +35,462 @@ class DiscoverScreenState extends State<DiscoverScreen> {
     super.initState();
     // any initialization logic here
   }
+  
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    
+    // Use in-app browser mode for iOS, external application for others
+    final LaunchMode mode = Platform.isIOS 
+      ? LaunchMode.inAppWebView 
+      : LaunchMode.externalApplication;
+    
+    if (!await launchUrl(uri, mode: mode)) {
+      // If launching fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not launch $url'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(context),
       body: Container(
         width: double.maxFinite,
-        height: SizeUtils.height,
-        decoration: AppDecoration.gradientAmberToRed,
+        height: double.maxFinite,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(top: 28.h),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 14.h),
-                    child: Text(
-                      "Discover",
-                      style: theme.textTheme.displaySmall,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildGlassList(context),
-                  SizedBox(height: 34.h),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      height: 28.h,
-      leadingWidth: 20.h,
-      leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgChevron,
-        margin: EdgeInsets.only(left: 8.h),
-      ),
-      title: AppbarSubtitleOne(
-        text: "Back",
-        margin: EdgeInsets.only(left: 10.h),
-      ),
-    );
-  }
-
-  Widget _buildGlassList(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 14.h),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-          child: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(
-              horizontal: 12.h,
-              vertical: 6.h,
-            ),
-            decoration: AppDecoration.gradientBlackToGray,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildAlert(context),
-                const SizedBox(height: 16),
-                _buildAlertOne(context),
-                const SizedBox(height: 16),
-                _buildAlertTwo(context),
-                const SizedBox(height: 16),
-                _buildAlertThree(context),
-                const SizedBox(height: 16),
-                _buildAlertFour(context),
-                const SizedBox(height: 16),
-                _buildAlertFive(context),
-                SizedBox(height: 26.h),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAlert(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 20.h,
-        vertical: 8.h,
-      ),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder24,
-      ),
-      child: Text(
-        "Explore insights and articles about mental health",
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: CustomTextStyles.labelMediumRobotoOnPrimary11_1,
-      ),
-    );
-  }
-
-  Widget _buildAlertOne(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 20.h,
-        vertical: 10.h,
-      ),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "What are the benefits of mindfulness?",
-            style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13_1,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 280.h,
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "Summary: ",
-                        style: CustomTextStyles.labelMediumRobotoOnPrimary_1,
+              Padding(
+                padding: EdgeInsets.only(left: 10, top: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (context) =>
+                                    HomescreenScreen.builder(context),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/chevron.backward.svg',
+                                width: 9,
+                                height: 17,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Home',
+                                style: GoogleFonts.roboto(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Discover',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
                       ),
-                      TextSpan(
-                        text: "The American Psychological Association explains how mindfulness can improve mental health",
-                        style:
-                            CustomTextStyles.labelMediumRobotoOnPrimaryMedium,
-                      ),
-                    ],
-                  ),
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-              CustomImageView(
-                imagePath: ImageConstant.imgArrowRight,
-                height: 18.h,
-                width: 16.h,
+              SizedBox(height: 7),
+              Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/discover_desc.svg',
+                      width: 375,
+                      height: 50,
+                      fit: BoxFit.contain,
+                    ),
+                    Positioned(
+                      left: 23,
+                      right: 23,
+                      child: Text(
+                        'Explore insights and guidance to help you reflect, reset, and move forward with clarity.',
+                        style: GoogleFonts.roboto(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(height: 15),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _launchURL('https://www.apa.org/monitor/2012/07-08/ce-corner?utm_source=chatgpt.com'),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/discover_box.svg',
+                                  width: 375,
+                                  height: 102,
+                                ),
+                                Positioned(
+                                  top: 15,
+                                  left: 22,
+                                  right: 60,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'What Are the Benefits of Mindfulness?',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 3),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Summary: ',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: 'The American Psychological Association discusses how mindfulness can enhance self-control, objectivity, affect tolerance, flexibility, equanimity, concentration, and mental clarity.',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 22.12,
+                                  child: SvgPicture.asset(
+                                    'assets/images/right_chevron_disc.svg',
+                                    width: 15.08,
+                                    height: 18.77,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _launchURL('https://www.healthline.com/health/sleep-deprivation/effects-on-body'),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/discover_box.svg',
+                                  width: 375,
+                                  height: 102,
+                                ),
+                                Positioned(
+                                  top: 15,
+                                  left: 22,
+                                  right: 60,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'How Sleep Deprivation Impacts Mental Health',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 3),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Summary: ',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: 'Columbia Psychiatry examines the effects of poor or insufficient sleep on emotional responses and stress levels, highlighting the importance of sleep for mental well-being.',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 22.12,
+                                  child: SvgPicture.asset(
+                                    'assets/images/right_chevron_disc.svg',
+                                    width: 15.08,
+                                    height: 18.77,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _launchURL('https://www.healthline.com/health/stress-vs-burnout'),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/discover_box.svg',
+                                  width: 375,
+                                  height: 102,
+                                ),
+                                Positioned(
+                                  top: 15,
+                                  left: 22,
+                                  right: 60,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Coping with Stress vs. Burnout: What\'s the Difference?',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 3),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Summary: ',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: 'This article differentiates between stress and burnout, noting that stress is typically short-term, while burnout results from prolonged stress and leads to emotional exhaustion and reduced performance.. ',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 22.12,
+                                  child: SvgPicture.asset(
+                                    'assets/images/right_chevron_disc.svg',
+                                    width: 15.08,
+                                    height: 18.77,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _launchURL('https://www.psychiatry.org/news-room/apa-blogs/preventing-burnout-protecting-your-well-being'),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/discover_box.svg',
+                                  width: 375,
+                                  height: 102,
+                                ),
+                                Positioned(
+                                  top: 15,
+                                  left: 22,
+                                  right: 60,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Preventing Burnout in the Workplace',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 3),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Summary: ',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: 'Columbia University research on workplace burnout prevention, offering evidence-based approaches for individuals and organizations.',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 22.12,
+                                  child: SvgPicture.asset(
+                                    'assets/images/right_chevron_disc.svg',
+                                    width: 15.08,
+                                    height: 18.77,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _launchURL('https://www.psychiatry.org/patients-families/coping-after-disaster-trauma'),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/discover_box.svg',
+                                  width: 375,
+                                  height: 102,
+                                ),
+                                Positioned(
+                                  top: 15,
+                                  left: 22,
+                                  right: 60,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Coping After Disaster',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 3),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Summary: ',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: 'Provides guidance on coping with trauma after natural disasters, with specific techniques for managing emotional responses and building resilience.',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 22.12,
+                                  child: SvgPicture.asset(
+                                    'assets/images/right_chevron_disc.svg',
+                                    width: 15.08,
+                                    height: 18.77,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlertTwo(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 18.h,
-      ),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "How sleep deprivation affects mental health",
-            style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13_1,
-          ),
-          const SizedBox(height: 8),
-          _buildRowArrowRight(
-            context,
-            description: "Summary: Columbia University research on sleep and mental health",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlertThree(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 14.h,
-        vertical: 12.h,
-      ),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: "Coping with ",
-                  style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13,
-                ),
-                TextSpan(
-                  text: "Stress vs Burnout",
-                  style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildRowArrowRight(
-            context,
-            description: "Summary: This article explains the difference between stress and burnout",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlertFour(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 12.h,
-        vertical: 16.h,
-      ),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        children: [
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: "Preventing Burnout in the Workplace",
-                  style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildRowArrowRight(
-            context,
-            description: "Summary: Columbia University research on workplace burnout prevention",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlertFive(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 12.h,
-      ),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Coping After Disaster",
-            style: CustomTextStyles.labelLargeRobotoOnPrimaryBold13_1,
-          ),
-          const SizedBox(height: 8),
-          _buildRowArrowRight(
-            context,
-            description: "Summary: Provides guidance on coping with trauma after natural disasters",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRowArrowRight(
-    BuildContext context, {
-    required String description,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        SizedBox(
-          width: 286.h,
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: "Summary: ",
-                  style: CustomTextStyles.labelMediumRobotoOnPrimary_1,
-                ),
-                TextSpan(
-                  text: description,
-                  style: CustomTextStyles.labelMediumRobotoOnPrimaryMedium,
-                ),
-              ],
-            ),
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-          ),
         ),
-        CustomImageView(
-          imagePath: ImageConstant.imgArrowRight,
-          height: 18.h,
-          width: 16.h,
-          margin: EdgeInsets.only(top: 6.h),
-        ),
-      ],
+      ),
     );
   }
 }
