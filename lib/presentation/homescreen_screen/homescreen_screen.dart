@@ -33,10 +33,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
 
-import '../../providers/user_provider.dart';
-import 'package:moodflow/services/auth_persistence_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
   NoSwipeBackRoute({required WidgetBuilder builder}) : super(builder: builder);
 
@@ -79,16 +75,387 @@ class HomescreenScreenState extends State<HomescreenScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    print('HomescreenScreen initialized');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadMoodData();
+      }
+    });
   }
 
-  Future<void> _loadUserData() async {
-  final userProvider = Provider.of<UserProvider>(context, listen: false);
-  final userEmail = FirebaseAuth.instance.currentUser?.email;
-  if (userEmail != null) {
-    await userProvider.fetchUserData(userEmail);
+  Future<void> _loadMoodData() async {
+    print('Starting to load mood data...');
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      print('Current user: ${user?.email}');
+      
+      if (user?.email == null) {
+        print('No user email found, stopping load');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Get today and previous two days
+      final now = DateTime.now();
+      final dates = [
+        now.subtract(Duration(days: 2)),
+        now.subtract(Duration(days: 1)),
+        now,
+      ];
+
+      print('Fetching data for dates: ${dates.map((d) => DateFormat('dd_MM_yyyy').format(d)).join(', ')}');
+
+      // Initialize mood data for each day
+      for (var date in dates) {
+        final dateStr = DateFormat('dd_MM_yyyy').format(date);
+        _moodData[dateStr] = {
+          'Heavy': 0,
+          'Low': 0,
+          'Neutral': 0,
+          'Light': 0,
+          'Bright': 0,
+        };
+      }
+
+      // Query Firestore for logs
+      final logsRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.email)
+          .collection('logs');
+
+      print('Fetching logs from Firestore...');
+      final querySnapshot = await logsRef.get();
+      print('Retrieved ${querySnapshot.docs.length} logs');
+
+      // Process each log
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final timestamp = data['timestamp'] as Timestamp?;
+        if (timestamp == null) {
+          print('Skipping log with no timestamp');
+          continue;
+        }
+
+        final logDate = timestamp.toDate();
+        final dateStr = DateFormat('dd_MM_yyyy').format(logDate);
+        
+        // Only process logs from the last 3 days
+        if (!_moodData.containsKey(dateStr)) {
+          print('Skipping log from date $dateStr (not in last 3 days)');
+          continue;
+        }
+
+        final mood = data['mood'] as String?;
+        if (mood == null) {
+          print('Skipping log with no mood');
+          continue;
+        }
+
+        // Extract mood name without emoji
+        final moodName = mood.split(' ')[0];
+        if (_moodData[dateStr]!.containsKey(moodName)) {
+          _moodData[dateStr]![moodName] = (_moodData[dateStr]![moodName] ?? 0) + 1;
+          print('Added mood $moodName for date $dateStr');
+        }
+      }
+
+      print('Finished processing logs. Final mood data: $_moodData');
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e, stackTrace) {
+      print('Error loading mood data: $e');
+      print('Stack trace: $stackTrace');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
+
+  double _calculateMoodValue(String dateStr) {
+    if (!_moodData.containsKey(dateStr)) return 0.0;
+
+    final moods = _moodData[dateStr]!;
+    final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+    if (total == 0) return 0.0;
+
+    // Calculate weighted average based on mood values
+    // Heavy: 0, Low: 1, Neutral: 2, Light: 3, Bright: 4
+    final weightedSum = (moods['Heavy']! * 0) +
+        (moods['Low']! * 1) +
+        (moods['Neutral']! * 2) +
+        (moods['Light']! * 3) +
+        (moods['Bright']! * 4);
+
+    // Convert to a value between 0 and 1
+    return weightedSum / (total * 4);
+  }
+
+  Color _getMoodColor(String dateStr) {
+    if (!_moodData.containsKey(dateStr)) return Colors.white.withOpacity(0.3);
+
+    final moods = _moodData[dateStr]!;
+    final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+    if (total == 0) return Colors.white.withOpacity(0.3);
+
+    // Find the most frequent mood
+    String dominantMood = 'Neutral';
+    int maxCount = 0;
+    moods.forEach((mood, count) {
+      if (count > maxCount) {
+        maxCount = count;
+        dominantMood = mood;
+      }
+    });
+
+    // Return color based on dominant mood
+    switch (dominantMood) {
+      case 'Heavy':
+        return Color(0xFF8C2C2A); // Heavy 😔
+      case 'Low':
+        return Color(0xFFA3444F); // Low 😕
+      case 'Neutral':
+        return Color(0xFFD78F5D); // Neutral 😐
+      case 'Light':
+        return Color(0xFFFFBE5B); // Light 😃
+      case 'Bright':
+        return Color(0xFFFFBC42); // Bright
+      default:
+        return Colors.white.withOpacity(0.3);
+    }
+  }
+
+  Widget _buildStatBar(String day, double height, {bool isSelected = false}) {
+    final now = DateTime.now();
+    final dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day);
+    final date = now.subtract(Duration(days: now.weekday - dayIndex - 1));
+    final dateStr = DateFormat('dd_MM_yyyy').format(date);
+
+    final isFutureDate = date.isAfter(now);
+    final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
+
+    final moods = _moodData[dateStr] ?? {
+      'Heavy': 0,
+      'Low': 0,
+      'Neutral': 0,
+      'Light': 0,
+      'Bright': 0,
+    };
+    final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+    final percentages = {
+      'Heavy': moods['Heavy']! / (total > 0 ? total : 1),
+      'Low': moods['Low']! / (total > 0 ? total : 1),
+      'Neutral': moods['Neutral']! / (total > 0 ? total : 1),
+      'Light': moods['Light']! / (total > 0 ? total : 1),
+      'Bright': moods['Bright']! / (total > 0 ? total : 1),
+    };
+    final barHeight = 90 * 0.9;
+
+    // Find which moods are present (non-zero)
+    final moodOrder = ['Bright', 'Light', 'Neutral', 'Low', 'Heavy'];
+    final presentMoods = moodOrder.where((m) => percentages[m]! > 0).toList();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 30,
+          height: 90,
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                width: 30,
+                height: barHeight,
+                decoration: BoxDecoration(
+                  color: isFutureDate || (isToday && total == 0) 
+                      ? Colors.white.withOpacity(0.3)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              if (!isFutureDate && !(isToday && total == 0)) ...[
+                // Stack segments from bottom (Bright) to top (Heavy)
+                ...(() {
+                  List<Widget> segments = [];
+                  double cumulativeHeight = 0;
+                  
+                  // Process moods from bottom to top
+                  for (String mood in moodOrder) {
+                    if (percentages[mood]! > 0) {
+                      final segmentHeight = barHeight * percentages[mood]!;
+                      
+                      segments.add(
+                        Positioned(
+                          bottom: cumulativeHeight,
+                          child: Container(
+                            width: 30,
+                            height: segmentHeight,
+                            decoration: BoxDecoration(
+                              color: () {
+                                switch (mood) {
+                                  case 'Bright': return Color(0xFFFFBC42);
+                                  case 'Light': return Color(0xFFFFBE5B);
+                                  case 'Neutral': return Color(0xFFD78F5D);
+                                  case 'Low': return Color(0xFFA3444F);
+                                  case 'Heavy': return Color(0xFF8C2C2A);
+                                  default: return Colors.transparent;
+                                }
+                              }(),
+                              borderRadius: () {
+                                // Only one segment: round both
+                                if (presentMoods.length == 1) {
+                                  return BorderRadius.circular(15);
+                                }
+                                // Bottom-most segment (first one we add)
+                                if (cumulativeHeight == 0) {
+                                  return BorderRadius.only(
+                                    bottomLeft: Radius.circular(15),
+                                    bottomRight: Radius.circular(15),
+                                  );
+                                }
+                                // Check if this is the top-most segment
+                                if (mood == presentMoods.last) {
+                                  return BorderRadius.only(
+                                    topLeft: Radius.circular(15),
+                                    topRight: Radius.circular(15),
+                                  );
+                                }
+                                // Middle segments: no rounding
+                                return BorderRadius.zero;
+                              }(),
+                            ),
+                          ),
+                        ),
+                      );
+                      
+                      // Add this segment's height to our running total
+                      cumulativeHeight += segmentHeight;
+                    }
+                  }
+                  return segments;
+                })(),
+              ],
+            ],
+          ),
+        ),
+        SizedBox(height: 4),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            day,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatisticsCard() {
+    // Get current day of week (1-7, where 1 is Monday)
+    final currentDay = DateTime.now().weekday;
+    // Convert to 0-based index for our array (0-6)
+    final currentDayIndex = currentDay - 1;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StatisticsMoodChartsScreen.builder(context),
+          ),
+        );
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double cardWidth = 340.0;
+          double cardHeight = 205.0;
+          double sideSpace = (constraints.maxWidth - cardWidth) / 2;
+
+          return Container(
+            width: constraints.maxWidth,
+            height: cardHeight,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: sideSpace,
+                  child: SvgPicture.asset(
+                    'assets/images/statistics_home_box.svg',
+                    width: cardWidth,
+                    height: cardHeight,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  left: sideSpace,
+                  right: sideSpace,
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Statistics',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                        if (_isLoading)
+                          Center(
+                            child: CupertinoActivityIndicator(
+                              color: Colors.white,
+                              radius: 12,
+                            ),
+                          )
+                        else
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatBar('Mon', 0.8, isSelected: currentDayIndex == 0),
+                              _buildStatBar('Tue', 0.6, isSelected: currentDayIndex == 1),
+                              _buildStatBar('Wed', 0.7, isSelected: currentDayIndex == 2),
+                              _buildStatBar('Thu', 0.9, isSelected: currentDayIndex == 3),
+                              _buildStatBar('Fri', 0.5, isSelected: currentDayIndex == 4),
+                              _buildStatBar('Sat', 0.6, isSelected: currentDayIndex == 5),
+                              _buildStatBar('Sun', 0.4, isSelected: currentDayIndex == 6),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,9 +528,6 @@ class HomescreenScreenState extends State<HomescreenScreen> {
   }
 
   Widget _buildHeader() {
-    final userProvider = Provider.of<UserProvider>(context);
-    final userName = userProvider.name?.split(' ').first ?? 'User';
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -180,13 +544,31 @@ class HomescreenScreenState extends State<HomescreenScreen> {
               ),
             ),
             SizedBox(height: 0.5),
-            Text(
-              userName,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+            StreamBuilder<DocumentSnapshot>(
+              stream: _userService.getCurrentUserStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final userData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  final userName = userData['name'] as String? ?? 'User';
+                  return Text(
+                    userName,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }
+                return Text(
+                  'User',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              },
             ),
           ],
         ),
