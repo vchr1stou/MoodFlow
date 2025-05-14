@@ -13,6 +13,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/streak_model.dart';
 import 'provider/streak_provider.dart';
+import 'dart:async';
 
 class StreakScreen extends StatefulWidget {
   const StreakScreen({Key? key}) : super(key: key);
@@ -33,7 +34,78 @@ class StreakScreen extends StatefulWidget {
 class StreakScreenState extends State<StreakScreen> {
   // Map to store the days that have logs
   Map<String, bool> _daysWithLogs = {};
-  bool _isLoading = false; // Changed to false by default to avoid showing loading indicator
+  // Always keep isLoading false since we don't want to show any loading indicator
+  bool _isLoading = false;
+  int _currentStreak = 0;
+  int _longestStreak = 0;
+  bool _loggedToday = false;
+  String _timeUntilMidnight = "";
+  Timer? _timer;
+  
+  // Pre-fetch logs before the widget is fully built for instant display
+  Future<void> _preFetchLogs() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null || user.email == null) return;
+      
+      // Get the current month and year
+      final now = DateTime.now();
+      final year = now.year;
+      final month = now.month;
+      final today = now.day;
+      
+      // Initialize an empty map to store which days have logs
+      final daysWithLogs = <String, bool>{};
+      
+      // Get a reference to the logs collection
+      final logsRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.email)
+          .collection('logs');
+          
+      // Get all logs in the current month (no loading indicator)
+      final QuerySnapshot querySnapshot = await logsRef.get();
+      
+      // Process logs
+      for (var doc in querySnapshot.docs) {
+        final docId = doc.id;
+        
+        if (docId.contains('_')) {
+          final parts = docId.split('_');
+          
+          if (parts.length >= 3) {
+            final day = int.tryParse(parts[0]);
+            final docMonth = int.tryParse(parts[1]);
+            final docYear = int.tryParse(parts[2]);
+            
+            if (docMonth == month && docYear == year && day != null) {
+              final dayKey = day.toString().padLeft(2, '0');
+              daysWithLogs['$dayKey'] = true;
+              
+              if (day == today) {
+                _loggedToday = true;
+              }
+            }
+          }
+        }
+      }
+      
+      // Calculate current streak
+      await _calculateCurrentStreak(daysWithLogs);
+      
+      // Calculate longest streak by analyzing all logs
+      await _calculateLongestStreak(user.email!);
+      
+      // Update state only once at the end
+      if (mounted) {
+        setState(() {
+          _daysWithLogs = daysWithLogs;
+        });
+      }
+    } catch (e) {
+      print('Error pre-fetching logs: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -49,118 +121,207 @@ class StreakScreenState extends State<StreakScreen> {
       overlays: [SystemUiOverlay.top],
     );
     
-    // Fetch logs for the current month without showing loading indicator
-    _fetchLogsForCurrentMonth();
+    // Initialize time until midnight
+    _calculateTimeUntilMidnight();
+    
+    // Start timer to update countdown
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
+      _calculateTimeUntilMidnight();
+    });
+    
+    // Pre-fetch logs for instant display
+    _preFetchLogs();
   }
 
-  // Fetch logs for the current month
-  Future<void> _fetchLogsForCurrentMonth() async {
-    print('===== STARTING LOG FETCH =====');
-    // Not setting isLoading to true anymore
+  // Calculate time until midnight
+  void _calculateTimeUntilMidnight() {
+    if (!mounted) return; // Add this check to prevent setState after dispose
     
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    final difference = midnight.difference(now);
+    
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes.remainder(60);
+    
+    setState(() {
+      _timeUntilMidnight = "$hours hours and $minutes minutes";
+    });
+  }
+
+  // Calculate current streak
+  Future<void> _calculateCurrentStreak(Map<String, bool> daysWithLogs) async {
+    print('Calculating current streak...');
+    final now = DateTime.now();
+    int streak = 0;
+    bool broken = false;
+    
+    // Start from today and go backwards
+    for (int i = 0; i <= 100; i++) { // Limit to 100 days to avoid infinite loop
+      final checkDate = now.subtract(Duration(days: i));
+      final checkDay = checkDate.day.toString().padLeft(2, '0');
+      final checkMonth = checkDate.month;
+      final checkYear = checkDate.year;
+      
+      // If we're checking a previous month, we need to query that month's logs
+      if (checkMonth != now.month || checkYear != now.year) {
+        print('Streak calculation reached previous month, stopping at $streak days');
+        break; // For simplicity, we'll stop at month boundaries for now
+      }
+      
+      // Check if this day has a log
+      final hasLog = daysWithLogs[checkDay] == true;
+      print('Checking streak for day $checkDay: ${hasLog ? 'has log' : 'no log'}');
+      
+      if (hasLog) {
+        streak++;
+      } else {
+        // If today doesn't have a log, that doesn't break the streak yet
+        if (i > 0) {
+          broken = true;
+          break;
+        }
+      }
+    }
+    
+    print('Current streak calculated: $streak days');
+    if (mounted) {
+      setState(() {
+        _currentStreak = streak;
+      });
+    }
+  }
+
+  // Calculate longest streak by analyzing all logs
+  Future<void> _calculateLongestStreak(String userEmail) async {
     try {
-      print('Checking for current user...');
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null || user.email == null) {
-        print('ERROR: No user logged in or email is null');
+      print('Calculating longest streak...');
+      
+      // Get all logs for this user
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userEmail)
+          .collection('logs')
+          .get();
+          
+      if (querySnapshot.docs.isEmpty) {
+        print('No logs found for longest streak calculation');
+        if (mounted) {
+          setState(() {
+            _longestStreak = 0;
+          });
+        }
         return;
       }
       
-      print('Current user email: ${user.email}');
+      // Parse all log dates and sort them chronologically
+      List<DateTime> logDates = [];
       
-      // Get the current month and year
-      final now = DateTime.now();
-      final year = now.year;
-      final month = now.month;
-      print('Fetching logs for month: $month, year: $year');
-      
-      // Initialize an empty map to store which days have logs
-      final daysWithLogs = <String, bool>{};
-      
-      try {
-        // Get a reference to the logs collection
-        print('Creating reference to collection: users/${user.email}/logs');
+      for (var doc in querySnapshot.docs) {
+        final docId = doc.id;
         
-        // Check if the collection exists by getting the document count
-        final logsRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.email)
-            .collection('logs');
-            
-        // Get all logs in the current month
-        print('Executing Firestore query...');
-        final QuerySnapshot querySnapshot = await logsRef.get();
-        print('Query completed. Found ${querySnapshot.docs.length} log documents');
-        
-        // For debugging - add a mock document if none found
-        if (querySnapshot.docs.isEmpty) {
-          print('No documents found in logs collection. Creating mock data for testing...');
+        if (docId.contains('_')) {
+          final parts = docId.split('_');
           
-          // Format the current day as a two-digit string
-          final currentDay = now.day.toString().padLeft(2, '0');
-          daysWithLogs[currentDay] = true;
-        } else {
-          // Loop through each log document
-          for (var doc in querySnapshot.docs) {
-            final docId = doc.id;
-            print('Processing document: $docId');
-            
-            // The document ID should be in format DD_MM_YYYY_time
-            // Extract the date part
-            if (docId.contains('_')) {
-              final parts = docId.split('_');
-              print('Split parts: $parts');
+          if (parts.length >= 3) {
+            try {
+              final day = int.parse(parts[0]);
+              final month = int.parse(parts[1]);
+              final year = int.parse(parts[2]);
               
-              if (parts.length >= 3) {
-                final day = int.tryParse(parts[0]);
-                final docMonth = int.tryParse(parts[1]);
-                final docYear = int.tryParse(parts[2]);
-                
-                print('Parsed date: day=$day, month=$docMonth, year=$docYear');
-                
-                // If this log is from the current month and year
-                if (docMonth == month && docYear == year && day != null) {
-                  // Format the day key (always 2 digits)
-                  final dayKey = day.toString().padLeft(2, '0');
-                  
-                  // Mark this day as having a log
-                  daysWithLogs['$dayKey'] = true;
-                  print('Found log for day $dayKey');
-                } else {
-                  print('Document date does not match current month/year');
-                }
-              } else {
-                print('Document ID does not have enough parts: $docId');
-              }
-            } else {
-              print('Document ID does not contain underscore: $docId');
+              logDates.add(DateTime(year, month, day));
+            } catch (e) {
+              print('Error parsing date from docId $docId: $e');
             }
           }
         }
-      } catch (firebaseError) {
-        print('Error querying Firestore: $firebaseError');
-        // Even if there's an error, we'll continue without showing a loading indicator
       }
       
-      print('Days with logs: $daysWithLogs');
+      if (logDates.isEmpty) {
+        print('No valid dates found in logs');
+        if (mounted) {
+          setState(() {
+            _longestStreak = 0;
+          });
+        }
+        return;
+      }
       
-      // Only update state if we found logs
-      if (daysWithLogs.isNotEmpty) {
+      // Sort dates from oldest to newest
+      logDates.sort((a, b) => a.compareTo(b));
+      
+      // Remove duplicate dates (multiple logs in the same day)
+      final List<DateTime> uniqueLogDates = [];
+      final Set<String> uniqueDates = {};
+      
+      for (var date in logDates) {
+        final dateStr = DateFormat('yyyy-MM-dd').format(date);
+        if (!uniqueDates.contains(dateStr)) {
+          uniqueDates.add(dateStr);
+          uniqueLogDates.add(date);
+        }
+      }
+      
+      // Handle the case with only one log date
+      if (uniqueLogDates.length == 1) {
+        print('Only one log date found, longest streak is 1');
+        if (mounted) {
+          setState(() {
+            _longestStreak = 1;
+          });
+        }
+        return;
+      }
+      
+      // Calculate the longest streak by finding consecutive dates
+      int currentStreak = 1;
+      int longestStreak = 1;
+      
+      for (int i = 1; i < uniqueLogDates.length; i++) {
+        // Check if this date is one day after the previous date
+        final difference = uniqueLogDates[i].difference(uniqueLogDates[i - 1]).inDays;
+        
+        if (difference == 1) {
+          // Consecutive day, increment current streak
+          currentStreak++;
+          // Update longest streak if current streak is longer
+          longestStreak = currentStreak > longestStreak ? currentStreak : longestStreak;
+        } else if (difference > 1) {
+          // Break in streak, reset current streak
+          currentStreak = 1;
+        }
+      }
+      
+      print('Longest streak calculated: $longestStreak days');
+      
+      // Save the longest streak
+      if (mounted) {
         setState(() {
-          _daysWithLogs = daysWithLogs;
+          _longestStreak = longestStreak;
         });
       }
-      print('===== COMPLETED LOG FETCH SUCCESSFULLY =====');
-    } catch (e, stackTrace) {
-      print('ERROR fetching logs: $e');
-      print('Stack trace: $stackTrace');
-      print('===== LOG FETCH FAILED =====');
-      // Not updating the UI state on error
+      
+      // Optionally save to Firestore for persistence
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userEmail)
+            .update({'longestStreak': longestStreak});
+        print('Longest streak saved to Firestore');
+      } catch (e) {
+        print('Error saving longest streak to Firestore: $e');
+      }
+      
+    } catch (e) {
+      print('Error calculating longest streak: $e');
     }
   }
 
   @override
   void dispose() {
+    // Cancel the timer to prevent memory leaks
+    _timer?.cancel();
+    
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
@@ -314,7 +475,7 @@ class StreakScreenState extends State<StreakScreen> {
                                   ),
                                   SizedBox(height: 5.h),
                                   Text(
-                                    "20 days",
+                                    "$_longestStreak days",
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.roboto(
                                       color: Colors.white,
@@ -356,7 +517,7 @@ class StreakScreenState extends State<StreakScreen> {
                                   ),
                                   SizedBox(height: 5.h),
                                   Text(
-                                    "20 days",
+                                    "$_currentStreak days",
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.roboto(
                                       color: Colors.white,
@@ -387,11 +548,13 @@ class StreakScreenState extends State<StreakScreen> {
                             height: 51.h,
                           ),
                           Text(
-                            "⏰ Quick! 7 hours left to save your streak!",
+                            _loggedToday 
+                              ? "✅ Streak saved. Small steps, steady growth—you're showing up for yourself."
+                              : "⏰ Quick! $_timeUntilMidnight until 23:59.",
                             textAlign: TextAlign.center,
                             style: GoogleFonts.roboto(
                               color: Colors.white,
-                              fontSize: 13,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

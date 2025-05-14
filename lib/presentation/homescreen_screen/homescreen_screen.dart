@@ -29,6 +29,7 @@ import '../inhale_screen/inhale_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
@@ -71,6 +72,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
   final UserService _userService = UserService();
   Map<String, Map<String, int>> _moodData = {};
   bool _isLoading = true;
+  int _currentStreak = 0;
 
   @override
   void initState() {
@@ -79,8 +81,24 @@ class HomescreenScreenState extends State<HomescreenScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadMoodData();
+        _calculateCurrentStreak();
+        
+        // Set up a timer to refresh the streak count periodically (every 5 minutes)
+        Timer.periodic(Duration(minutes: 5), (timer) {
+          if (mounted) {
+            _calculateCurrentStreak();
+          } else {
+            timer.cancel();
+          }
+        });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Clean up timers or listeners if needed
+    super.dispose();
   }
 
   Future<void> _loadMoodData() async {
@@ -174,6 +192,100 @@ class HomescreenScreenState extends State<HomescreenScreen> {
       print('Stack trace: $stackTrace');
       setState(() {
         _isLoading = false;
+      });
+    }
+  }
+
+  // Calculate the current streak from Firestore logs
+  Future<void> _calculateCurrentStreak() async {
+    print('Calculating current streak from Firestore...');
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user?.email == null) {
+        print('No user email found, cannot calculate streak');
+        return;
+      }
+
+      // Get a reference to the logs collection
+      final logsRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.email)
+          .collection('logs');
+          
+      // Get all logs
+      final QuerySnapshot querySnapshot = await logsRef.get();
+      print('Retrieved ${querySnapshot.docs.length} logs for streak calculation');
+      
+      if (querySnapshot.docs.isEmpty) {
+        setState(() {
+          _currentStreak = 0;
+        });
+        return;
+      }
+      
+      // Parse dates from document IDs and store them
+      Map<String, bool> daysWithLogs = {};
+      for (var doc in querySnapshot.docs) {
+        final docId = doc.id;
+        
+        // The document ID should be in format DD_MM_YYYY_time
+        if (docId.contains('_')) {
+          final parts = docId.split('_');
+          if (parts.length >= 3) {
+            try {
+              final day = int.parse(parts[0]);
+              final month = int.parse(parts[1]);
+              final year = int.parse(parts[2]);
+              
+              // Create a unique key for each date
+              final dateKey = '$day/$month/$year';
+              daysWithLogs[dateKey] = true;
+            } catch (e) {
+              print('Error parsing date from docId $docId: $e');
+            }
+          }
+        }
+      }
+      
+      // Calculate streak by checking consecutive days
+      final now = DateTime.now();
+      int streak = 0;
+      bool broken = false;
+      
+      // Start from today and go backwards
+      for (int i = 0; i <= 100; i++) { // Limit to 100 days to avoid infinite loop
+        final checkDate = now.subtract(Duration(days: i));
+        final checkDay = checkDate.day;
+        final checkMonth = checkDate.month;
+        final checkYear = checkDate.year;
+        
+        // Create date key in the same format
+        final dateKey = '$checkDay/$checkMonth/$checkYear';
+        
+        // Check if this day has a log
+        final hasLog = daysWithLogs[dateKey] == true;
+        
+        if (hasLog) {
+          streak++;
+        } else {
+          // If today doesn't have a log, that doesn't break the streak yet
+          if (i > 0) {
+            broken = true;
+            break;
+          }
+        }
+      }
+      
+      print('Current streak calculated: $streak days');
+      setState(() {
+        _currentStreak = streak;
+      });
+      
+    } catch (e, stackTrace) {
+      print('Error calculating streak: $e');
+      print('Stack trace: $stackTrace');
+      setState(() {
+        _currentStreak = 0;
       });
     }
   }
@@ -601,7 +713,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                         top: 9.5,
                         left: 40,
                         child: Text(
-                          '7',
+                          '$_currentStreak',
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 17,
