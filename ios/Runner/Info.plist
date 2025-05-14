@@ -59,6 +59,10 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to camera to take photos of your meals.</string>
 	<key>NSMicrophoneUsageDescription</key>

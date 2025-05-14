@@ -27,6 +27,8 @@ import '../little_lifts_screen/little_lifts_screen.dart';
 import '../ai_screen/ai_screen.dart';
 import '../inhale_screen/inhale_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
@@ -71,6 +73,8 @@ class HomescreenScreen extends StatefulWidget {
 
 class HomescreenScreenState extends State<HomescreenScreen> {
   final UserService _userService = UserService();
+  Map<String, Map<String, int>> _moodData = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -446,127 +450,6 @@ class HomescreenScreenState extends State<HomescreenScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildStatisticsCard() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => StatisticsMoodChartsScreen.builder(context),
-          ),
-        );
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          double cardWidth = 340.0;
-          double cardHeight = 205.0;
-          double sideSpace = (constraints.maxWidth - cardWidth) / 2;
-
-          return Container(
-            width: constraints.maxWidth,
-            height: cardHeight,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: sideSpace,
-                  child: SvgPicture.asset(
-                    'assets/images/statistics_home_box.svg',
-                    width: cardWidth,
-                    height: cardHeight,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  left: sideSpace,
-                  right: sideSpace,
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Statistics',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildStatBar('Mon', 0.8),
-                            _buildStatBar('Tue', 0.6),
-                            _buildStatBar('Wed', 0.7),
-                            _buildStatBar('Thu', 0.9),
-                            _buildStatBar('Fri', 0.5),
-                            _buildStatBar('Sat', 0.6),
-                            _buildStatBar('Sun', 0.4, isSelected: true),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildStatBar(String day, double height, {bool isSelected = false}) {
-    return Column(
-      children: [
-        Container(
-          width: 30,
-          height: 100,
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Container(
-                width: 30,
-                height: 100 * height,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 8),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: isSelected
-              ? BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                )
-              : null,
-          child: Text(
-            day,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
