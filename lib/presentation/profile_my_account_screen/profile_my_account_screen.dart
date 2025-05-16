@@ -127,6 +127,104 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
     );
   }
 
+  Future<void> _showPronounsPicker() async {
+    final List<String> pronouns = ['He / Him', 'She / Her', 'They / Them'];
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentPronouns = userProvider.pronouns ?? '';
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 300,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xFFBCBCBC).withOpacity(0.04),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 44,
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Text(
+                            'Done',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: 250,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        textTheme: CupertinoTextThemeData(
+                          pickerTextStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      child: CupertinoPicker(
+                        itemExtent: 32,
+                        onSelectedItemChanged: (int index) {
+                          userProvider.updatePronouns(pronouns[index]);
+                        },
+                        children: pronouns.map((String pronoun) {
+                          return Center(
+                            child: Text(
+                              pronoun,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -274,11 +372,7 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                           ),
                           // Pronouns Row
                           GestureDetector(
-                            onTap: () => _showEditDialog(
-                              'Pronouns',
-                              userProvider.pronouns ?? '',
-                              (newPronouns) => userProvider.updatePronouns(newPronouns),
-                            ),
+                            onTap: _showPronounsPicker,
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
@@ -423,7 +517,11 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                 GestureDetector(
                   onTap: () {
                     userProvider.signOut();
-                    Navigator.pushNamed(context, AppRoutes.loginScreen);
+                    Navigator.pushNamedAndRemoveUntil(
+                      context, 
+                      AppRoutes.welcomeScreen,
+                      (route) => false,
+                    );
                   },
                   child: Stack(
                     alignment: Alignment.center,
@@ -438,8 +536,8 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                       'Sign Out',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                         fontFamily: 'Roboto',
                       ),
                     ),

@@ -62,6 +62,9 @@ Future<void> main() async {
     }
   }
 
+  // Initialize notification service
+  await NotificationService().initialize();
+
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en')],

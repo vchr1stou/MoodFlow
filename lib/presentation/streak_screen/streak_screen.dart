@@ -14,6 +14,7 @@ import '../../widgets/custom_outlined_button.dart';
 import 'models/streak_model.dart';
 import 'provider/streak_provider.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StreakScreen extends StatefulWidget {
   const StreakScreen({Key? key}) : super(key: key);
@@ -151,13 +152,12 @@ class StreakScreenState extends State<StreakScreen> {
 
   // Calculate current streak
   Future<void> _calculateCurrentStreak(Map<String, bool> daysWithLogs) async {
-    print('Calculating current streak...');
     final now = DateTime.now();
     int streak = 0;
     bool broken = false;
     
     // Start from today and go backwards
-    for (int i = 0; i <= 100; i++) { // Limit to 100 days to avoid infinite loop
+    for (int i = 0; i <= 100; i++) {
       final checkDate = now.subtract(Duration(days: i));
       final checkDay = checkDate.day.toString().padLeft(2, '0');
       final checkMonth = checkDate.month;
@@ -165,13 +165,11 @@ class StreakScreenState extends State<StreakScreen> {
       
       // If we're checking a previous month, we need to query that month's logs
       if (checkMonth != now.month || checkYear != now.year) {
-        print('Streak calculation reached previous month, stopping at $streak days');
         break; // For simplicity, we'll stop at month boundaries for now
       }
       
       // Check if this day has a log
       final hasLog = daysWithLogs[checkDay] == true;
-      print('Checking streak for day $checkDay: ${hasLog ? 'has log' : 'no log'}');
       
       if (hasLog) {
         streak++;
@@ -184,11 +182,14 @@ class StreakScreenState extends State<StreakScreen> {
       }
     }
     
-    print('Current streak calculated: $streak days');
     if (mounted) {
       setState(() {
         _currentStreak = streak;
       });
+      
+      // Update the cached streak value
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('current_streak', streak);
     }
   }
 

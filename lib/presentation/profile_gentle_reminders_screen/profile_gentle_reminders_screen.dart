@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/app_bar.dart';
+import '../../core/utils/size_utils.dart';
 
 class ProfileGentleRemindersScreen extends StatefulWidget {
   const ProfileGentleRemindersScreen({Key? key}) : super(key: key);
@@ -20,12 +21,130 @@ class ProfileGentleRemindersScreen extends StatefulWidget {
 }
 
 class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScreen> {
-  Future<void> _showTimePicker({
-    required BuildContext context,
-    required TimeOfDay initialTime,
-    required Function(TimeOfDay) onTimePicked,
-  }) async {
-    TimeOfDay? selectedTime = initialTime;
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  bool _isAddingStreakReminder = false;
+  List<bool> _isAddingDailyReminders = [false, false, false, false];
+
+  Future<void> _selectDailyTime(BuildContext context, int index) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    TimeOfDay selectedTime = userProvider.dailyCheckInTimes[index];
+    TextEditingController titleController = TextEditingController(
+      text: userProvider.dailyCheckInTitles[index] ?? "How are you feeling?"
+    );
+    
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 400,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xFFBCBCBC).withOpacity(0.04),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 44,
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Text(
+                            'Done',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: 250,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        textTheme: CupertinoTextThemeData(
+                          dateTimePickerTextStyle: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      child: CupertinoDatePicker(
+                        initialDateTime: DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                          userProvider.dailyCheckInTimes[index].hour,
+                          userProvider.dailyCheckInTimes[index].minute,
+                        ),
+                        mode: CupertinoDatePickerMode.time,
+                        use24hFormat: true,
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          selectedTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
+                        },
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: CupertinoTextField(
+                      controller: titleController,
+                      placeholder: "Enter reminder title",
+                      placeholderStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: EdgeInsets.all(12),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await userProvider.updateDailyCheckInTime(index, selectedTime);
+    await userProvider.updateDailyCheckInTitle(index, titleController.text);
+    setState(() {
+      _isAddingDailyReminders[index] = false;
+    });
+  }
+
+  Future<void> _selectQuoteTime(BuildContext context) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    TimeOfDay? selectedTime;
+    
     await showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) => Container(
@@ -41,193 +160,78 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: SafeArea(
             top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 44,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          'Done',
-                          style: TextStyle(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 44,
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Text(
+                            'Done',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: 250,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        textTheme: CupertinoTextThemeData(
+                          dateTimePickerTextStyle: TextStyle(
                             color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
+                      ),
+                      child: CupertinoDatePicker(
+                        initialDateTime: DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                          userProvider.quoteReminderTime?.hour ?? 9,
+                          userProvider.quoteReminderTime?.minute ?? 0,
+                        ),
+                        mode: CupertinoDatePickerMode.time,
+                        use24hFormat: true,
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          selectedTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
                         },
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 250,
-                  child: CupertinoTheme(
-                    data: CupertinoThemeData(
-                      textTheme: CupertinoTextThemeData(
-                        dateTimePickerTextStyle: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    child: CupertinoDatePicker(
-                      initialDateTime: DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month,
-                        DateTime.now().day,
-                        initialTime.hour,
-                        initialTime.minute,
-                      ),
-                      mode: CupertinoDatePickerMode.time,
-                      use24hFormat: true,
-                      onDateTimeChanged: (DateTime newDateTime) {
-                        selectedTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
-                      },
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+
     if (selectedTime != null) {
-      onTimePicked(selectedTime!);
+      await userProvider.updateQuoteReminderTime(selectedTime!);
+      setState(() {
+        _isAddingStreakReminder = false;
+      });
     }
-  }
-
-  Future<void> _showAddReminderDialog(BuildContext context) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final int checkInCount = userProvider.dailyCheckInEnabled?.where((enabled) => enabled).length ?? 0;
-    final bool hasQuote = userProvider.quoteReminderTime != null && userProvider.quoteReminderEnabled == true;
-    final bool hasStreak = userProvider.dailyStreakTime != null && userProvider.dailyStreakReminderEnabled == true;
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text('Add a Reminder'),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () async {
-              Navigator.pop(context);
-              if (checkInCount >= 4) {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (context) => CupertinoAlertDialog(
-                    title: Text('Maximum reached'),
-                    content: Text('Maximum number of daily check-in reminders reached.'),
-                    actions: [
-                      CupertinoDialogAction(
-                        child: Text('OK'),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                );
-                return;
-              }
-
-              // Find the first available slot
-              int insertIndex = 0;
-              if (userProvider.dailyCheckInEnabled != null) {
-                insertIndex = userProvider.dailyCheckInEnabled!.indexOf(false);
-                if (insertIndex == -1) {
-                  insertIndex = userProvider.dailyCheckInEnabled!.length;
-                }
-              }
-
-              // Show time picker for the new reminder
-              await _showTimePicker(
-                context: context,
-                initialTime: const TimeOfDay(hour: 9, minute: 0),
-                onTimePicked: (newTime) async {
-                  await userProvider.enableDailyCheckIn(insertIndex, newTime);
-                },
-              );
-            },
-            child: Text('Add Daily Check-in Reminder'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () async {
-              Navigator.pop(context);
-              if (hasQuote) {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (context) => CupertinoAlertDialog(
-                    title: Text('Maximum reached'),
-                    content: Text('Maximum number of quote reminders reached.'),
-                    actions: [
-                      CupertinoDialogAction(
-                        child: Text('OK'),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                );
-                return;
-              }
-              // Show time picker for quote reminder
-              await _showTimePicker(
-                context: context,
-                initialTime: const TimeOfDay(hour: 9, minute: 30),
-                onTimePicked: (newTime) async {
-                  await userProvider.enableQuoteReminder(newTime);
-                },
-              );
-            },
-            child: const Text('Add Quote Reminder'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () async {
-              Navigator.pop(context);
-              if (hasStreak) {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (context) => CupertinoAlertDialog(
-                    title: Text('Maximum reached'),
-                    content: Text('Maximum number of daily streak reminders reached.'),
-                    actions: [
-                      CupertinoDialogAction(
-                        child: Text('OK'),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                );
-                return;
-              }
-              // Show time picker for streak reminder
-              await _showTimePicker(
-                context: context,
-                initialTime: const TimeOfDay(hour: 23, minute: 30),
-                onTimePicked: (newTime) async {
-                  await userProvider.enableDailyStreak(newTime);
-                },
-              );
-            },
-            child: Text('Add Daily Streak Reminder'),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text('Cancel'),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-
 
     return Scaffold(
       extendBody: true,
@@ -276,24 +280,393 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
                       });
                     },
                     children: [
-                      for (int i = 0; i < userProvider.dailyCheckInTimes.length; i++) 
-                        if (userProvider.dailyCheckInEnabled?[i] == true)
-                          _ReminderRow(
-                            time: _formatTime(userProvider.dailyCheckInTimes[i]),
-                            description: userProvider.dailyCheckInDescriptions?[i] ?? '',
-                            onEdit: () async {
-                              await _showTimePicker(
-                                context: context,
-                                initialTime: userProvider.dailyCheckInTimes[i],
-                                onTimePicked: (newTime) async {
-                                  await userProvider.updateDailyCheckInTime(i, newTime);
-                                },
-                              );
-                            },
-                            onDelete: () async {
-                              await userProvider.disableDailyCheckIn(i);
-                              setState(() {});
-                            },
+                      if (userProvider.dailyCheckInSectionEnabled ?? false)
+                        SizedBox(
+                          height: 242.h, // Height for 4 rows (60.h each) plus spacing
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                left: 0.h,
+                                top: -12.h,
+                                child: SizedBox(
+                                  height: 60,
+                                  width: 340.h,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 18.h),
+                                      Expanded(
+                                        child: !_isAddingDailyReminders[0] ? Text(
+                                          _formatTime(userProvider.dailyCheckInTimes[0]),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white.withOpacity(0.96),
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ) : SizedBox(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_isAddingDailyReminders[0])
+                                Positioned(
+                                  left: 18.h,
+                                  top: 14.h,
+                                  child: Text(
+                                    "Add a Gentle Reminder",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.96),
+                                      fontFamily: 'Roboto',
+                                    ),
+                                  ),
+                                ),
+                              if (_isAddingDailyReminders[0])
+                                Positioned(
+                                  right: 30.h,
+                                  top: 15.h,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      userProvider.toggleDailyCheckIn(0, true);
+                                      _selectDailyTime(context, 0);
+                                    },
+                                    child: SvgPicture.asset('assets/images/plus_gr.svg'),
+                                  ),
+                                ),
+                              Positioned(
+                                left: 18.h,
+                                top: 25.h,
+                                child: !_isAddingDailyReminders[0] ? Text(
+                                  userProvider.dailyCheckInTitles[0] ?? "How are you feeling?",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.96),
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ) : SizedBox(),
+                              ),
+                              Positioned(
+                                right: 25.h,
+                                top: 14.h,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (!_isAddingDailyReminders[0]) ...[
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _isAddingDailyReminders[0] = true;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          'assets/images/trash.svg',
+                                          width: 19.88.h,
+                                          height: 24.12.h,
+                                        ),
+                                      ),
+                                      SizedBox(width: 7.h),
+                                      GestureDetector(
+                                        onTap: () => _selectDailyTime(context, 0),
+                                        child: SvgPicture.asset(
+                                          'assets/images/edit.svg',
+                                          width: 20.h,
+                                          height: 18.h,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                left: -1.h,
+                                top: 35.h,
+                                child: SizedBox(
+                                  height: 60,
+                                  width: 340.h,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 18.h),
+                                      Expanded(
+                                        child: !_isAddingDailyReminders[1] ? Text(
+                                          _formatTime(userProvider.dailyCheckInTimes[1]),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white.withOpacity(0.96),
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ) : SizedBox(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_isAddingDailyReminders[1])
+                                Positioned(
+                                  left: 18.h,
+                                  top: 62.h,
+                                  child: Text(
+                                    "Add a Gentle Reminder",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.96),
+                                      fontFamily: 'Roboto',
+                                    ),
+                                  ),
+                                ),
+                              if (_isAddingDailyReminders[1])
+                                Positioned(
+                                  right: 30.h,
+                                  top: 64.h,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      userProvider.toggleDailyCheckIn(1, true);
+                                      _selectDailyTime(context, 1);
+                                    },
+                                    child: SvgPicture.asset('assets/images/plus_gr.svg'),
+                                  ),
+                                ),
+                              Positioned(
+                                left: 18.h,
+                                top: 71.h,
+                                child: !_isAddingDailyReminders[1] ? Text(
+                                  userProvider.dailyCheckInTitles[1] ?? "How are you feeling?",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.96),
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ) : SizedBox(),
+                              ),
+                              Positioned(
+                                right: 25.h,
+                                top: 60.h,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (!_isAddingDailyReminders[1]) ...[
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _isAddingDailyReminders[1] = true;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          'assets/images/trash.svg',
+                                          width: 19.88.h,
+                                          height: 24.12.h,
+                                        ),
+                                      ),
+                                      SizedBox(width: 7.h),
+                                      GestureDetector(
+                                        onTap: () => _selectDailyTime(context, 1),
+                                        child: SvgPicture.asset(
+                                          'assets/images/edit.svg',
+                                          width: 20.h,
+                                          height: 18.h,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                left: -1.h,
+                                top: 85.h,
+                                child: SizedBox(
+                                  height: 60,
+                                  width: 340.h,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 18.h),
+                                      Expanded(
+                                        child: !_isAddingDailyReminders[2] ? Text(
+                                          _formatTime(userProvider.dailyCheckInTimes[2]),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white.withOpacity(0.96),
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ) : SizedBox(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_isAddingDailyReminders[2])
+                                Positioned(
+                                  left: 18.h,
+                                  top: 110.h,
+                                  child: Text(
+                                    "Add a Gentle Reminder",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.96),
+                                      fontFamily: 'Roboto',
+                                    ),
+                                  ),
+                                ),
+                              if (_isAddingDailyReminders[2])
+                                Positioned(
+                                  right: 30.h,
+                                  top: 112.h,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      userProvider.toggleDailyCheckIn(2, true);
+                                      _selectDailyTime(context, 2);
+                                    },
+                                    child: SvgPicture.asset('assets/images/plus_gr.svg'),
+                                  ),
+                                ),
+                              Positioned(
+                                left: 18.h,
+                                top: 122.h,
+                                child: !_isAddingDailyReminders[2] ? Text(
+                                  userProvider.dailyCheckInTitles[2] ?? "How are you feeling?",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.96),
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ) : SizedBox(),
+                              ),
+                              Positioned(
+                                right: 25.h,
+                                top: 110.h,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (!_isAddingDailyReminders[2]) ...[
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _isAddingDailyReminders[2] = true;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          'assets/images/trash.svg',
+                                          width: 19.88.h,
+                                          height: 24.12.h,
+                                        ),
+                                      ),
+                                      SizedBox(width: 7.h),
+                                      GestureDetector(
+                                        onTap: () => _selectDailyTime(context, 2),
+                                        child: SvgPicture.asset(
+                                          'assets/images/edit.svg',
+                                          width: 20.h,
+                                          height: 18.h,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                left: 0.h,
+                                top: 133.h,
+                                child: SizedBox(
+                                  height: 60,
+                                  width: 340.h,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 18.h),
+                                      Expanded(
+                                        child: !_isAddingDailyReminders[3] ? Text(
+                                          _formatTime(userProvider.dailyCheckInTimes[3]),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white.withOpacity(0.96),
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ) : SizedBox(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_isAddingDailyReminders[3])
+                                Positioned(
+                                  left: 18.h,
+                                  top: 157.h,
+                                  child: Text(
+                                    "Add a Gentle Reminder",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.96),
+                                      fontFamily: 'Roboto',
+                                    ),
+                                  ),
+                                ),
+                              if (_isAddingDailyReminders[3])
+                                Positioned(
+                                  right: 30.h,
+                                  top: 160.h,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      userProvider.toggleDailyCheckIn(3, true);
+                                      _selectDailyTime(context, 3);
+                                    },
+                                    child: SvgPicture.asset('assets/images/plus_gr.svg'),
+                                  ),
+                                ),
+                              Positioned(
+                                left: 19.h,
+                                top: 168.h,
+                                child: !_isAddingDailyReminders[3] ? Text(
+                                  userProvider.dailyCheckInTitles[3] ?? "How are you feeling?",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.96),
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ) : SizedBox(),
+                              ),
+                              Positioned(
+                                right: 25.h,
+                                top: 160.h,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (!_isAddingDailyReminders[3]) ...[
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _isAddingDailyReminders[3] = true;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          'assets/images/trash.svg',
+                                          width: 19.88.h,
+                                          height: 24.12.h,
+                                        ),
+                                      ),
+                                      SizedBox(width: 7.h),
+                                      GestureDetector(
+                                        onTap: () => _selectDailyTime(context, 3),
+                                        child: SvgPicture.asset(
+                                          'assets/images/edit.svg',
+                                          width: 20.h,
+                                          height: 18.h,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                           ),
                     ],
                     enabledReminders: userProvider.dailyCheckInEnabled ?? [],
@@ -309,83 +682,33 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
                       });
                     },
                     children: [
-                      if (userProvider.quoteReminderTime != null && userProvider.quoteReminderEnabled == true)
+                      if (userProvider.quoteReminderEnabled ?? false)
                         _ReminderRow(
-                          time: _formatTime(userProvider.quoteReminderTime),
+                          time: _isAddingStreakReminder
+                            ? "Add a Gentle Reminder"
+                            : _formatTime(userProvider.quoteReminderTime ?? const TimeOfDay(hour: 9, minute: 0)),
                           description: null,
-                          onEdit: () async {
-                            await _showTimePicker(
-                              context: context,
-                              initialTime: userProvider.quoteReminderTime!,
-                              onTimePicked: (newTime) async {
-                                await userProvider.updateQuoteReminderTime(newTime);
-                              },
-                            );
+                          onEdit: () => _selectQuoteTime(context),
+                          onDelete: () {
+                            setState(() {
+                              _isAddingStreakReminder = true;
+                            });
                           },
-                          onDelete: () async {
-                            await userProvider.disableQuoteReminder();
-                            setState(() {});
+                          onAdd: () {
+                            setState(() {
+                              userProvider.toggleQuoteReminder(true);
+                              _selectQuoteTime(context);
+                            });
                           },
+                          isAddingReminder: _isAddingStreakReminder,
+                          isQuoteOfDay: true,
+                          binPadding: EdgeInsets.only(top: 8.h, right: 8.h),
+                          editPadding: EdgeInsets.only(top: 4.h, left: 8.h),
                         ),
                     ],
                     enabledReminders: [userProvider.quoteReminderEnabled ?? false],
                   ),
-                  const SizedBox(height: 18),
-                  // Streak Reminder Section
-                  _ReminderSection(
-                    title: 'Streak Reminder',
-                    enabled: userProvider.dailyStreakSectionEnabled ?? false,
-                    onToggle: (val) {
-                      setState(() {
-                        userProvider.toggleDailyStreakSection(val);
-                      });
-                    },
-                    children: [
-                      if (userProvider.dailyStreakTime != null && userProvider.dailyStreakReminderEnabled == true)
-                        _ReminderRow(
-                          time: _formatTime(userProvider.dailyStreakTime),
-                          description: null,
-                          onEdit: () async {
-                            await _showTimePicker(
-                              context: context,
-                              initialTime: userProvider.dailyStreakTime!,
-                              onTimePicked: (newTime) async {
-                                await userProvider.updateDailyStreakTime(newTime);
-                              },
-                            );
-                          },
-                          onDelete: () async {
-                            await userProvider.disableDailyStreak();
-                            setState(() {});
-                          },
-                        ),
-                    ],
-                    enabledReminders: [userProvider.dailyStreakReminderEnabled ?? false],
-                  ),
                   const SizedBox(height: 32),
-                  // Add new reminder button
-                  GestureDetector(
-                    onTap: () => _showAddReminderDialog(context),
-                    child: Container(
-                      width: 220,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Add a new Reminder',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Roboto',
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -393,13 +716,6 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
         ),
       ),
     );
-  }
-
-  static String _formatTime(TimeOfDay? time) {
-    if (time == null) return '';
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 }
 
@@ -419,85 +735,112 @@ class _ReminderSection extends StatelessWidget {
   });
 
   String _getSectionBackground(int count, bool enabled) {
-    if (!enabled || count == 0) return 'assets/images/no_reminder.svg';
-    if (count == 1) return 'assets/images/one_reminder.svg';
-    if (count == 2) return 'assets/images/two_reminder.svg';
-    if (count == 3) return 'assets/images/three_reminder.svg';
-    if (count == 4) return 'assets/images/four_reminder.svg';
-    return 'assets/images/four_reminder.svg'; // fallback
+    if (!enabled) return 'assets/images/daily_toggle_off.svg';
+    if (title == 'Daily Check - in') return 'assets/images/daily_checkin.svg';
+    if (title == 'Quote of the Day') return 'assets/images/quote_daily.svg';
+    return 'assets/images/daily_toggle_off.svg'; // fallback
   }
 
   @override
   Widget build(BuildContext context) {
     final int remindersCount = enabled ? children.length : 0;
     final String sectionBg = _getSectionBackground(remindersCount, enabled);
-    const double sectionWidth = 340.0;
+    final double sectionWidth = 340.h;
+    final double sectionHeight = enabled ? (title == 'Daily Check - in' ? 283.h : 155.h) : 79.h;
 
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        SvgPicture.asset(
-          sectionBg,
-          width: sectionWidth,
-          fit: BoxFit.fill,
-        ),
-        SizedBox(
-          width: sectionWidth,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      width: sectionWidth,
+      height: sectionHeight,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SvgPicture.asset(
+            sectionBg,
+            width: sectionWidth,
+            height: sectionHeight,
+          ),
+          Positioned(
+            top: 12.h,
+            left: 0,
+            right: 0,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                const SizedBox(height: 10),
-                // Toggle header with gentle_reminders.svg background
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/images/gentle_reminders.svg',
-                      width: MediaQuery.of(context).size.width - 20,
-                      height: 54,
-                      fit: BoxFit.fill,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                                fontFamily: 'Roboto',
-                              ),
-                            ),
-                          ),
-                          CupertinoSwitch(
-                            value: enabled,
-                            onChanged: onToggle,
-                            activeColor: CupertinoColors.systemGreen,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                SvgPicture.asset(
+                  'assets/images/daily_toggle.svg',
                 ),
-                
-                // Only show reminder rows if enabled
-                if (enabled) 
-                const SizedBox(height: 11),
-                if(enabled)  ...children.map((child) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 5.0),
-                    child: child,
-                  )),
-                
+                Positioned(
+                  left: 30.h,
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      fontFamily: 'Roboto',
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 30.h,
+                  child: Transform.scale(
+                    scale: 0.9,
+                    child: CupertinoSwitch(
+                      value: enabled,
+                      onChanged: onToggle,
+                      activeColor: CupertinoColors.systemGreen,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-      ],
+          if (enabled)
+            Positioned(
+              top: 12.h + 55.h + 7.h,
+              child: SizedBox(
+                width: sectionWidth,
+                height: title == 'Daily Check - in' ? 200.h : 80.h,
+                child: Stack(
+                  children: [
+                    if (title == 'Daily Check - in')
+                      Positioned(
+                        left: 10.h,
+                        top: 0,
+                        child: SvgPicture.asset(
+                          'assets/images/times_daily_checkin.svg',
+                          width: 340.h,
+                          height: 200.h,
+                          fit: BoxFit.fill,
+                        ),
+                      )
+                    else if (title == 'Quote of the Day')
+                      Positioned(
+                        left: 10.h,
+                        top: 3.h,
+                        child: SvgPicture.asset(
+                          'assets/images/daily_toggle.svg',
+                          width: 313.h,
+                          height: 56.h,
+                          fit: BoxFit.fill,
+                        ),
+                      ),
+                    if (children.isNotEmpty)
+                      Positioned(
+                        left: 12.h,
+                        top: 2.h,
+                        right: 0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: children,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -507,81 +850,74 @@ class _ReminderRow extends StatelessWidget {
   final String? description;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isAddingReminder;
+  final VoidCallback onAdd;
+  final bool isQuoteOfDay;
+  final EdgeInsets? binPadding;
+  final EdgeInsets? editPadding;
 
   const _ReminderRow({
     required this.time,
     this.description,
     required this.onEdit,
     required this.onDelete,
+    this.isAddingReminder = false,
+    required this.onAdd,
+    this.isQuoteOfDay = false,
+    this.binPadding,
+    this.editPadding,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        SvgPicture.asset(
-          'assets/images/gentle_reminders.svg',
-          width: MediaQuery.of(context).size.width - 64,
-          height: 54,
-          fit: BoxFit.fill,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 36.0, vertical: 8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Time and description in a column
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: onEdit,
-                    child: Text(
-                      time,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                  ),
-                  if (description != null && description!.isNotEmpty)
-                    Text(
-                      description!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 10,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                ],
+    return GestureDetector(
+      onTap: onAdd,
+      child: SizedBox(
+        height: 60,
+        width: 340.h,
+        child: Row(
+          children: [
+            SizedBox(width: 18.h),
+            Expanded(
+              child: Text(
+              time,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.white.withOpacity(0.96),
+                fontFamily: 'Roboto',
               ),
-              const Spacer(),
+            ),
+            ),
+            if (isAddingReminder)
+              Padding(
+                padding: EdgeInsets.only(right: 20.h),
+                child: SvgPicture.asset('assets/images/plus_gr.svg'),
+              )
+            else ...[
               GestureDetector(
                 onTap: onDelete,
                 child: SvgPicture.asset(
                   'assets/images/trash.svg',
-                  width: 22,
-                  height: 22,
+                  width: 19.88.h,
+                  height: 24.12.h,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 7.h),
               GestureDetector(
                 onTap: onEdit,
                 child: SvgPicture.asset(
                   'assets/images/edit.svg',
-                  width: 22,
-                  height: 22,
+                  width: 20.h,
+                  height: 18.h,
                 ),
               ),
+              SizedBox(width: 10.h),
             ],
-          ),
+            SizedBox(width: 20.h),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

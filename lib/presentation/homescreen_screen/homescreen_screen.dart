@@ -30,6 +30,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
@@ -70,79 +71,91 @@ class HomescreenScreen extends StatefulWidget {
   }
 }
 
-class HomescreenScreenState extends State<HomescreenScreen> {
+class HomescreenScreenState extends State<HomescreenScreen> with AutomaticKeepAliveClientMixin {
   final UserService _userService = UserService();
   Map<String, Map<String, int>> _moodData = {};
   bool _isLoading = true;
   int _currentStreak = 0;
+  String? _cachedUserName;
+  late final Widget _littleLiftsScreen;
+  StreamSubscription<DocumentSnapshot>? _userStreamSubscription;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    print('HomescreenScreen initialized');
-    // Load data immediately instead of waiting for post frame callback
-    _loadMoodData();
-    _calculateCurrentStreak();
+    // Preload LittleLiftsScreen
+    _littleLiftsScreen = LittleLiftsScreen.builder(context);
     
-    // Set up a timer to refresh the streak count periodically (every 5 minutes)
-    Timer.periodic(Duration(minutes: 5), (timer) {
-      if (mounted) {
-        _calculateCurrentStreak();
-      } else {
-        timer.cancel();
-      }
-    });
+    // Initialize data loading
+    _initializeData();
+  }
 
-    _loadUserData();
-      
-    
+  Future<void> _initializeData() async {
+    // Load cached data first
+    await Future.wait([
+      _loadCachedStreak(),
+      _loadCachedUserName(),
+    ]);
 
+    // Then load fresh data
+    await Future.wait([
+      _loadMoodData(),
+      _loadUserData(),
+    ]);
   }
 
   @override
   void dispose() {
-    // Clean up timers or listeners if needed
+    _userStreamSubscription?.cancel();
     super.dispose();
   }
 
   Future<void> _loadUserData() async {
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        final userEmail = FirebaseAuth.instance.currentUser?.email;
-        if (userEmail != null) {
-          await userProvider.fetchUserData(userEmail);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+    if (userEmail != null) {
+      await userProvider.fetchUserData(userEmail);
+      
+      // Set up stream subscription
+      _userStreamSubscription?.cancel();
+      _userStreamSubscription = _userService.getCurrentUserStream().listen((snapshot) {
+        if (snapshot.exists) {
+          final userData = snapshot.data() as Map<String, dynamic>;
+          final userName = (userData['name'] as String?)?.split(' ')[0] ?? 'User';
+          if (_cachedUserName != userName) {
+            _saveUserName(userName);
+          }
         }
+      });
+    }
   }
 
   Future<void> _loadMoodData() async {
-    print('Starting to load mood data...');
-    setState(() {
-      _isLoading = true;
-    });
+    if (!mounted) return;
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      print('Current user: ${user?.email}');
       
       if (user?.email == null) {
-        print('No user email found, stopping load');
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
         return;
       }
 
-      // Get today and previous two days
       final now = DateTime.now();
-      
-      // Get logs for the whole week instead of just 3 days
       final dates = List.generate(7, (index) => now.subtract(Duration(days: index)));
-      
-      print('Fetching data for dates: ${dates.map((d) => DateFormat('dd_MM_yyyy').format(d)).join(', ')}');
 
-      // Initialize mood data for each day
+      // Initialize mood data structure
+      final newMoodData = <String, Map<String, int>>{};
       for (var date in dates) {
         final dateStr = DateFormat('dd_MM_yyyy').format(date);
-        _moodData[dateStr] = {
+        newMoodData[dateStr] = {
           'Heavy': 0,
           'Low': 0,
           'Neutral': 0,
@@ -151,124 +164,77 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         };
       }
 
-      // Query Firestore for logs
       final logsRef = FirebaseFirestore.instance
           .collection('users')
           .doc(user!.email)
           .collection('logs');
 
-      print('Fetching logs from Firestore...');
       final querySnapshot = await logsRef.get();
-      print('Retrieved ${querySnapshot.docs.length} logs');
 
-      // Process each log
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
         final timestamp = data['timestamp'] as Timestamp?;
-        if (timestamp == null) {
-          print('Skipping log with no timestamp');
-          continue;
-        }
+        if (timestamp == null) continue;
 
         final logDate = timestamp.toDate();
         final dateStr = DateFormat('dd_MM_yyyy').format(logDate);
         
-        // Only process logs from the last 7 days
-        if (!_moodData.containsKey(dateStr)) {
-          print('Skipping log from date $dateStr (not in last 7 days)');
-          continue;
-        }
+        if (!newMoodData.containsKey(dateStr)) continue;
 
         final mood = data['mood'] as String?;
-        if (mood == null) {
-          print('Skipping log with no mood');
-          continue;
-        }
+        if (mood == null) continue;
 
-        // Extract mood name without emoji
         final moodName = mood.split(' ')[0];
-        if (_moodData[dateStr]!.containsKey(moodName)) {
-          _moodData[dateStr]![moodName] = (_moodData[dateStr]![moodName] ?? 0) + 1;
-          print('Added mood $moodName for date $dateStr');
+        if (newMoodData[dateStr]!.containsKey(moodName)) {
+          newMoodData[dateStr]![moodName] = (newMoodData[dateStr]![moodName] ?? 0) + 1;
         }
       }
 
-      // Debug output of mood data for each day
-      _moodData.forEach((date, moods) {
-        final total = moods.values.fold<int>(0, (sum, count) => sum + count);
-        print('Date: $date - Total moods: $total');
-        if (total > 0) {
-          moods.forEach((mood, count) {
-            if (count > 0) {
-              print('  $mood: $count');
-            }
-          });
-        }
-      });
-
-      // For specific weekdays, check if we have data
-      final Map<String, String> weekdayToDate = {};
-      for (int i = 0; i < 7; i++) {
-        final weekday = now.subtract(Duration(days: now.weekday - 1 - i));
-        final weekdayString = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i];
-        final dateStr = DateFormat('dd_MM_yyyy').format(weekday);
-        weekdayToDate[weekdayString] = dateStr;
-        
-        final moods = _moodData[dateStr];
-        if (moods != null) {
-          final total = moods.values.fold<int>(0, (sum, count) => sum + count);
-          print('$weekdayString ($dateStr): Total moods: $total');
-        } else {
-          print('$weekdayString ($dateStr): No data');
-        }
+      if (mounted) {
+        setState(() {
+          _moodData = newMoodData;
+          _isLoading = false;
+        });
       }
-
-      print('Finished processing logs. Final mood data: $_moodData');
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (e, stackTrace) {
-      print('Error loading mood data: $e');
-      print('Stack trace: $stackTrace');
-      setState(() {
-        _isLoading = false;
-      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  // Calculate the current streak from Firestore logs
+  Future<void> _loadCachedStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _currentStreak = prefs.getInt('current_streak') ?? 0;
+    });
+    // After loading cached value, calculate actual streak
+    _calculateCurrentStreak();
+  }
+
   Future<void> _calculateCurrentStreak() async {
-    print('Calculating current streak from Firestore...');
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user?.email == null) {
-        print('No user email found, cannot calculate streak');
-        return;
-      }
+      if (user?.email == null) return;
 
-      // Get a reference to the logs collection
       final logsRef = FirebaseFirestore.instance
           .collection('users')
           .doc(user!.email)
           .collection('logs');
           
-      // Get all logs
       final QuerySnapshot querySnapshot = await logsRef.get();
-      print('Retrieved ${querySnapshot.docs.length} logs for streak calculation');
       
       if (querySnapshot.docs.isEmpty) {
-        setState(() {
-          _currentStreak = 0;
-        });
+        await _saveStreak(0);
         return;
       }
       
-      // Parse dates from document IDs and store them
       Map<String, bool> daysWithLogs = {};
       for (var doc in querySnapshot.docs) {
         final docId = doc.id;
         
-        // The document ID should be in format DD_MM_YYYY_time
         if (docId.contains('_')) {
           final parts = docId.split('_');
           if (parts.length >= 3) {
@@ -277,38 +243,31 @@ class HomescreenScreenState extends State<HomescreenScreen> {
               final month = int.parse(parts[1]);
               final year = int.parse(parts[2]);
               
-              // Create a unique key for each date
               final dateKey = '$day/$month/$year';
               daysWithLogs[dateKey] = true;
             } catch (e) {
-              print('Error parsing date from docId $docId: $e');
+              // Skip invalid document IDs
             }
           }
         }
       }
       
-      // Calculate streak by checking consecutive days
       final now = DateTime.now();
       int streak = 0;
       bool broken = false;
       
-      // Start from today and go backwards
-      for (int i = 0; i <= 100; i++) { // Limit to 100 days to avoid infinite loop
+      for (int i = 0; i <= 100; i++) {
         final checkDate = now.subtract(Duration(days: i));
         final checkDay = checkDate.day;
         final checkMonth = checkDate.month;
         final checkYear = checkDate.year;
         
-        // Create date key in the same format
         final dateKey = '$checkDay/$checkMonth/$checkYear';
-        
-        // Check if this day has a log
         final hasLog = daysWithLogs[dateKey] == true;
         
         if (hasLog) {
           streak++;
         } else {
-          // If today doesn't have a log, that doesn't break the streak yet
           if (i > 0) {
             broken = true;
             break;
@@ -316,16 +275,20 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         }
       }
       
-      print('Current streak calculated: $streak days');
+      // Always update the streak value
+      await _saveStreak(streak);
+      
+    } catch (e) {
+      await _saveStreak(0);
+    }
+  }
+
+  Future<void> _saveStreak(int streak) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('current_streak', streak);
+    if (mounted) {
       setState(() {
         _currentStreak = streak;
-      });
-      
-    } catch (e, stackTrace) {
-      print('Error calculating streak: $e');
-      print('Stack trace: $stackTrace');
-      setState(() {
-        _currentStreak = 0;
       });
     }
   }
@@ -383,171 +346,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
     }
   }
 
-  Widget _buildStatBar(String day, double height, {bool isSelected = false}) {
-    final now = DateTime.now();
-    
-    // Get the date for the specified day of this week
-    // First get to the Monday of this week
-    final mondayOfThisWeek = now.subtract(Duration(days: now.weekday - 1));
-    
-    // Then add days based on the specified day
-    final dayOffset = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5, 'Sun': 6}[day] ?? 0;
-    final date = mondayOfThisWeek.add(Duration(days: dayOffset));
-    
-    final dateStr = DateFormat('dd_MM_yyyy').format(date);
-    
-    // Debug info
-    print('Building bar for $day - Date: ${date.toString()} - DateStr: $dateStr');
-
-    final isFutureDate = date.isAfter(now);
-    final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
-
-    // Get mood data for this date if available
-    final moods = _moodData[dateStr] ?? {
-      'Heavy': 0,
-      'Low': 0,
-      'Neutral': 0,
-      'Light': 0,
-      'Bright': 0,
-    };
-    
-    final total = moods.values.fold<int>(0, (sum, count) => sum + count);
-    print('$day total moods: $total - $moods');
-    
-    final percentages = {
-      'Heavy': moods['Heavy']! / (total > 0 ? total : 1),
-      'Low': moods['Low']! / (total > 0 ? total : 1),
-      'Neutral': moods['Neutral']! / (total > 0 ? total : 1),
-      'Light': moods['Light']! / (total > 0 ? total : 1),
-      'Bright': moods['Bright']! / (total > 0 ? total : 1),
-    };
-    
-    // Use a consistent bar height for all days
-    const double barHeight = 81.0; // 90 * 0.9
-
-    // Find which moods are present (non-zero)
-    final moodOrder = ['Bright', 'Light', 'Neutral', 'Low', 'Heavy'];
-    final presentMoods = moodOrder.where((m) => percentages[m]! > 0 && moods[m]! > 0).toList();
-
-    // Add a print statement to debug
-    print('Building stat bar for $day (date: $dateStr): Total moods: $total');
-    print('Present moods: $presentMoods');
-    if (total > 0) {
-      print('Mood percentages: $percentages');
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 30,
-          height: 90,
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              // Background bar (always shown for visual consistency)
-              Container(
-                width: 30,
-                height: barHeight,
-                decoration: BoxDecoration(
-                  color: isFutureDate || total == 0 
-                      ? Colors.white.withOpacity(0.3)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              // Stack mood segments only if we have data
-              if (total > 0) ...[
-                // Stack segments from bottom (Bright) to top (Heavy)
-                ...(() {
-                  List<Widget> segments = [];
-                  double cumulativeHeight = 0;
-                  
-                  // Process moods from bottom to top
-                  for (String mood in moodOrder) {
-                    if (moods[mood]! > 0) {
-                      final segmentHeight = barHeight * percentages[mood]!;
-                      
-                      segments.add(
-                        Positioned(
-                          bottom: cumulativeHeight,
-                          child: Container(
-                            width: 30,
-                            height: segmentHeight,
-                            decoration: BoxDecoration(
-                              color: () {
-                                switch (mood) {
-                                  case 'Bright': return Color(0xFFFFBC42);
-                                  case 'Light': return Color(0xFFFFBE5B);
-                                  case 'Neutral': return Color(0xFFD78F5D);
-                                  case 'Low': return Color(0xFFA3444F);
-                                  case 'Heavy': return Color(0xFF8C2C2A);
-                                  default: return Colors.transparent;
-                                }
-                              }(),
-                              borderRadius: () {
-                                // Only one segment: round both
-                                if (presentMoods.length == 1) {
-                                  return BorderRadius.circular(15);
-                                }
-                                // Bottom-most segment (first one we add)
-                                if (cumulativeHeight == 0) {
-                                  return BorderRadius.only(
-                                    bottomLeft: Radius.circular(15),
-                                    bottomRight: Radius.circular(15),
-                                  );
-                                }
-                                // Check if this is the top-most segment
-                                if (mood == presentMoods.last) {
-                                  return BorderRadius.only(
-                                    topLeft: Radius.circular(15),
-                                    topRight: Radius.circular(15),
-                                  );
-                                }
-                                // Middle segments: no rounding
-                                return BorderRadius.zero;
-                              }(),
-                            ),
-                          ),
-                        ),
-                      );
-                      
-                      // Add this segment's height to our running total
-                      cumulativeHeight += segmentHeight;
-                    }
-                  }
-                  return segments;
-                })(),
-              ],
-            ],
-          ),
-        ),
-        SizedBox(height: 4),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            day,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildStatisticsCard() {
-    // Get current day of week (1-7, where 1 is Monday)
-    final currentDay = DateTime.now().weekday;
-    // Convert to 0-based index for our array (0-6)
-    final currentDayIndex = currentDay - 1;
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -575,6 +374,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                     width: cardWidth,
                     height: cardHeight,
                     fit: BoxFit.cover,
+                    cacheColorFilter: true,
                   ),
                 ),
                 Positioned(
@@ -612,15 +412,11 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                         else
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStatBar('Mon', 1.0, isSelected: currentDayIndex == 0),
-                              _buildStatBar('Tue', 1.0, isSelected: currentDayIndex == 1),
-                              _buildStatBar('Wed', 1.0, isSelected: currentDayIndex == 2),
-                              _buildStatBar('Thu', 1.0, isSelected: currentDayIndex == 3),
-                              _buildStatBar('Fri', 1.0, isSelected: currentDayIndex == 4),
-                              _buildStatBar('Sat', 1.0, isSelected: currentDayIndex == 5),
-                              _buildStatBar('Sun', 1.0, isSelected: currentDayIndex == 6),
-                            ],
+                            children: List.generate(7, (index) {
+                              final day = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index];
+                              final currentDayIndex = DateTime.now().weekday - 1;
+                              return _buildStatBar(day, 1.0, isSelected: currentDayIndex == index);
+                            }),
                           ),
                       ],
                     ),
@@ -634,8 +430,138 @@ class HomescreenScreenState extends State<HomescreenScreen> {
     );
   }
 
+  Widget _buildStatBar(String day, double height, {bool isSelected = false}) {
+    final now = DateTime.now();
+    final mondayOfThisWeek = now.subtract(Duration(days: now.weekday - 1));
+    final dayOffset = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5, 'Sun': 6}[day] ?? 0;
+    final date = mondayOfThisWeek.add(Duration(days: dayOffset));
+    final dateStr = DateFormat('dd_MM_yyyy').format(date);
+    final isFutureDate = date.isAfter(now);
+
+    // Get mood data for this date if available
+    final moods = _moodData[dateStr] ?? {
+      'Heavy': 0,
+      'Low': 0,
+      'Neutral': 0,
+      'Light': 0,
+      'Bright': 0,
+    };
+    
+    final total = moods.values.fold<int>(0, (sum, count) => sum + count);
+    
+    // Use a consistent bar height for all days
+    const double barHeight = 81.0;
+
+    // Find which moods are present (non-zero)
+    final moodOrder = ['Bright', 'Light', 'Neutral', 'Low', 'Heavy'];
+    final presentMoods = moodOrder.where((m) => moods[m]! > 0).toList();
+
+    return RepaintBoundary(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 30,
+            height: 90,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                // Background bar (always shown for visual consistency)
+                Container(
+                  width: 30,
+                  height: barHeight,
+                  decoration: BoxDecoration(
+                    color: isFutureDate || total == 0 
+                        ? Colors.white.withOpacity(0.3)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                // Stack mood segments only if we have data
+                if (total > 0) ...[
+                  ...(() {
+                    List<Widget> segments = [];
+                    double cumulativeHeight = 0;
+                    
+                    // Process moods from bottom to top
+                    for (String mood in moodOrder) {
+                      if (moods[mood]! > 0) {
+                        final segmentHeight = barHeight * (moods[mood]! / total);
+                        
+                        segments.add(
+                          Positioned(
+                            bottom: cumulativeHeight,
+                            child: Container(
+                              width: 30,
+                              height: segmentHeight,
+                              decoration: BoxDecoration(
+                                color: () {
+                                  switch (mood) {
+                                    case 'Bright': return Color(0xFFFFBC42);
+                                    case 'Light': return Color(0xFFFFBE5B);
+                                    case 'Neutral': return Color(0xFFD78F5D);
+                                    case 'Low': return Color(0xFFA3444F);
+                                    case 'Heavy': return Color(0xFF8C2C2A);
+                                    default: return Colors.transparent;
+                                  }
+                                }(),
+                                borderRadius: () {
+                                  if (presentMoods.length == 1) {
+                                    return BorderRadius.circular(15);
+                                  }
+                                  if (cumulativeHeight == 0) {
+                                    return BorderRadius.only(
+                                      bottomLeft: Radius.circular(15),
+                                      bottomRight: Radius.circular(15),
+                                    );
+                                  }
+                                  if (mood == presentMoods.last) {
+                                    return BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      topRight: Radius.circular(15),
+                                    );
+                                  }
+                                  return BorderRadius.zero;
+                                }(),
+                              ),
+                            ),
+                          ),
+                        );
+                        
+                        cumulativeHeight += segmentHeight;
+                      }
+                    }
+                    return segments;
+                  })(),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: 4),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              day,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -721,31 +647,13 @@ class HomescreenScreenState extends State<HomescreenScreen> {
               ),
             ),
             SizedBox(height: 0.5),
-            StreamBuilder<DocumentSnapshot>(
-              stream: _userService.getCurrentUserStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  final userData =
-                      snapshot.data!.data() as Map<String, dynamic>;
-                  final userName = (userData['name'] as String?)?.split(' ')[0] ?? 'User';
-                  return Text(
-                    userName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                }
-                return Text(
-                  'User',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                );
-              },
+            Text(
+              _cachedUserName ?? 'User',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -755,38 +663,41 @@ class HomescreenScreenState extends State<HomescreenScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => StreakScreen.builder(context),
-                      ),
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: SvgPicture.asset(
-                          'assets/images/streak_flame.svg',
-                          width: 66,
-                          height: 34,
+                Visibility(
+                  visible: Provider.of<UserProvider>(context).dailyStreakEnabled,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StreakScreen.builder(context),
                         ),
-                      ),
-                      Positioned(
-                        top: 9.5,
-                        left: 40,
-                        child: Text(
-                          '$_currentStreak',
-                          style: GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: SvgPicture.asset(
+                            'assets/images/streak_flame.svg',
+                            width: 66,
+                            height: 34,
                           ),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          top: 9.5,
+                          left: 40,
+                          child: Text(
+                            '$_currentStreak',
+                            style: GoogleFonts.roboto(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Row(
@@ -1158,12 +1069,11 @@ class HomescreenScreenState extends State<HomescreenScreen> {
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity != null && details.primaryVelocity! > 0) {
-          // Swiped right
+          // Swiped right - use preloaded screen
           Navigator.of(context).push(
             PageRouteBuilder(
               opaque: false,
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  LittleLiftsScreen.builder(context),
+              pageBuilder: (context, animation, secondaryAnimation) => _littleLiftsScreen,
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 return FadeTransition(
                   opacity: animation,
@@ -1202,34 +1112,28 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                   ),
 
                   // Left side - Home text (no navigation)
-                  // Increased width to make it easier to press
                   Positioned(
-                    left: -20, // Extend touch area to the left
-                    top: -10, // Extend touch area upward
-                    bottom: -10, // Extend touch area downward
-                    width:
-                        200, // Increased from 150 to 200 for a wider touch target
+                    left: -20,
+                    top: -10,
+                    bottom: -10,
+                    width: 200,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      // No onTap handler - tapping does nothing
                     ),
                   ),
 
                   // Right side - Little Lifts text (navigates to Little Lifts screen)
-                  // Increased width to make it easier to press
                   Positioned(
-                    right: -20, // Extend touch area to the right
-                    top: -10, // Extend touch area upward
-                    bottom: -10, // Extend touch area downward
-                    width:
-                        200, // Increased from 150 to 200 for a wider touch target
+                    right: -20,
+                    top: -10,
+                    bottom: -10,
+                    width: 300,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => Navigator.of(context).push(
                         PageRouteBuilder(
                           opaque: false,
-                          pageBuilder: (context, animation, secondaryAnimation) =>
-                              LittleLiftsScreen.builder(context),
+                          pageBuilder: (context, animation, secondaryAnimation) => _littleLiftsScreen,
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
                             return FadeTransition(
@@ -1345,4 +1249,20 @@ class HomescreenScreenState extends State<HomescreenScreen> {
       ),
     );
   }
+
+  Future<void> _loadCachedUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _cachedUserName = prefs.getString('user_name');
+    });
+  }
+
+  Future<void> _saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_name', name);
+    setState(() {
+      _cachedUserName = name;
+    });
+  }
 }
+
