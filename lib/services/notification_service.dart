@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
 class NotificationService {
@@ -35,6 +36,9 @@ class NotificationService {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         debugPrint('Notification clicked: ${response.payload}');
+      },
+      onDidReceiveBackgroundNotificationResponse: (NotificationResponse response) {
+        debugPrint('Background notification clicked: ${response.payload}');
       },
     );
 
@@ -85,6 +89,13 @@ class NotificationService {
       enableVibration: true,
       playSound: true,
       fullScreenIntent: true,
+      visibility: NotificationVisibility.public,
+      showWhen: true,
+      enableLights: true,
+      color: const Color.fromARGB(255, 0, 0, 0),
+      ledColor: const Color.fromARGB(255, 0, 0, 0),
+      ledOnMs: 1000,
+      ledOffMs: 500,
     );
 
     final iosDetails = DarwinNotificationDetails(
@@ -96,6 +107,7 @@ class NotificationService {
       interruptionLevel: InterruptionLevel.timeSensitive,
       categoryIdentifier: 'daily_check_in',
       subtitle: title,
+      threadIdentifier: 'daily_check_in',
     );
 
     final details = NotificationDetails(
@@ -138,6 +150,13 @@ class NotificationService {
       enableVibration: true,
       playSound: true,
       fullScreenIntent: true,
+      visibility: NotificationVisibility.public,
+      showWhen: true,
+      enableLights: true,
+      color: const Color.fromARGB(255, 0, 0, 0),
+      ledColor: const Color.fromARGB(255, 0, 0, 0),
+      ledOnMs: 1000,
+      ledOffMs: 500,
     );
 
     final iosDetails = DarwinNotificationDetails(
@@ -149,6 +168,7 @@ class NotificationService {
       interruptionLevel: InterruptionLevel.timeSensitive,
       categoryIdentifier: 'quote_reminder',
       subtitle: 'Daily Inspiration',
+      threadIdentifier: 'quote_reminder',
     );
 
     final details = NotificationDetails(
