@@ -107,5 +107,27 @@
 	<true/>
 	<key>GMSApiKey</key>
 	<string>AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<true/>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>We need to send you gentle reminders for your daily check-ins, quotes, and streaks.</string>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
+	<key>NSUserNotificationSound</key>
+	<string>default</string>
+	<key>NSUserNotificationBadge</key>
+	<true/>
+	<key>NSUserNotificationCenter</key>
+	<true/>
+	<key>NSUserNotificationCenterDelegate</key>
+	<string>$(PRODUCT_MODULE_NAME).NotificationService</string>
 </dict>
 </plist>

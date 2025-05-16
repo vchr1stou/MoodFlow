@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,6 +20,210 @@ class ProfileGentleRemindersScreen extends StatefulWidget {
 }
 
 class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScreen> {
+  Future<void> _showTimePicker({
+    required BuildContext context,
+    required TimeOfDay initialTime,
+    required Function(TimeOfDay) onTimePicked,
+  }) async {
+    TimeOfDay? selectedTime = initialTime;
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 300,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xFFBCBCBC).withOpacity(0.04),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 44,
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 250,
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      textTheme: CupertinoTextThemeData(
+                        dateTimePickerTextStyle: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    child: CupertinoDatePicker(
+                      initialDateTime: DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month,
+                        DateTime.now().day,
+                        initialTime.hour,
+                        initialTime.minute,
+                      ),
+                      mode: CupertinoDatePickerMode.time,
+                      use24hFormat: true,
+                      onDateTimeChanged: (DateTime newDateTime) {
+                        selectedTime = TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (selectedTime != null) {
+      onTimePicked(selectedTime!);
+    }
+  }
+
+  Future<void> _showAddReminderDialog(BuildContext context) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final int checkInCount = userProvider.dailyCheckInEnabled?.where((enabled) => enabled).length ?? 0;
+    final bool hasQuote = userProvider.quoteReminderTime != null && userProvider.quoteReminderEnabled == true;
+    final bool hasStreak = userProvider.dailyStreakTime != null && userProvider.dailyStreakReminderEnabled == true;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text('Add a Reminder'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () async {
+              Navigator.pop(context);
+              if (checkInCount >= 4) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                    title: Text('Maximum reached'),
+                    content: Text('Maximum number of daily check-in reminders reached.'),
+                    actions: [
+                      CupertinoDialogAction(
+                        child: Text('OK'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                );
+                return;
+              }
+
+              // Find the first available slot
+              int insertIndex = 0;
+              if (userProvider.dailyCheckInEnabled != null) {
+                insertIndex = userProvider.dailyCheckInEnabled!.indexOf(false);
+                if (insertIndex == -1) {
+                  insertIndex = userProvider.dailyCheckInEnabled!.length;
+                }
+              }
+
+              // Show time picker for the new reminder
+              await _showTimePicker(
+                context: context,
+                initialTime: const TimeOfDay(hour: 9, minute: 0),
+                onTimePicked: (newTime) async {
+                  await userProvider.enableDailyCheckIn(insertIndex, newTime);
+                },
+              );
+            },
+            child: Text('Add Daily Check-in Reminder'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () async {
+              Navigator.pop(context);
+              if (hasQuote) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                    title: Text('Maximum reached'),
+                    content: Text('Maximum number of quote reminders reached.'),
+                    actions: [
+                      CupertinoDialogAction(
+                        child: Text('OK'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                );
+                return;
+              }
+              // Show time picker for quote reminder
+              await _showTimePicker(
+                context: context,
+                initialTime: const TimeOfDay(hour: 9, minute: 30),
+                onTimePicked: (newTime) async {
+                  await userProvider.enableQuoteReminder(newTime);
+                },
+              );
+            },
+            child: const Text('Add Quote Reminder'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () async {
+              Navigator.pop(context);
+              if (hasStreak) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                    title: Text('Maximum reached'),
+                    content: Text('Maximum number of daily streak reminders reached.'),
+                    actions: [
+                      CupertinoDialogAction(
+                        child: Text('OK'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                );
+                return;
+              }
+              // Show time picker for streak reminder
+              await _showTimePicker(
+                context: context,
+                initialTime: const TimeOfDay(hour: 23, minute: 30),
+                onTimePicked: (newTime) async {
+                  await userProvider.enableDailyStreak(newTime);
+                },
+              );
+            },
+            child: Text('Add Daily Streak Reminder'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
@@ -76,9 +281,20 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
                           _ReminderRow(
                             time: _formatTime(userProvider.dailyCheckInTimes[i]),
                             description: userProvider.dailyCheckInDescriptions?[i] ?? '',
-                            onEdit: () {},
-                            onDelete: () {},
-                        ),
+                            onEdit: () async {
+                              await _showTimePicker(
+                                context: context,
+                                initialTime: userProvider.dailyCheckInTimes[i],
+                                onTimePicked: (newTime) async {
+                                  await userProvider.updateDailyCheckInTime(i, newTime);
+                                },
+                              );
+                            },
+                            onDelete: () async {
+                              await userProvider.disableDailyCheckIn(i);
+                              setState(() {});
+                            },
+                          ),
                     ],
                     enabledReminders: userProvider.dailyCheckInEnabled ?? [],
                   ),
@@ -86,19 +302,30 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
                   // Quote of the Day Section
                   _ReminderSection(
                     title: 'Quote of the Day',
-                    enabled: userProvider.quoteReminderEnabled ?? false,
+                    enabled: userProvider.quoteReminderSectionEnabled ?? false,
                     onToggle: (val) {
                       setState(() {
                         userProvider.toggleQuoteReminder(val);
                       });
                     },
                     children: [
-                      if (userProvider.quoteReminderTime != null)
+                      if (userProvider.quoteReminderTime != null && userProvider.quoteReminderEnabled == true)
                         _ReminderRow(
                           time: _formatTime(userProvider.quoteReminderTime),
                           description: null,
-                          onEdit: () {},
-                          onDelete: () {},
+                          onEdit: () async {
+                            await _showTimePicker(
+                              context: context,
+                              initialTime: userProvider.quoteReminderTime!,
+                              onTimePicked: (newTime) async {
+                                await userProvider.updateQuoteReminderTime(newTime);
+                              },
+                            );
+                          },
+                          onDelete: () async {
+                            await userProvider.disableQuoteReminder();
+                            setState(() {});
+                          },
                         ),
                     ],
                     enabledReminders: [userProvider.quoteReminderEnabled ?? false],
@@ -107,26 +334,38 @@ class _ProfileGentleRemindersScreenState extends State<ProfileGentleRemindersScr
                   // Streak Reminder Section
                   _ReminderSection(
                     title: 'Streak Reminder',
-                    enabled: userProvider.dailyStreakEnabled,
+                    enabled: userProvider.dailyStreakSectionEnabled ?? false,
                     onToggle: (val) {
                       setState(() {
-                        userProvider.toggleDailyStreak(val);
+                        userProvider.toggleDailyStreakSection(val);
                       });
                     },
                     children: [
-                      _ReminderRow(
+                      if (userProvider.dailyStreakTime != null && userProvider.dailyStreakReminderEnabled == true)
+                        _ReminderRow(
                           time: _formatTime(userProvider.dailyStreakTime),
                           description: null,
-                          onEdit: () {},
-                          onDelete: () {},
+                          onEdit: () async {
+                            await _showTimePicker(
+                              context: context,
+                              initialTime: userProvider.dailyStreakTime!,
+                              onTimePicked: (newTime) async {
+                                await userProvider.updateDailyStreakTime(newTime);
+                              },
+                            );
+                          },
+                          onDelete: () async {
+                            await userProvider.disableDailyStreak();
+                            setState(() {});
+                          },
                         ),
                     ],
-                    enabledReminders: [userProvider.dailyStreakEnabled],
+                    enabledReminders: [userProvider.dailyStreakReminderEnabled ?? false],
                   ),
                   const SizedBox(height: 32),
                   // Add new reminder button
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () => _showAddReminderDialog(context),
                     child: Container(
                       width: 220,
                       height: 44,
@@ -297,13 +536,16 @@ class _ReminderRow extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    time,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      fontFamily: 'Roboto',
+                  GestureDetector(
+                    onTap: onEdit,
+                    child: Text(
+                      time,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'Roboto',
+                      ),
                     ),
                   ),
                   if (description != null && description!.isNotEmpty)
@@ -312,7 +554,7 @@ class _ReminderRow extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w400,
-                        fontSize: 13,
+                        fontSize: 10,
                         fontFamily: 'Roboto',
                       ),
                     ),

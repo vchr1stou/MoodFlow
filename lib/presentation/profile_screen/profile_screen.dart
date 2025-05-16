@@ -203,7 +203,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                     Transform.scale(
                                       scale: 0.75,
                                       child: CupertinoSwitch(
-                            value: provider.dailyStreakEnabled,
+                            value: provider.dailyStreakEnabled ?? false,
                             onChanged: (bool value) => provider.toggleDailyStreak(value),
                                         activeColor: CupertinoColors.systemGreen,
                                       ),

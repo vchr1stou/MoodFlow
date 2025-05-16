@@ -9,7 +9,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   url_launcher: ^6.1.14
-  http: ^1.2.0
+  http: ^1.4.0
   cached_network_image: ^3.4.0
   flutter_svg: ^2.0.16
   provider: ^6.1.2
@@ -57,6 +57,7 @@ dependencies:
   pdf: ^3.11.3
   share_plus: ^10.0.0
   flutter_markdown: ^0.7.7+1
+  timezone: ^0.9.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

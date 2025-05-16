@@ -6,6 +6,8 @@ import '../../widgets/custom_switch.dart';
 import 'models/porfile_acessibility_settings_model.dart';
 import 'provider/porfile_acessibility_settings_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class PorfileAcessibilitySettingsScreen extends StatefulWidget {
   const PorfileAcessibilitySettingsScreen({Key? key}) : super(key: key);
@@ -32,177 +34,161 @@ class PorfileAcessibilitySettingsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.onPrimary,
-      body: SafeArea(
-        child: SizedBox(
-          width: double.maxFinite,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFE6A4FF), Color(0xFFFFE17D), Color(0xFFF76E6A)],
+          ),
+        ),
+        child: SafeArea(
           child: SingleChildScrollView(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.only(
-                left: 16.h,
-                top: 26.h,
-                right: 16.h,
-              ),
-              decoration:
-                  AppDecoration.forBackgroundpinkyellowbggradient.copyWith(
-                borderRadius: BorderRadiusStyle.roundedBorder32,
-              ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  CustomIconButton(
-                    height: 30.h,
-                    width: 30.h,
-                    padding: EdgeInsets.all(6.h),
-                    decoration: IconButtonStyleHelper.none,
-                    alignment: Alignment.centerLeft,
-                    onTap: () {
-                      onTapBtnArrowleftone(context);
-                    },
-                    child: CustomImageView(
-                      imagePath: ImageConstant.imgArrowLeft,
+                  const SizedBox(height: 24),
+                  // Top icon (Group.svg)
+                  SvgPicture.asset(
+                    'assets/images/Group.svg',
+                    width: 80,
+                    height: 80,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Accessibility',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Roboto',
                     ),
                   ),
-                  CustomImageView(
-                    imagePath: ImageConstant.imgSettingsOnprimary74x76,
-                    height: 74.h,
-                    width: 78.h,
+                  const SizedBox(height: 24),
+                  // Voice Over (top_my_account.svg)
+                  Stack(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/top_my_account.svg',
+                        width: MediaQuery.of(context).size.width - 32,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      Positioned.fill(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 32.0),
+                              child: Text(
+                                'Voice Over',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  fontFamily: 'Roboto',
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 32.0),
+                              child: Icon(Icons.chevron_right, color: Colors.white, size: 28),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    "lbl_accessibility".tr(),
-                    style: theme.textTheme.headlineLarge,
+                  const SizedBox(height: 12),
+                  // Invert Colors (medium_my_account.svg)
+                  Stack(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/medium_my_account.svg',
+                        width: MediaQuery.of(context).size.width - 32,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      Positioned.fill(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 32.0),
+                              child: Text(
+                                'Invert Colors',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  fontFamily: 'Roboto',
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 32.0),
+                              child: CupertinoSwitch(
+                                value: context.watch<PorfileAcessibilitySettingsProvider>().isSelectedSwitch ?? false,
+                                onChanged: (value) {
+                                  context.read<PorfileAcessibilitySettingsProvider>().changeSwitchBox(value);
+                                },
+                                activeColor: CupertinoColors.systemGreen,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 2.h),
-                  _buildNotifications(context),
-                  _buildStreak(context),
-                  _buildPreferences(context),
-                  SizedBox(height: 416.h),
+                  const SizedBox(height: 12),
+                  // Larger Text (bottom_my_account.svg)
+                  Stack(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/bottom_my_account.svg',
+                        width: MediaQuery.of(context).size.width - 32,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      Positioned.fill(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 32.0),
+                              child: Text(
+                                'Larger Text',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  fontFamily: 'Roboto',
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 32.0),
+                              child: CupertinoSwitch(
+                                value: context.watch<PorfileAcessibilitySettingsProvider>().isSelectedSwitch1 ?? false,
+                                onChanged: (value) {
+                                  context.read<PorfileAcessibilitySettingsProvider>().changeSwitchBox1(value);
+                                },
+                                activeColor: CupertinoColors.systemGreen,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildNotifications(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 20.h,
-        vertical: 18.h,
-      ),
-      decoration: AppDecoration.viewsRegular,
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          SizedBox(
-            width: 84.h,
-            child: Text(
-              "lbl_voice_over".tr(),
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgArrowRight,
-            height: 18.h,
-            width: 16.h,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildStreak(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 12.h,
-        vertical: 10.h,
-      ),
-      decoration: AppDecoration.viewsRegular,
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100.h,
-            margin: EdgeInsets.only(left: 6.h),
-            child: Text(
-              "lbl_invert_colors".tr(),
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
-          Spacer(),
-          CustomImageView(
-            imagePath: ImageConstant.imageNotFound,
-            height: 22.h,
-            width: 8.h,
-          ),
-          Selector<PorfileAcessibilitySettingsProvider, bool?>(
-            selector: (context, provider) => provider.isSelectedSwitch,
-            builder: (context, isSelectedSwitch, child) {
-              return CustomSwitch(
-                margin: EdgeInsets.only(
-                  left: 18.h,
-                  top: 8.h,
-                ),
-                alignment: Alignment.bottomCenter,
-                value: isSelectedSwitch,
-                onChange: (value) {
-                  context
-                      .read<PorfileAcessibilitySettingsProvider>()
-                      .changeSwitchBox(value);
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildPreferences(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 12.h,
-        vertical: 14.h,
-      ),
-      decoration: AppDecoration.viewsRegular,
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 88.h,
-            margin: EdgeInsets.only(left: 8.h),
-            child: Text(
-              "lbl_larger_text".tr(),
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
-          Selector<PorfileAcessibilitySettingsProvider, bool?>(
-            selector: (context, provider) => provider.isSelectedSwitch1,
-            builder: (context, isSelectedSwitch1, child) {
-              return CustomSwitch(
-                value: isSelectedSwitch1,
-                onChange: (value) {
-                  context
-                      .read<PorfileAcessibilitySettingsProvider>()
-                      .changeSwitchBox1(value);
-                },
-              );
-            },
-          ),
-        ],
       ),
     );
   }
