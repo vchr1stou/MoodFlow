@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../widgets/custom_text_form_field.dart';
@@ -9,7 +10,6 @@ import '../../services/auth_service.dart';
 import '../../services/auth_persistence_service.dart';
 import 'models/login_model.dart';
 import 'provider/login_provider.dart';
-
 import '../../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -195,24 +195,86 @@ class LoginScreenState extends State<LoginScreen> {
           child: Text(
             "Password",
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
         ),
         SizedBox(height: 12),
-        _buildInputField(
-          controller: context.read<LoginProvider>().passwordtwoController,
-          hintText: "••••••",
-          obscureText: true,
-          keyboardType: TextInputType.visiblePassword,
-          validator: (value) {
-            if (value == null || (!isValidPassword(value, isRequired: true))) {
-              return "Please enter a valid password";
-            }
-            return null;
-          },
+        Container(
+          width: 339.h,
+          height: 44.h,
+          child: Stack(
+            children: [
+              // Text box SVG
+              IgnorePointer(
+                child: SvgPicture.asset(
+                  'assets/images/text_box.svg',
+                  width: 339.h,
+                  height: 44.h,
+                  fit: BoxFit.fill,
+                ),
+              ),
+              // Text field on top
+              Positioned(
+                left: 20.h,
+                top: -2.5.h,
+                right: 50.h,
+                bottom: 10.h,
+                child: TextFormField(
+                  controller: context.read<LoginProvider>().passwordtwoController,
+                  obscureText: context.watch<LoginProvider>().isShowPassword,
+                  keyboardType: TextInputType.visiblePassword,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: "••••••",
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  validator: (value) {
+                    if (value == null || (!isValidPassword(value, isRequired: true))) {
+                      return "Please enter a valid password";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              // Eye icon
+              Positioned(
+                right: 12.h,
+                top: 8.h,
+                child: GestureDetector(
+                  onTap: () {
+                    context.read<LoginProvider>().changePasswordVisibility();
+                  },
+                  child: Container(
+                    width: 30.h,
+                    height: 30.h,
+                    child: Opacity(
+                      opacity: 0.7,
+                      child: CustomPaint(
+                        painter: EyeIconPainter(
+                          isPasswordVisible: context.watch<LoginProvider>().isShowPassword,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -226,41 +288,50 @@ class LoginScreenState extends State<LoginScreen> {
     FormFieldValidator<String>? validator,
   }) {
     return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        color: Colors.white.withOpacity(0.2),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: TextFormField(
-            controller: controller,
-            obscureText: obscureText,
-            keyboardType: keyboardType,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w400,
+      width: 339.h,
+      height: 44.h,
+      child: Stack(
+        children: [
+          // Text box SVG
+          IgnorePointer(
+            child: SvgPicture.asset(
+              'assets/images/text_box.svg',
+              width: 339.h,
+              height: 44.h,
+              fit: BoxFit.fill,
             ),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-              ),
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-            ),
-            validator: validator,
           ),
-        ),
+          // Text field on top
+          Positioned(
+            left: 20.h,
+            top: -2.5.h,
+            right: 30.h,
+            bottom: 10.h,
+            child: TextFormField(
+              controller: controller,
+              obscureText: obscureText,
+              keyboardType: keyboardType,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              validator: validator,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -323,84 +394,144 @@ class LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildSignInButton() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24.h),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          width: double.infinity,
-          height: 56.h,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(24.h),
-          ),
-          child: TextButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final email =
-                    context.read<LoginProvider>().emailController.text;
-                final password =
-                    context.read<LoginProvider>().passwordtwoController.text;
-                final rememberMe = context.read<LoginProvider>().keepmesignedin;
+    return GestureDetector(
+      onTap: () async {
+        if (_formKey.currentState!.validate()) {
+          final email = context.read<LoginProvider>().emailController.text;
+          final password = context.read<LoginProvider>().passwordtwoController.text;
+          final rememberMe = context.read<LoginProvider>().keepmesignedin;
 
-                try {
-                  // Attempt to sign in using AuthService
-                  final user = await _authService.signInWithEmailAndPassword(
-                    email,
-                    password,
-                  );
+          try {
+            // Attempt to sign in using AuthService
+            final user = await _authService.signInWithEmailAndPassword(
+              email,
+              password,
+            );
 
-                  if (user != null && context.mounted) {
-                    // Save credentials if "Remember Me" is checked
-                    if (rememberMe) {
-                      await AuthPersistenceService.saveRememberMe(true, email, password);
-                    } else {
-                      await AuthPersistenceService.clearSavedCredentials();
-                    }
-                    
-                    await Provider.of<UserProvider>(context, listen: false).fetchUserData(email);
-                    // Navigate to home screen on success
-                    Navigator.pushReplacementNamed(
-                        context, AppRoutes.homescreenScreen);
-                  } else if (context.mounted) {
-                    // Show error if user is null
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to sign in. Please try again.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  // Show error message
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                        backgroundColor: Colors.red,
-                        duration: Duration(seconds: 5),
-                      ),
-                    );
-                  }
-                }
+            if (user != null && context.mounted) {
+              // Save credentials if "Remember Me" is checked
+              if (rememberMe) {
+                await AuthPersistenceService.saveRememberMe(true, email, password);
+              } else {
+                await AuthPersistenceService.clearSavedCredentials();
               }
-            },
-            style: TextButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24.h),
-              ),
+              
+              await Provider.of<UserProvider>(context, listen: false).fetchUserData(email);
+              // Navigate to home screen on success
+              Navigator.pushReplacementNamed(context, AppRoutes.homescreenScreen);
+            } else if (context.mounted) {
+              // Show error if user is null
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to sign in. Please try again.'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          } catch (e) {
+            // Show error message
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(e.toString()),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            }
+          }
+        }
+      },
+      child: Container(
+        width: 342.h,
+        height: 48.h,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/images/sign_in.svg',
+              width: 342.h,
+              height: 48.h,
+              fit: BoxFit.contain,
             ),
-            child: Text(
-              "Sign in",
+            Text(
+              "Sign In",
               style: TextStyle(
-                fontSize: 16,
+                fontFamily: 'Roboto',
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
+}
+
+class EyeIconPainter extends CustomPainter {
+  final bool isPasswordVisible;
+
+  EyeIconPainter({this.isPasswordVisible = false});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.08;
+
+    // Draw the eye outline with rounded edges
+    final path = Path();
+
+    // Starting point
+    path.moveTo(size.width * 0.15, size.height * 0.5);
+
+    // Top curve
+    path.cubicTo(
+      size.width * 0.25, size.height * 0.25,
+      size.width * 0.75, size.height * 0.25,
+      size.width * 0.85, size.height * 0.5,
+    );
+
+    // Bottom curve
+    path.cubicTo(
+      size.width * 0.75, size.height * 0.75,
+      size.width * 0.25, size.height * 0.75,
+      size.width * 0.15, size.height * 0.5,
+    );
+
+    canvas.drawPath(path, paint);
+
+    // Draw the pupil
+    final pupilPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.08;
+
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.5),
+      size.width * 0.15,
+      pupilPaint,
+    );
+
+    // Draw the diagonal line when password is visible
+    if (isPasswordVisible) {
+      final crossPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.width * 0.08;
+
+      canvas.drawLine(
+        Offset(size.width * 0.15, size.height * 0.15),
+        Offset(size.width * 0.85, size.height * 0.85),
+        crossPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant EyeIconPainter oldDelegate) =>
+      oldDelegate.isPasswordVisible != isPasswordVisible;
 }

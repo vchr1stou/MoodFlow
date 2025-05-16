@@ -423,7 +423,11 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                 GestureDetector(
                   onTap: () {
                     userProvider.signOut();
-                    Navigator.pushNamed(context, AppRoutes.loginScreen);
+                    Navigator.pushNamedAndRemoveUntil(
+                      context, 
+                      AppRoutes.welcomeScreen,
+                      (route) => false,
+                    );
                   },
                   child: Stack(
                     alignment: Alignment.center,

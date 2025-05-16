@@ -43,6 +43,27 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateStreakReminderTime(TimeOfDay newTime) async {
+    if (email == null) return;
+    dailyStreakTime = newTime;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({
+      'dailyStreakTime': {
+        'hour': newTime.hour,
+        'minute': newTime.minute,
+      }
+    });
+    notifyListeners();
+  }
+
+  Future<void> deleteStreakReminder() async {
+    if (email == null) return;
+    dailyStreakEnabled = false;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({
+      'dailyStreakEnabled': false,
+      'dailyStreakTime': null,
+    });
+    notifyListeners();
+  }
 
   Future<void> toggleCheckInReminder(bool value) async {
     if (email == null) return;

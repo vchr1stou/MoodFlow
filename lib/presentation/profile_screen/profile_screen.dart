@@ -203,8 +203,8 @@ class ProfileScreenState extends State<ProfileScreen> {
                                     Transform.scale(
                                       scale: 0.75,
                                       child: CupertinoSwitch(
-                            value: provider.dailyStreakEnabled,
-                            onChanged: (bool value) => provider.toggleDailyStreak(value),
+                                        value: provider.dailyStreakEnabled,
+                                        onChanged: (bool value) => provider.toggleDailyStreak(value),
                                         activeColor: CupertinoColors.systemGreen,
                                       ),
                                     ),
@@ -216,39 +216,39 @@ class ProfileScreenState extends State<ProfileScreen> {
                                 top: 53 + 8,
                                 left: 0,
                                 right: 0,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 44,
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 7),
-                                      child: SvgPicture.asset(
-                                        'assets/images/bell.badge.fill 1.svg',
-                                        width: 22,
-                                        height: 22,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        "Gentle Reminders",
-                                        style: TextStyle(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, AppRoutes.profileGentleRemindersScreen);
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 44,
+                                        alignment: Alignment.centerLeft,
+                                        padding: const EdgeInsets.only(left: 7),
+                                        child: SvgPicture.asset(
+                                          'assets/images/bell.badge.fill 1.svg',
+                                          width: 22,
+                                          height: 22,
                                           color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          fontFamily: 'Roboto',
                                         ),
                                       ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.profileGentleRemindersScreen);
-                                      },
-                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
-                                    ),
-                                  ],
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          "Gentle Reminders",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ],
+                                  ),
                                 ),
                               ),
                               // Set PIN
@@ -256,39 +256,39 @@ class ProfileScreenState extends State<ProfileScreen> {
                                 top: 100 + 8,
                                 left: 0,
                                 right: 0,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 44,
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 2),
-                                      child: SvgPicture.asset(
-                                        'assets/images/person.badge.key.fill 1.svg',
-                                        width: 28,
-                                        height: 28,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        "Set PIN",
-                                        style: TextStyle(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, AppRoutes.profileSetPinFirstTimeScreen);
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 44,
+                                        alignment: Alignment.centerLeft,
+                                        padding: const EdgeInsets.only(left: 2),
+                                        child: SvgPicture.asset(
+                                          'assets/images/person.badge.key.fill 1.svg',
+                                          width: 28,
+                                          height: 28,
                                           color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          fontFamily: 'Roboto',
                                         ),
                                       ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.profileSetPinFirstTimeScreen);
-                                      },
-                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
-                                    ),
-                                  ],
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          "Set PIN",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ],
+                                  ),
                                 ),
                               ),
                               // Accessibility
@@ -296,39 +296,39 @@ class ProfileScreenState extends State<ProfileScreen> {
                                 top: 150 + 8,
                                 left: 0,
                                 right: 0,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 44,
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 7),
-                                      child: SvgPicture.asset(
-                                        'assets/images/Group.svg',
-                                        width: 27,
-                                        height: 27,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        "Accessibility",
-                                        style: TextStyle(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, AppRoutes.porfileAcessibilitySettingsScreen);
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 44,
+                                        alignment: Alignment.centerLeft,
+                                        padding: const EdgeInsets.only(left: 7),
+                                        child: SvgPicture.asset(
+                                          'assets/images/Group.svg',
+                                          width: 27,
+                                          height: 27,
                                           color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          fontFamily: 'Roboto',
                                         ),
                                       ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.porfileAcessibilitySettingsScreen);
-                                      },
-                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
-                                    ),
-                                  ],
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          "Accessibility",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ],
+                                  ),
                                 ),
                               ),
                               // Your Safety Net
@@ -336,39 +336,39 @@ class ProfileScreenState extends State<ProfileScreen> {
                                 top: 200 + 8,
                                 left: 0,
                                 right: 0,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 44,
-                                      alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 5),
-                                      child: SvgPicture.asset(
-                                        'assets/images/person.3.fill 2.svg',
-                                        width: 17,
-                                        height: 17,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        "Your Safety Net",
-                                        style: TextStyle(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, AppRoutes.profileSafetyNetScreen);
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 44,
+                                        alignment: Alignment.centerLeft,
+                                        padding: const EdgeInsets.only(left: 5),
+                                        child: SvgPicture.asset(
+                                          'assets/images/person.3.fill 2.svg',
+                                          width: 17,
+                                          height: 17,
                                           color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          fontFamily: 'Roboto',
                                         ),
                                       ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.profileSafetyNetScreen);
-                                      },
-                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
-                                    ),
-                                  ],
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          "Your Safety Net",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

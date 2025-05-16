@@ -14,6 +14,7 @@ class LoginProvider extends ChangeNotifier {
   LoginModel loginModelObj = LoginModel();
 
   bool keepmesignedin = false;
+  bool isShowPassword = false;
 
   @override
   void dispose() {
@@ -24,6 +25,11 @@ class LoginProvider extends ChangeNotifier {
 
   void changeCheckBox(bool value) {
     keepmesignedin = value;
+    notifyListeners();
+  }
+
+  void changePasswordVisibility() {
+    isShowPassword = !isShowPassword;
     notifyListeners();
   }
 }
