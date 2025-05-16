@@ -103,14 +103,33 @@ class UserProvider extends ChangeNotifier {
           print('Error loading profile picture: $e');
         }
       }
-      dailyCheckInTimes = (data['dailyCheckInTimes'] as List)
-          .map((time) => TimeOfDay(hour: time['hour'], minute: time['minute']))
-          .toList();
-      dailyCheckInEnabled = (data['dailyCheckInEnabled'] as List).cast<bool>();
-      dailyCheckInSectionEnabled = data['dailyCheckInSectionEnabled'];
-      quoteReminderTime = TimeOfDay(
-        hour: data['quoteReminderTime']['hour'],
-         minute: data['quoteReminderTime']['minute']);
+      
+      // Add null checks for dailyCheckInTimes
+      final checkInTimesData = data['dailyCheckInTimes'];
+      if (checkInTimesData != null && checkInTimesData is List) {
+        dailyCheckInTimes = checkInTimesData
+            .map((time) => TimeOfDay(hour: time['hour'], minute: time['minute']))
+            .toList();
+      } else {
+        dailyCheckInTimes = [];
+      }
+
+      // Add null checks for dailyCheckInEnabled
+      final checkInEnabledData = data['dailyCheckInEnabled'];
+      if (checkInEnabledData != null && checkInEnabledData is List) {
+        dailyCheckInEnabled = checkInEnabledData.cast<bool>();
+      } else {
+        dailyCheckInEnabled = [];
+      }
+
+      // Add null checks for quoteReminderTime
+      final quoteTimeData = data['quoteReminderTime'];
+      if (quoteTimeData != null) {
+        quoteReminderTime = TimeOfDay(
+          hour: quoteTimeData['hour'],
+          minute: quoteTimeData['minute']
+        );
+      }
       quoteReminderEnabled = data['quoteReminderEnabled'];
 
       // Fetch contacts from the safetynet subcollection
