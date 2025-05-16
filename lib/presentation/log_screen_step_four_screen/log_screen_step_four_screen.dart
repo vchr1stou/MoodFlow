@@ -781,6 +781,7 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                                 margin: EdgeInsets.symmetric(horizontal: 16.h),
                                                 child: Row(
                                                   mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
                                                     if (_selectedTrack!['imageUrl'] != null)
                                                       ClipRRect(
@@ -793,31 +794,33 @@ class LogScreenStepFourScreenState extends State<LogScreenStepFourScreen> {
                                                         ),
                                                       ),
                                                     SizedBox(width: 12.h),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          _selectedTrack!['name'] ?? '',
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 14,
-                                                            fontWeight: FontWeight.w600,
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          Text(
+                                                            _selectedTrack!['name'] ?? '',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
                                                           ),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
-                                                        ),
-                                                        SizedBox(height: 4.h),
-                                                        Text(
-                                                          '${_selectedTrack!['artist'] ?? ''} · ${_selectedTrack!['album'] ?? ''}',
-                                                          style: TextStyle(
-                                                            color: Colors.white.withOpacity(0.7),
-                                                            fontSize: 12,
+                                                          SizedBox(height: 4.h),
+                                                          Text(
+                                                            '${_selectedTrack!['artist'] ?? ''} · ${_selectedTrack!['album'] is Map ? _selectedTrack!['album']['name'] : _selectedTrack!['album']}',
+                                                            style: TextStyle(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              fontSize: 12,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
                                                           ),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
-                                                        ),
-                                                      ],
+                                                        ],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),

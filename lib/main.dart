@@ -23,6 +23,7 @@ import 'services/auth_persistence_service.dart';
 import 'presentation/homescreen_screen/homescreen_screen.dart';
 import 'core/services/storage_service.dart';
 import 'providers/user_provider.dart';
+import 'services/notification_service.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -59,6 +60,9 @@ Future<void> main() async {
       await AuthPersistenceService.clearSavedCredentials();
     }
   }
+
+  // Initialize notification service
+  await NotificationService().initialize();
 
   runApp(
     EasyLocalization(

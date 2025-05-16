@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../services/notification_service.dart';
 
 
 class UserProvider extends ChangeNotifier {
@@ -35,6 +36,13 @@ class UserProvider extends ChangeNotifier {
   bool dailyStreakEnabled = true;
   TimeOfDay dailyStreakTime = const TimeOfDay(hour: 23, minute: 30);
 
+  List<String?> _dailyCheckInMessages = ["Time for your daily check-in!", "Time for your daily check-in!", "Time for your daily check-in!", "Time for your daily check-in?"];
+  List<String?> _dailyCheckInTitles = ["How are you feeling?", "How are you feeling?", "How are you feeling?", "How are you feeling?"];
+  
+  List<String?> get dailyCheckInMessages => _dailyCheckInMessages;
+  List<String?> get dailyCheckInTitles => _dailyCheckInTitles;
+
+  final NotificationService _notificationService = NotificationService();
 
   Future<void> toggleDailyStreak(bool value) async {
     if (email == null) return;
@@ -67,15 +75,48 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> toggleCheckInReminder(bool value) async {
     if (email == null) return;
+    debugPrint('Toggling check-in reminder to: $value');
+    
     dailyCheckInSectionEnabled = value;
     await FirebaseFirestore.instance.collection('users').doc(email).update({'dailyCheckInSectionEnabled': value});
+    
+    if (value) {
+      debugPrint('Enabling check-in reminders');
+      await _scheduleNotifications();
+    } else {
+      debugPrint('Disabling check-in reminders');
+      // Cancel all check-in notifications but keep quote reminder if enabled
+      for (int i = 0; i < dailyCheckInTimes.length; i++) {
+        await _notificationService.cancelNotification(i);
+      }
+    }
+    
     notifyListeners();
   }
 
   Future<void> toggleQuoteReminder(bool value) async {
     if (email == null) return;
+    debugPrint('Toggling quote reminder to: $value');
+    
     quoteReminderEnabled = value;
     await FirebaseFirestore.instance.collection('users').doc(email).update({'quoteReminderEnabled': value});
+    
+    if (value && quoteReminderTime != null) {
+      final now = DateTime.now();
+      final scheduledTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        quoteReminderTime!.hour,
+        quoteReminderTime!.minute,
+      );
+      debugPrint('Enabling quote reminder');
+      await _notificationService.scheduleQuoteReminder(scheduledTime: scheduledTime);
+    } else {
+      debugPrint('Disabling quote reminder');
+      await _notificationService.cancelNotification(100); // Cancel quote reminder
+    }
+    
     notifyListeners();
   }
   
@@ -110,6 +151,13 @@ class UserProvider extends ChangeNotifier {
       pronouns = data['pronouns'];
       this.email = data['email'];
       profilePicUrl = data['profilePicUrl'];
+      
+      // Add null checks for dailyCheckInTitles
+      final checkInTitlesData = data['dailyCheckInTitles'];
+      if (checkInTitlesData != null && checkInTitlesData is List) {
+        _dailyCheckInTitles = checkInTitlesData.cast<String?>();
+      }
+      
       if (profilePicUrl != null) {
         try {
           final ref = FirebaseStorage.instance.refFromURL(profilePicUrl!);
@@ -168,7 +216,63 @@ class UserProvider extends ChangeNotifier {
           contacts.add(contact);
         }
       }
-      notifyListeners();
+
+      // Schedule notifications for enabled check-ins
+      await _scheduleNotifications();
+    }
+  }
+
+  Future<void> _scheduleNotifications() async {
+    debugPrint('Scheduling notifications...');
+    debugPrint('dailyCheckInSectionEnabled: $dailyCheckInSectionEnabled');
+    debugPrint('quoteReminderEnabled: $quoteReminderEnabled');
+    
+    if (dailyCheckInEnabled == null || dailyCheckInTimes.isEmpty || dailyCheckInSectionEnabled != true) {
+      debugPrint('Skipping daily check-in notifications - conditions not met');
+      return;
+    }
+
+    // Cancel existing notifications
+    await _notificationService.cancelAllNotifications();
+
+    // Schedule new notifications for enabled check-ins
+    for (int i = 0; i < dailyCheckInTimes.length; i++) {
+      if (dailyCheckInEnabled![i]) {
+        final time = dailyCheckInTimes[i];
+        final now = DateTime.now();
+        final scheduledTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          time.hour,
+          time.minute,
+        );
+
+        final title = _dailyCheckInTitles[i] ?? "How are you feeling?";
+        final message = _dailyCheckInMessages[i] ?? "Time for your daily check-in!";
+
+        debugPrint('Scheduling check-in $i at ${time.hour}:${time.minute}');
+        await _notificationService.scheduleDailyCheckIn(
+          id: i,
+          scheduledTime: scheduledTime,
+          title: title,
+          body: message,
+        );
+      }
+    }
+
+    // Schedule quote reminder if enabled
+    if (quoteReminderEnabled == true && quoteReminderTime != null) {
+      final now = DateTime.now();
+      final scheduledTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        quoteReminderTime!.hour,
+        quoteReminderTime!.minute,
+      );
+      debugPrint('Scheduling quote reminder at ${quoteReminderTime!.hour}:${quoteReminderTime!.minute}');
+      await _notificationService.scheduleQuoteReminder(scheduledTime: scheduledTime);
     }
   }
 
@@ -193,11 +297,11 @@ class UserProvider extends ChangeNotifier {
         dailyCheckInDescriptions = [];
         for (int i = 0; i < dailyCheckInTimes.length; i++) {
           if (dailyCheckInTimes[i].hour < 12) {
-            dailyCheckInDescriptions!.add('Good Morning, how are you feeling?');
+            dailyCheckInDescriptions!.add('Time for your morning check-in!');
           } else if (dailyCheckInTimes[i].hour >= 12 && dailyCheckInTimes[i].hour < 18) {
-            dailyCheckInDescriptions!.add('How has your day been so far?');
+            dailyCheckInDescriptions!.add('Time for your afternoon check-in!');
           } else {
-            dailyCheckInDescriptions!.add('Good evening, how was your day?');
+            dailyCheckInDescriptions!.add('Time for your evening check-in!');
           }
         }
 
@@ -226,6 +330,8 @@ class UserProvider extends ChangeNotifier {
           },
           'dailyCheckInSectionEnabled': dailyCheckInSectionEnabled,
           'dailyCheckInDescriptions': dailyCheckInDescriptions,
+          'dailyCheckInTitles': _dailyCheckInTitles,
+          'dailyCheckInMessages': _dailyCheckInMessages,
         });
 
         // Create safetynet subcollection
@@ -390,7 +496,77 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateDailyCheckInTime(int index, TimeOfDay newTime) async {
+    if (email == null) return;
+    if (index >= 0 && index < dailyCheckInTimes.length) {
+      dailyCheckInTimes[index] = newTime;
+      await FirebaseFirestore.instance.collection('users').doc(email).update({
+        'dailyCheckInTimes': dailyCheckInTimes.map((time) => {
+          'hour': time.hour,
+          'minute': time.minute,
+        }).toList(),
+      });
+      await _scheduleNotifications();
+      notifyListeners();
+    }
+  }
 
+  Future<void> updateQuoteReminderTime(TimeOfDay newTime) async {
+    if (email == null) return;
+    debugPrint('Updating quote reminder time to ${newTime.hour}:${newTime.minute}');
+    
+    quoteReminderTime = newTime;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({
+      'quoteReminderTime': {
+        'hour': newTime.hour,
+        'minute': newTime.minute,
+      }
+    });
+    
+    // Schedule quote reminder notification only if enabled
+    if (quoteReminderEnabled == true) {
+      final now = DateTime.now();
+      final scheduledTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        newTime.hour,
+        newTime.minute,
+      );
+      debugPrint('Scheduling new quote reminder');
+      await _notificationService.scheduleQuoteReminder(scheduledTime: scheduledTime);
+    }
+    
+    notifyListeners();
+  }
 
+  Future<void> toggleDailyCheckIn(int index, bool value) async {
+    if (email == null) return;
+    if (index >= 0 && index < (dailyCheckInEnabled?.length ?? 0)) {
+      dailyCheckInEnabled![index] = value;
+      await FirebaseFirestore.instance.collection('users').doc(email).update({
+        'dailyCheckInEnabled': dailyCheckInEnabled,
+      });
+      await _scheduleNotifications();
+      notifyListeners();
+    }
+  }
 
+  Future<void> updateDailyCheckInMessage(int index, String message) async {
+    if (index >= 0 && index < _dailyCheckInMessages.length) {
+      _dailyCheckInMessages[index] = message;
+      await _scheduleNotifications();
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateDailyCheckInTitle(int index, String title) async {
+    if (email == null) return;
+    _dailyCheckInTitles[index] = title;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({
+      'dailyCheckInTitles': _dailyCheckInTitles
+    });
+    await _scheduleNotifications();
+    notifyListeners();
+  }
 }

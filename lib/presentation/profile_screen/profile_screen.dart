@@ -76,8 +76,8 @@ class ProfileScreenState extends State<ProfileScreen> {
                                   return ClipOval(
                                     child: Image.file(
                                       userProvider.profilePicFile!,
-                                      width: 80,
-                                      height: 80,
+                                      width: 90,
+                                      height: 90,
                                       fit: BoxFit.cover,
                                     ),
                                   );
@@ -86,8 +86,8 @@ class ProfileScreenState extends State<ProfileScreen> {
                                   padding: EdgeInsets.only(top: 3),
                                   child: SvgPicture.asset(
                                     'assets/images/person.crop.circle.fill.svg',
-                                    width: 80,
-                                    height: 80,
+                                    width: 90,
+                                    height: 90,
                                   ),
                                 );
                               },
@@ -196,7 +196,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    SizedBox(width: 10),
+                                    SizedBox(width: 3),
                                     Expanded(
                                       child: Text(
                                         "Daily Streak",
@@ -242,7 +242,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      SizedBox(width: 10),
+                                      SizedBox(width: 3),
                                       Expanded(
                                         child: Text(
                                           "Gentle Reminders",
@@ -292,7 +292,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      SizedBox(width: 10),
+                                      SizedBox(width: 3),
                                       Expanded(
                                         child: Text(
                                           "Set PIN",
@@ -342,7 +342,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      SizedBox(width: 10),
+                                      SizedBox(width: 3),
                                       Expanded(
                                         child: Text(
                                           "Accessibility",
@@ -392,7 +392,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      SizedBox(width: 10),
+                                      SizedBox(width: 3),
                                       Expanded(
                                         child: Text(
                                           "Your Safety Net",
