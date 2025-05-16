@@ -70,26 +70,27 @@ class ProfileScreenState extends State<ProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Avatar
-                            CircleAvatar(
-                              radius: 40,
-                              backgroundColor: Colors.white,
-                              child: provider.profilePicFile != null
-                                ? ClipOval(
+                            Consumer<UserProvider>(
+                              builder: (context, userProvider, child) {
+                                if (userProvider.profilePicFile != null) {
+                                  return ClipOval(
                                     child: Image.file(
-                                      provider.profilePicFile!,
+                                      userProvider.profilePicFile!,
                                       width: 80,
                                       height: 80,
                                       fit: BoxFit.cover,
                                     ),
-                                  )
-                                : Padding(
-                                    padding: EdgeInsets.only(top: 3),
-                                    child: SvgPicture.asset(
-                                      'assets/images/person.crop.circle.fill.svg',
-                                      width: 37,
-                                      height: 37,
-                                    ),
+                                  );
+                                }
+                                return Padding(
+                                  padding: EdgeInsets.only(top: 3),
+                                  child: SvgPicture.asset(
+                                    'assets/images/person.crop.circle.fill.svg',
+                                    width: 80,
+                                    height: 80,
                                   ),
+                                );
+                              },
                             ),
                             SizedBox(height: 16),
                             // Name

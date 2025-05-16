@@ -12,20 +12,30 @@ class UserProvider extends ChangeNotifier {
   String? pronouns;
   String? email;
   String? password;
+
+  // Used for Profile Picture
   String? profilePicUrl;
   File? profilePicFile;
+
+  // Used for Daily Check-in Reminders
   List<TimeOfDay> dailyCheckInTimes = [];
   List<bool>? dailyCheckInEnabled;
+  bool? dailyCheckInSectionEnabled;
+  List<String>? dailyCheckInDescriptions;
+
+  // Used for Quote Reminder
   TimeOfDay? quoteReminderTime;
   bool? quoteReminderEnabled;
+  
+  // Used for Safety Net    
   List<Contact> contacts = [];
   String? spotifyToken;
+
+  // Used for Daily Streak Reminder
   bool dailyStreakEnabled = true;
   TimeOfDay dailyStreakTime = const TimeOfDay(hour: 23, minute: 30);
-  bool soundEnabled = true;
-  bool musicEnabled = true;
-  bool hapticEnabled = true;
-  
+
+
   Future<void> toggleDailyStreak(bool value) async {
     if (email == null) return;
     dailyStreakEnabled = value;
@@ -33,6 +43,21 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+
+  Future<void> toggleCheckInReminder(bool value) async {
+    if (email == null) return;
+    dailyCheckInSectionEnabled = value;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({'dailyCheckInSectionEnabled': value});
+    notifyListeners();
+  }
+
+  Future<void> toggleQuoteReminder(bool value) async {
+    if (email == null) return;
+    quoteReminderEnabled = value;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({'quoteReminderEnabled': value});
+    notifyListeners();
+  }
+  
 
   void updateStepOneData(String name, String pronouns, String email, String password) {
     this.name = name;
@@ -82,6 +107,7 @@ class UserProvider extends ChangeNotifier {
           .map((time) => TimeOfDay(hour: time['hour'], minute: time['minute']))
           .toList();
       dailyCheckInEnabled = (data['dailyCheckInEnabled'] as List).cast<bool>();
+      dailyCheckInSectionEnabled = data['dailyCheckInSectionEnabled'];
       quoteReminderTime = TimeOfDay(
         hour: data['quoteReminderTime']['hour'],
          minute: data['quoteReminderTime']['minute']);
@@ -124,6 +150,17 @@ class UserProvider extends ChangeNotifier {
       // Save additional user data in Firestore
       final userId = credential.user?.email;
       if (userId != null) {
+        dailyCheckInDescriptions = [];
+        for (int i = 0; i < dailyCheckInTimes.length; i++) {
+          if (dailyCheckInTimes[i].hour < 12) {
+            dailyCheckInDescriptions!.add('Good Morning, how are you feeling?');
+          } else if (dailyCheckInTimes[i].hour >= 12 && dailyCheckInTimes[i].hour < 18) {
+            dailyCheckInDescriptions!.add('How has your day been so far?');
+          } else {
+            dailyCheckInDescriptions!.add('Good evening, how was your day?');
+          }
+        }
+
         final userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
         await userDoc.set({
           'name': name,
@@ -144,12 +181,11 @@ class UserProvider extends ChangeNotifier {
           'createdAt': FieldValue.serverTimestamp(),
           'dailyStreakEnabled': dailyStreakEnabled,
           'dailyStreakTime': {
-            'hour': dailyStreakTime?.hour,
-            'minute': dailyStreakTime?.minute,
+            'hour': dailyStreakTime.hour,
+            'minute': dailyStreakTime.minute,
           },
-          'soundEnabled': soundEnabled,
-          'musicEnabled': musicEnabled,
-          'hapticEnabled': hapticEnabled,
+          'dailyCheckInSectionEnabled': dailyCheckInSectionEnabled,
+          'dailyCheckInDescriptions': dailyCheckInDescriptions,
         });
 
         // Create safetynet subcollection
@@ -261,8 +297,7 @@ class UserProvider extends ChangeNotifier {
     if (user != null) {
       await user.updatePassword(newPassword);
     }
-    // Optionally store hashed password in Firestore (not recommended to store plain text)
-    // await FirebaseFirestore.instance.collection('users').doc(email).update({'password': newPassword});
+
     password = newPassword;
     notifyListeners();
   }
@@ -311,9 +346,7 @@ class UserProvider extends ChangeNotifier {
     spotifyToken = null;
     dailyStreakEnabled = true;
     dailyStreakTime = const TimeOfDay(hour: 23, minute: 30);
-    soundEnabled = true;
-    musicEnabled = true;
-    hapticEnabled = true;
+    dailyCheckInDescriptions = null;
     notifyListeners();
   }
 
