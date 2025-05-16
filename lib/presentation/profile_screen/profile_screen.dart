@@ -130,7 +130,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     Text(
                                       'Account Settings',
@@ -141,8 +141,16 @@ class ProfileScreenState extends State<ProfileScreen> {
                                         fontFamily: 'Roboto',
                                       ),
                                     ),
-                                    SizedBox(width: 8),
-                                    Icon(Icons.chevron_right, color: Colors.white, size: 22),
+                                    Container(
+                                      width: 20,
+                                      margin: const EdgeInsets.only(top: 2),
+                                      child: SvgPicture.asset(
+                                        'assets/images/chevron_right_profile.svg',
+                                        width: 9,
+                                        height: 12,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -180,7 +188,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                     Container(
                                       width: 44,
                                       alignment: Alignment.centerLeft,
-                                      padding: const EdgeInsets.only(left: 7),
+                                      padding: const EdgeInsets.only(left: 9),
                                       child: SvgPicture.asset(
                                         'assets/images/flame.fill 4.svg',
                                         width: 22,
@@ -226,7 +234,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                                       Container(
                                         width: 44,
                                         alignment: Alignment.centerLeft,
-                                        padding: const EdgeInsets.only(left: 7),
+                                        padding: const EdgeInsets.only(left: 9),
                                         child: SvgPicture.asset(
                                           'assets/images/bell.badge.fill 1.svg',
                                           width: 22,
@@ -246,7 +254,17 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                         ),
                                       ),
-                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                      SizedBox(width: 0),
+                                      Container(
+                                        width: 40,
+                                        margin: const EdgeInsets.only(top: 2),
+                                        child: SvgPicture.asset(
+                                          'assets/images/chevron_right_profile.svg',
+                                          width: 12,
+                                          height: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -286,7 +304,17 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                         ),
                                       ),
-                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                      SizedBox(width: 2),
+                                      Container(
+                                        width: 40,
+                                        margin: const EdgeInsets.only(top: 2),
+                                        child: SvgPicture.asset(
+                                          'assets/images/chevron_right_profile.svg',
+                                          width: 12,
+                                          height: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -308,9 +336,9 @@ class ProfileScreenState extends State<ProfileScreen> {
                                         alignment: Alignment.centerLeft,
                                         padding: const EdgeInsets.only(left: 7),
                                         child: SvgPicture.asset(
-                                          'assets/images/Group.svg',
-                                          width: 27,
-                                          height: 27,
+                                          'assets/images/accessibility.svg',
+                                          width: 21,
+                                          height: 22,
                                           color: Colors.white,
                                         ),
                                       ),
@@ -326,7 +354,17 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                         ),
                                       ),
-                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                      SizedBox(width: 2),
+                                      Container(
+                                        width: 40,
+                                        margin: const EdgeInsets.only(top: 2),
+                                        child: SvgPicture.asset(
+                                          'assets/images/chevron_right_profile.svg',
+                                          width: 12,
+                                          height: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -366,7 +404,17 @@ class ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                         ),
                                       ),
-                                      Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                      SizedBox(width: 2),
+                                      Container(
+                                        width: 40,
+                                        margin: const EdgeInsets.only(top: 2),
+                                        child: SvgPicture.asset(
+                                          'assets/images/chevron_right_profile.svg',
+                                          width: 12,
+                                          height: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),

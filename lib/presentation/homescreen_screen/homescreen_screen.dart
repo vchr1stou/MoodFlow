@@ -663,38 +663,41 @@ class HomescreenScreenState extends State<HomescreenScreen> with AutomaticKeepAl
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => StreakScreen.builder(context),
-                      ),
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: SvgPicture.asset(
-                          'assets/images/streak_flame.svg',
-                          width: 66,
-                          height: 34,
+                Visibility(
+                  visible: Provider.of<UserProvider>(context).dailyStreakEnabled,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StreakScreen.builder(context),
                         ),
-                      ),
-                      Positioned(
-                        top: 9.5,
-                        left: 40,
-                        child: Text(
-                          '$_currentStreak',
-                          style: GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: SvgPicture.asset(
+                            'assets/images/streak_flame.svg',
+                            width: 66,
+                            height: 34,
                           ),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          top: 9.5,
+                          left: 40,
+                          child: Text(
+                            '$_currentStreak',
+                            style: GoogleFonts.roboto(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Row(

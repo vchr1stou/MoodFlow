@@ -160,7 +160,7 @@ class LoginScreenState extends State<LoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 12),
+          padding: EdgeInsets.only(left: 0),
           child: Text(
             "Email Address",
             style: TextStyle(
@@ -191,7 +191,7 @@ class LoginScreenState extends State<LoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 12),
+          padding: EdgeInsets.only(left: 0),
           child: Text(
             "Password",
             style: TextStyle(
