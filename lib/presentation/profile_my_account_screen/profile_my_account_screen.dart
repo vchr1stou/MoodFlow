@@ -7,6 +7,10 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_my_account_model.dart';
 import 'provider/profile_my_account_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/app_bar.dart';
+
+import '../../providers/user_provider.dart';
 
 class ProfileMyAccountScreen extends StatefulWidget {
   const ProfileMyAccountScreen({Key? key}) : super(key: key);
@@ -31,266 +35,265 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.onPrimary,
-      body: SafeArea(
-        child: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.only(top: 26.h),
-              decoration:
-                  AppDecoration.forBackgroundpinkyellowbggradient.copyWith(
-                borderRadius: BorderRadiusStyle.roundedBorder32,
+       extendBody: true,
+          extendBodyBehindAppBar: true,
+          appBar: buildAppbar(context),
+          body: Container(
+            width: double.maxFinite,
+            height: SizeUtils.height,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background.png'),
+                fit: BoxFit.cover,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: _buildAppbar(context),
-                  ),
-                  SizedBox(height: 44.h),
-                  Container(
-                    width: double.maxFinite,
-                    margin: EdgeInsets.symmetric(horizontal: 30.h),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.h,
-                      vertical: 30.h,
+            ),     
+        child: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22.0),
+            child: Column(
+              children: [
+                SizedBox(height: 32),
+                // Main My Account Card
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned.fill(
+                      child: SvgPicture.asset(
+                        'assets/images/my_account_page_widget.svg',
+                        fit: BoxFit.fill,
+                      ),
                     ),
-                    decoration: AppDecoration.windowsGlass.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder32,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Avatar
+                          const CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.emoji_emotions, size: 56, color: Colors.orange), // Replace with user avatar if available
+                          ),
+                          const SizedBox(height: 12),
+                          // Edit Button
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/edit_widget.svg',
+                                width: 126,
+                                height: 30,
+                                fit: BoxFit.contain,
+                              ),
+                              const Text(
+                                'Edit',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Roboto',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          // Name Row
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/top_my_account.svg',
+                                width: double.infinity,
+                                fit: BoxFit.fill,
+                                height: 54,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      'Name',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    const Text(
+                                      'Vasillis Christou',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Pronouns Row
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/medium_my_account.svg',
+                                width: double.infinity,
+                                fit: BoxFit.fill,
+                                height: 54,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      'Pronouns',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    const Text(
+                                      'He/him',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Email Row
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/medium_my_account.svg',
+                                width: double.infinity,
+                                fit: BoxFit.fill,
+                                height: 54,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      'E-mail',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    const Text(
+                                      'vchristou@gmail.com',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Password Row
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/bottom_my_account.svg',
+                                width: double.infinity,
+                                fit: BoxFit.fill,
+                                height: 54,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      'Password',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    const Text(
+                                      '•••••••',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomImageView(
-                          imagePath: ImageConstant.imgGroup1,
-                          height: 102.h,
-                          width: 104.h,
-                          radius: BorderRadius.circular(50.h),
-                        ),
-                        SizedBox(height: 12.h),
-                        CustomOutlinedButton(
-                          height: 30.h,
-                          width: 126.h,
-                          text: "Edit",
-                          buttonStyle: CustomButtonStyles.none,
-                          decoration: CustomButtonStyles.outlineTL14Decoration,
-                        ),
-                        SizedBox(height: 36.h),
-                        Container(
-                          decoration: AppDecoration.outline7.copyWith(
-                            borderRadius: BorderRadiusStyle.customBorderTL30,
-                          ),
-                          width: double.maxFinite,
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.h,
-                                  vertical: 16.h,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Name",
-                                      style: CustomTextStyles
-                                          .titleMediumSemiBold_1,
-                                    ),
-                                    Spacer(),
-                                    Text(
-                                      AppStrings.vasilisChristou,
-                                      style: CustomTextStyles
-                                          .titleSmallRobotoOnPrimarySemiBold,
-                                    ),
-                                    CustomImageView(
-                                      imagePath: ImageConstant.imgArrowRight,
-                                      height: 14.h,
-                                      width: 14.h,
-                                      alignment: Alignment.bottomCenter,
-                                      margin: EdgeInsets.only(
-                                        left: 4.h,
-                                        right: 6.h,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: AppDecoration.outline7,
-                          width: double.maxFinite,
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.h,
-                                  vertical: 16.h,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Pronouns",
-                                      style: CustomTextStyles
-                                          .titleMediumSemiBold_1,
-                                    ),
-                                    Spacer(),
-                                    Text(
-                                      "He/Him",
-                                      style: CustomTextStyles
-                                          .titleSmallRobotoOnPrimarySemiBold,
-                                    ),
-                                    CustomImageView(
-                                      imagePath: ImageConstant.imgArrowRight,
-                                      height: 14.h,
-                                      width: 14.h,
-                                      margin: EdgeInsets.only(
-                                        left: 4.h,
-                                        right: 6.h,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: AppDecoration.outline7,
-                          width: double.maxFinite,
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.h,
-                                  vertical: 14.h,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 4.h),
-                                      child: Text(
-                                        "E-mail",
-                                        style: CustomTextStyles
-                                            .titleMediumSemiBold_1,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Text(
-                                      AppStrings.vchristouGmailCom,
-                                      style: CustomTextStyles
-                                          .titleSmallRobotoOnPrimarySemiBold,
-                                    ),
-                                    CustomImageView(
-                                      imagePath: ImageConstant.imgArrowRight,
-                                      height: 14.h,
-                                      width: 14.h,
-                                      margin: EdgeInsets.only(
-                                        left: 4.h,
-                                        right: 6.h,
-                                        bottom: 2.h,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: AppDecoration.outline7.copyWith(
-                            borderRadius: BorderRadiusStyle.customBorderBL30,
-                          ),
-                          width: double.maxFinite,
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 68, sigmaY: 68),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10.h,
-                                  vertical: 14.h,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 4.h),
-                                      child: Text(
-                                        "Password",
-                                        style: CustomTextStyles
-                                            .titleMediumSemiBold_1,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Text(
-                                      "•••••••",
-                                      style:
-                                          CustomTextStyles.titleSmallGray700_1,
-                                    ),
-                                    CustomImageView(
-                                      imagePath: ImageConstant.imgArrowRight,
-                                      height: 14.h,
-                                      width: 12.h,
-                                      alignment: Alignment.center,
-                                      margin: EdgeInsets.only(
-                                        left: 4.h,
-                                        right: 6.h,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                  ],
+                ),
+                SizedBox(height: 32),
+                // Sign Out Button
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/sign_out.svg',
+                      width: 190,
+                      height: 44,
+                      fit: BoxFit.contain,
                     ),
-                  ),
-                  SizedBox(height: 148.h),
-                  CustomOutlinedButton(
-                    width: 190.h,
-                    text: "Sign Out",
-                    buttonStyle: CustomButtonStyles.none,
-                    decoration: CustomButtonStyles.outlineTL241Decoration,
-                  ),
-                  SizedBox(height: 10.h),
-                ],
-              ),
+                    Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Roboto',
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+              ],
             ),
           ),
         ),
       ),
+          )
     );
   }
 
-  /// Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
-    return CustomAppBar(
-      height: 30.h,
-      leadingWidth: 46.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgArrowLeft,
-        margin: EdgeInsets.only(left: 16.h),
-        onTap: () {
-          onTapArrowleftone(context);
-        },
-      ),
-    );
-  }
-
-  /// Navigates to the previous screen.
-  void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBackWithoutContext();
-  }
 }

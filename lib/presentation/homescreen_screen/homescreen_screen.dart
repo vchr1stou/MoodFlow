@@ -33,6 +33,7 @@ import 'dart:async';
 
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
+import '../../providers/user_provider.dart';
 
 class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
   NoSwipeBackRoute({required WidgetBuilder builder}) : super(builder: builder);
@@ -90,12 +91,25 @@ class HomescreenScreenState extends State<HomescreenScreen> {
         timer.cancel();
       }
     });
+
+    _loadUserData();
+      
+    
+
   }
 
   @override
   void dispose() {
     // Clean up timers or listeners if needed
     super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        final userEmail = FirebaseAuth.instance.currentUser?.email;
+        if (userEmail != null) {
+          await userProvider.fetchUserData(userEmail);
+        }
   }
 
   Future<void> _loadMoodData() async {
@@ -712,7 +726,7 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                 if (snapshot.hasData && snapshot.data!.exists) {
                   final userData =
                       snapshot.data!.data() as Map<String, dynamic>;
-                  final userName = userData['name'] as String? ?? 'User';
+                  final userName = (userData['name'] as String?)?.split(' ')[0] ?? 'User';
                   return Text(
                     userName,
                     style: TextStyle(

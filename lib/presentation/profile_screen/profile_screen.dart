@@ -9,6 +9,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../widgets/app_bar.dart';
 import 'package:moodflow/core/utils/size_utils.dart';
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
+import '../profile_my_account_screen/profile_my_account_screen.dart';
+import '../../routes/app_routes.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -44,219 +47,327 @@ class ProfileScreenState extends State<ProfileScreen> {
                 fit: BoxFit.cover,
               ),
             ),
-
-        child: Stack(
-        children: [
-          // Background blur overlay
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: Container(
-                color: Color(0xFFBCBCBC).withOpacity(0.04),
-              ),
-            ),
-          ),
-          // Bottom SVG (settings background)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SvgPicture.asset(
-              'assets/images/Settings_profile.svg',
-              width: MediaQuery.of(context).size.width,
-              fit: BoxFit.fitWidth,
-            ),
-          ),
-          Positioned(
-            left: 18,
-            top: 116,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width - 36, // Adjust width as needed
-              child: Stack(
-                alignment: Alignment.centerLeft,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/profile_widget.svg',
-                    width: MediaQuery.of(context).size.width - 36,
-                    fit: BoxFit.fitWidth,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    "My Account",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.chevron_right, color: Colors.white),
-                                ],
+                  // My Account Card
+                  SizedBox(height: 24),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/My_account_widget.svg',
+                        width: MediaQuery.of(context).size.width - 36,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Avatar
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.emoji_emotions, size: 56, color: Colors.orange), // Replace with user avatar if available
+                            ),
+                            SizedBox(height: 16),
+                            // Name
+                            Text(
+                              provider.name ?? 'User',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontFamily: 'Roboto',
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                provider.name ?? 'User',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 6),
+                            // Email
+                            Text(
+                              provider.email ?? '',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white.withOpacity(0.85),
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Roboto',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 16),
+                            // Account Settings Button
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, AppRoutes.profileMyAccountScreen);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.18),
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Account Settings',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.chevron_right, color: Colors.white, size: 22),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                provider.email ?? '',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white.withOpacity(0.7),
-                                  fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 32),
+                  // Settings list
+                  Stack(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/Settings_profile.svg',
+                        width: MediaQuery.of(context).size.width - 32,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      Positioned(
+                        top: 0,
+                        left: 12,
+                        right: 12,
+                        child: SizedBox(
+                          height: 270.0,
+                          child: Stack(
+                            children: [
+                              // Daily Streak
+                              Positioned(
+                                top: 8,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      alignment: Alignment.centerLeft,
+                                      padding: const EdgeInsets.only(left: 7),
+                                      child: SvgPicture.asset(
+                                        'assets/images/flame.fill 4.svg',
+                                        width: 22,
+                                        height: 22,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Daily Streak",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                    Transform.scale(
+                                      scale: 0.75,
+                                      child: CupertinoSwitch(
+                            value: provider.dailyStreakEnabled,
+                            onChanged: (bool value) => provider.toggleDailyStreak(value),
+                                        activeColor: CupertinoColors.systemGreen,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Gentle Reminders
+                              Positioned(
+                                top: 53 + 8,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      alignment: Alignment.centerLeft,
+                                      padding: const EdgeInsets.only(left: 7),
+                                      child: SvgPicture.asset(
+                                        'assets/images/bell.badge.fill 1.svg',
+                                        width: 22,
+                                        height: 22,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Gentle Reminders",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(context, AppRoutes.profileGentleRemindersScreen);
+                                      },
+                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Set PIN
+                              Positioned(
+                                top: 100 + 8,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      alignment: Alignment.centerLeft,
+                                      padding: const EdgeInsets.only(left: 2),
+                                      child: SvgPicture.asset(
+                                        'assets/images/person.badge.key.fill 1.svg',
+                                        width: 28,
+                                        height: 28,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Set PIN",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(context, AppRoutes.profileSetPinFirstTimeScreen);
+                                      },
+                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Accessibility
+                              Positioned(
+                                top: 150 + 8,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      alignment: Alignment.centerLeft,
+                                      padding: const EdgeInsets.only(left: 7),
+                                      child: SvgPicture.asset(
+                                        'assets/images/Group.svg',
+                                        width: 27,
+                                        height: 27,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Accessibility",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(context, AppRoutes.porfileAcessibilitySettingsScreen);
+                                      },
+                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Your Safety Net
+                              Positioned(
+                                top: 200 + 8,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      alignment: Alignment.centerLeft,
+                                      padding: const EdgeInsets.only(left: 5),
+                                      child: SvgPicture.asset(
+                                        'assets/images/person.3.fill 2.svg',
+                                        width: 17,
+                                        height: 17,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Your Safety Net",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(context, AppRoutes.profileSafetyNetScreen);
+                                      },
+                                      child: Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: Colors.white,
-                          child: Icon(Icons.emoji_emotions, size: 48, color: Colors.orange),
-                        ),
-                      ],
-                    ),
+                          ),
+                      ),
+                    ],
                   ),
+                  SizedBox(height: 24),
                 ],
               ),
             ),
           ),
-          // Main content with top SVG (profile card)
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // Settings list
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSettingRow(
-                          icon: Icons.local_fire_department,
-                          text: "Daily Streak",
-                          trailing: Switch(
-                            value: provider.dailyStreakEnabled,
-                            onChanged: (bool value) => provider.toggleDailyStreak(value),
-                            activeColor: Colors.green,
-                          ),
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.music_note,
-                          text: "Sound",
-                          trailing: Switch(
-                            value: provider.soundEnabled,
-                            onChanged: (bool value) => provider.toggleSound(value),
-                            activeColor: Colors.green,
-                          ),
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.music_video,
-                          text: "Music",
-                          trailing: Switch(
-                            value: provider.musicEnabled,
-                            onChanged: (bool value) => provider.toggleMusic(value),
-                            activeColor: Colors.green,
-                          ),
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.vibration,
-                          text: "Haptic Feedback",
-                          trailing: Switch(
-                            value: provider.hapticEnabled,
-                            onChanged: (bool value) => provider.toggleHaptic(value),
-                            activeColor: Colors.green,
-                          ),
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.notifications_active,
-                          text: "Gentle Reminders",
-                          trailing: Icon(Icons.chevron_right, color: Colors.white),
-                          onTap: () {
-                            // Navigate to Gentle Reminders screen
-                          },
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.lock,
-                          text: "Set PIN",
-                          trailing: Icon(Icons.chevron_right, color: Colors.white),
-                          onTap: () {
-                            // Navigate to Set PIN screen
-                          },
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.music_note,
-                          text: "Spotify Account",
-                          trailing: Icon(Icons.chevron_right, color: Colors.white),
-                          onTap: () {
-                            // Navigate to Spotify Account screen
-                          },
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.accessibility_new,
-                          text: "Accessibility",
-                          trailing: Icon(Icons.chevron_right, color: Colors.white),
-                          onTap: () {
-                            // Navigate to Accessibility screen
-                          },
-                        ),
-                        _buildSettingRow(
-                          icon: Icons.group,
-                          text: "Your Safety Net",
-                          trailing: Icon(Icons.chevron_right, color: Colors.white),
-                          onTap: () {
-                            // Navigate to Safety Net screen
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
-    ),
     );
   }
 
-  Widget _buildSettingRow({
-    required IconData icon,
-    required String text,
-    Widget? trailing,
-    VoidCallback? onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(
-        text,
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      trailing: trailing,
-      onTap: onTap,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-      tileColor: Colors.transparent,
-      dense: true,
-    );
-  }
 }

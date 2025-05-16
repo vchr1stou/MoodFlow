@@ -2,6 +2,8 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 
 class UserProvider extends ChangeNotifier {
@@ -9,6 +11,7 @@ class UserProvider extends ChangeNotifier {
   String? pronouns;
   String? email;
   String? password;
+  String? profilePicUrl;
   List<TimeOfDay> dailyCheckInTimes = [];
   List<bool>? dailyCheckInEnabled;
   TimeOfDay? quoteReminderTime;
@@ -186,5 +189,83 @@ class UserProvider extends ChangeNotifier {
       );
       rethrow;
     }
+  }
+
+  Future<void> updateProfilePic(File imageFile) async {
+    if (email == null) return;
+    try {
+      final storageRef = FirebaseStorage.instance.ref().child('users').child(email!).child('profile_pic.jpg');
+      final uploadTask = await storageRef.putFile(imageFile);
+      if (uploadTask.state == TaskState.success) {
+        final downloadUrl = await storageRef.getDownloadURL();
+        profilePicUrl = downloadUrl;
+        await FirebaseFirestore.instance.collection('users').doc(email).update({'profilePicUrl': downloadUrl});
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error uploading profile picture: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateName(String newName) async {
+    if (email == null) return;
+    name = newName;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({'name': newName});
+    notifyListeners();
+  }
+
+  Future<void> updatePronouns(String newPronouns) async {
+    if (email == null) return;
+    pronouns = newPronouns;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({'pronouns': newPronouns});
+    notifyListeners();
+  }
+
+  Future<void> updateEmail(String newEmail) async {
+    if (email == null) return;
+    // Update in Firebase Auth
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.updateEmail(newEmail);
+    }
+    // Update in Firestore
+    await FirebaseFirestore.instance.collection('users').doc(email).update({'email': newEmail});
+    email = newEmail;
+    notifyListeners();
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    if (email == null) return;
+    // Update in Firebase Auth
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.updatePassword(newPassword);
+    }
+    // Optionally store hashed password in Firestore (not recommended to store plain text)
+    // await FirebaseFirestore.instance.collection('users').doc(email).update({'password': newPassword});
+    password = newPassword;
+    notifyListeners();
+  }
+
+  Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+    name = null;
+    pronouns = null;
+    email = null;
+    password = null;
+    profilePicUrl = null;
+    dailyCheckInTimes = [];
+    dailyCheckInEnabled = null;
+    quoteReminderTime = null;
+    quoteReminderEnabled = null;
+    contacts = [];
+    spotifyToken = null;
+    dailyStreakEnabled = true;
+    dailyStreakTime = const TimeOfDay(hour: 23, minute: 30);
+    soundEnabled = true;
+    musicEnabled = true;
+    hapticEnabled = true;
+    notifyListeners();
   }
 }
