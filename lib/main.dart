@@ -63,7 +63,12 @@ Future<void> main() async {
   }
 
   // Initialize notification service
-  await NotificationService().initialize();
+  try {
+    await NotificationService().initialize();
+    print('Notification service initialized successfully');
+  } catch (e) {
+    print('Error initializing notification service: $e');
+  }
 
   runApp(
     EasyLocalization(

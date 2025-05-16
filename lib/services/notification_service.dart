@@ -37,9 +37,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         debugPrint('Notification clicked: ${response.payload}');
       },
-      onDidReceiveBackgroundNotificationResponse: (NotificationResponse response) {
-        debugPrint('Background notification clicked: ${response.payload}');
-      },
     );
 
     // Request permissions explicitly
