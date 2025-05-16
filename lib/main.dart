@@ -35,7 +35,6 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await EasyLocalization.ensureInitialized();
   await StorageService.init();
-  await NotificationService().init();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
