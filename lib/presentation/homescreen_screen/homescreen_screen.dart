@@ -34,6 +34,7 @@ import 'dart:async';
 import 'models/homescreen_model.dart';
 import 'provider/homescreen_provider.dart';
 import '../../providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class NoSwipeBackRoute<T> extends MaterialPageRoute<T> {
   NoSwipeBackRoute({required WidgetBuilder builder}) : super(builder: builder);
@@ -863,13 +864,27 @@ class HomescreenScreenState extends State<HomescreenScreen> {
                           ),
                         );
                       },
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 3),
-                        child: SvgPicture.asset(
-                          'assets/images/person.crop.circle.fill.svg',
-                          width: 37,
-                          height: 37,
-                        ),
+                      child: Consumer<UserProvider>(
+                        builder: (context, userProvider, child) {
+                          if (userProvider.profilePicFile != null) {
+                            return ClipOval(
+                              child: Image.file(
+                                userProvider.profilePicFile!,
+                                width: 37,
+                                height: 37,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }
+                          return Padding(
+                            padding: EdgeInsets.only(top: 3),
+                            child: SvgPicture.asset(
+                              'assets/images/person.crop.circle.fill.svg',
+                              width: 37,
+                              height: 37,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],

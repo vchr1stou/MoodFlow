@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/app_bar.dart';
 
 import '../../providers/user_provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileMyAccountScreen extends StatefulWidget {
   const ProfileMyAccountScreen({Key? key}) : super(key: key);
@@ -27,6 +30,103 @@ class ProfileMyAccountScreen extends StatefulWidget {
 }
 
 class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(BuildContext context) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.profilePicFile != null) {
+      // Show dialog with three options
+      final action = await showCupertinoModalPopup<String>(
+        context: context,
+        builder: (context) => CupertinoActionSheet(
+          title: Text('Profile Picture'),
+          message: Text('What would you like to do with your profile picture?'),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context, 'edit'),
+              child: Text('Edit Picture'),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(context, 'delete'),
+              child: Text('Delete Picture'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: Text('Cancel'),
+          ),
+        ),
+      );
+
+      switch (action) {
+        case 'delete':
+          await userProvider.deleteProfilePic();
+          return;
+        case 'edit':
+          // Continue to image picker
+          break;
+        case 'cancel':
+        default:
+          return;
+      }
+    }
+
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null && mounted) {
+      await userProvider.updateProfilePic(File(image.path));
+    }
+  }
+
+  Future<void> _showEditDialog(String title, String currentValue, Function(String) onSave) async {
+    final TextEditingController controller = TextEditingController(text: currentValue);
+    bool isPasswordVisible = false;
+    bool isPassword = title == 'Password';
+
+    return showCupertinoDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => CupertinoAlertDialog(
+          title: Text('Edit $title'),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 20.0),
+            child: CupertinoTextField(
+              controller: controller,
+              obscureText: isPassword && !isPasswordVisible,
+              placeholder: 'Enter new $title',
+              suffix: isPassword ? CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: Icon(
+                  isPasswordVisible ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                  color: CupertinoColors.systemGrey,
+                ),
+                onPressed: () {
+                  setState(() {
+                    isPasswordVisible = !isPasswordVisible;
+                  });
+                },
+              ) : null,
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              onPressed: () {
+                onSave(controller.text);
+                Navigator.pop(context);
+              },
+              child: Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +134,8 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
        extendBody: true,
           extendBodyBehindAppBar: true,
@@ -50,7 +152,7 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
         child: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: Column(
               children: [
                 SizedBox(height: 32),
@@ -65,23 +167,44 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Avatar
-                          const CircleAvatar(
-                            radius: 40,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.emoji_emotions, size: 56, color: Colors.orange), // Replace with user avatar if available
+                          GestureDetector(
+                            onTap: () => _pickImage(context),
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.white,
+                              child: userProvider.profilePicFile != null
+                                ? ClipOval(
+                                    child: Image.file(
+                                      userProvider.profilePicFile!,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: EdgeInsets.only(top: 3),
+                                    child: SvgPicture.asset(
+                                      'assets/images/person.crop.circle.fill.svg',
+                                      width: 37,
+                                      height: 37,
+                                    ),
+                                  ),
+                            ),
                           ),
                           const SizedBox(height: 12),
                           // Edit Button
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
+                          GestureDetector(
+                            onTap: () => _pickImage(context),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
                                 'assets/images/edit_widget.svg',
                                 width: 126,
                                 height: 30,
@@ -98,166 +221,196 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                               ),
                             ],
                           ),
+                          ),
                           const SizedBox(height: 32),
                           // Name Row
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/top_my_account.svg',
-                                width: double.infinity,
-                                fit: BoxFit.fill,
-                                height: 54,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'Name',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    const Text(
-                                      'Vasillis Christou',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                                  ],
+                          GestureDetector(
+                            onTap: () => _showEditDialog(
+                              'Name',
+                              userProvider.name ?? '',
+                              (newName) => userProvider.updateName(newName),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              clipBehavior: Clip.none,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/top_my_account.svg',
+                                  width: MediaQuery.of(context).size.width - 40,
+                                  fit: BoxFit.fill,
+                                  height: 54,
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 20.0, right: 17.0),
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'Name',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Text(
+                                        userProvider.name ?? 'User',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           // Pronouns Row
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/medium_my_account.svg',
-                                width: double.infinity,
-                                fit: BoxFit.fill,
-                                height: 54,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'Pronouns',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    const Text(
-                                      'He/him',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                                  ],
+                          GestureDetector(
+                            onTap: () => _showEditDialog(
+                              'Pronouns',
+                              userProvider.pronouns ?? '',
+                              (newPronouns) => userProvider.updatePronouns(newPronouns),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/medium_my_account.svg',
+                                  width: MediaQuery.of(context).size.width - 40,
+                                  fit: BoxFit.fill,
+                                  height: 54,
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 20.0, right: 17.0),
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'Pronouns',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Text(
+                                        userProvider.pronouns ?? '',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           // Email Row
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/medium_my_account.svg',
-                                width: double.infinity,
-                                fit: BoxFit.fill,
-                                height: 54,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'E-mail',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    const Text(
-                                      'vchristou@gmail.com',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                                  ],
+                          GestureDetector(
+                            onTap: () => _showEditDialog(
+                              'Email',
+                              userProvider.email ?? '',
+                              (newEmail) => userProvider.updateEmail(newEmail),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/medium_my_account.svg',
+                                  width: MediaQuery.of(context).size.width - 40,
+                                  fit: BoxFit.fill,
+                                  height: 54,
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 20.0, right: 17.0),
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'E-mail',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Text(
+                                        userProvider.email ?? '',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           // Password Row
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/bottom_my_account.svg',
-                                width: double.infinity,
-                                fit: BoxFit.fill,
-                                height: 54,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 25.0, right: 20.0),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'Password',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    const Text(
-                                      '•••••••',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                                  ],
+                          GestureDetector(
+                            onTap: () => _showEditDialog(
+                              'Password',
+                              '',
+                              (newPassword) => userProvider.updatePassword(newPassword),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/bottom_my_account.svg',
+                                  width: MediaQuery.of(context).size.width - 40,
+                                  fit: BoxFit.fill,
+                                  height: 54,
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 20.0, right: 17.0),
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'Password',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      const Text(
+                                        '•••••••',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -266,10 +419,15 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                 ),
                 SizedBox(height: 32),
                 // Sign Out Button
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SvgPicture.asset(
+                GestureDetector(
+                  onTap: () {
+                    userProvider.signOut();
+                    Navigator.pushNamed(context, AppRoutes.loginScreen);
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SvgPicture.asset(
                       'assets/images/sign_out.svg',
                       width: 190,
                       height: 44,
@@ -285,6 +443,7 @@ class ProfileMyAccountScreenState extends State<ProfileMyAccountScreen> {
                       ),
                     ),
                   ],
+                  ),
                 ),
                 SizedBox(height: 10),
               ],

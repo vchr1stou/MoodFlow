@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 
 class UserProvider extends ChangeNotifier {
@@ -12,6 +13,7 @@ class UserProvider extends ChangeNotifier {
   String? email;
   String? password;
   String? profilePicUrl;
+  File? profilePicFile;
   List<TimeOfDay> dailyCheckInTimes = [];
   List<bool>? dailyCheckInEnabled;
   TimeOfDay? quoteReminderTime;
@@ -24,22 +26,13 @@ class UserProvider extends ChangeNotifier {
   bool musicEnabled = true;
   bool hapticEnabled = true;
   
-  void toggleDailyStreak(bool value) {
+  Future<void> toggleDailyStreak(bool value) async {
+    if (email == null) return;
     dailyStreakEnabled = value;
+    await FirebaseFirestore.instance.collection('users').doc(email).update({'dailyStreakEnabled': value});
     notifyListeners();
   }
-  void toggleSound(bool value) {
-    soundEnabled = value;
-    notifyListeners();
-  }
-  void toggleMusic(bool value) {
-    musicEnabled = value;
-    notifyListeners();
-  }
-  void toggleHaptic(bool value) {
-    hapticEnabled = value;
-    notifyListeners();
-  }
+
 
   void updateStepOneData(String name, String pronouns, String email, String password) {
     this.name = name;
@@ -70,6 +63,21 @@ class UserProvider extends ChangeNotifier {
       name = data['name'];
       pronouns = data['pronouns'];
       this.email = data['email'];
+      profilePicUrl = data['profilePicUrl'];
+      if (profilePicUrl != null) {
+        try {
+          final ref = FirebaseStorage.instance.refFromURL(profilePicUrl!);
+          final bytes = await ref.getData();
+          if (bytes != null) {
+            final tempDir = await getTemporaryDirectory();
+            final file = File('${tempDir.path}/profile_pic.jpg');
+            await file.writeAsBytes(bytes);
+            profilePicFile = file;
+          }
+        } catch (e) {
+          print('Error loading profile picture: $e');
+        }
+      }
       dailyCheckInTimes = (data['dailyCheckInTimes'] as List)
           .map((time) => TimeOfDay(hour: time['hour'], minute: time['minute']))
           .toList();
@@ -192,14 +200,25 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> updateProfilePic(File imageFile) async {
-    if (email == null) return;
     try {
-      final storageRef = FirebaseStorage.instance.ref().child('users').child(email!).child('profile_pic.jpg');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('users')
+          .child(user.uid)
+          .child('profile_pic.jpg');
+
       final uploadTask = await storageRef.putFile(imageFile);
       if (uploadTask.state == TaskState.success) {
         final downloadUrl = await storageRef.getDownloadURL();
         profilePicUrl = downloadUrl;
-        await FirebaseFirestore.instance.collection('users').doc(email).update({'profilePicUrl': downloadUrl});
+        profilePicFile = imageFile;
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.email)
+            .update({'profilePicUrl': downloadUrl});
         notifyListeners();
       }
     } catch (e) {
@@ -248,6 +267,35 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteProfilePic() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+
+      // Delete from Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('users')
+          .child(user.uid)
+          .child('profile_pic.jpg');
+      
+      await storageRef.delete();
+
+      // Update Firestore and local state
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.email)
+          .update({'profilePicUrl': null});
+
+      profilePicUrl = null;
+      profilePicFile = null;
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting profile picture: $e');
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
     name = null;
@@ -268,4 +316,8 @@ class UserProvider extends ChangeNotifier {
     hapticEnabled = true;
     notifyListeners();
   }
+
+
+
+
 }

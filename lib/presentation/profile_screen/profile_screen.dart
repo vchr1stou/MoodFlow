@@ -73,7 +73,23 @@ class ProfileScreenState extends State<ProfileScreen> {
                             CircleAvatar(
                               radius: 40,
                               backgroundColor: Colors.white,
-                              child: Icon(Icons.emoji_emotions, size: 56, color: Colors.orange), // Replace with user avatar if available
+                              child: provider.profilePicFile != null
+                                ? ClipOval(
+                                    child: Image.file(
+                                      provider.profilePicFile!,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: EdgeInsets.only(top: 3),
+                                    child: SvgPicture.asset(
+                                      'assets/images/person.crop.circle.fill.svg',
+                                      width: 37,
+                                      height: 37,
+                                    ),
+                                  ),
                             ),
                             SizedBox(height: 16),
                             // Name
