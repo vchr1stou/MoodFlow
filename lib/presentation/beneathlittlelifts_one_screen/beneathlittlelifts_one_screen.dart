@@ -397,16 +397,16 @@ class BeneathlittleliftsOneScreenState extends State<BeneathlittleliftsOneScreen
                               
                               // Box 7 - Affirmations
                               _createBoxWithContent(
-                                iconPath: 'assets/images/affirmations_bll.svg', // Replace with gratitude icon
+                                iconPath: 'assets/images/affirmation_bll.svg',
                                 title: 'Affirmations',
                                 description: 'Affirmations are positive statements that promote self-belief and motivation. Scientific studies suggest they can improve self-esteem, resilience, and overall well-being. By replacing negative thought patterns, affirmations encourage productive responses to challenges and may reduce stress-related health issues.',
                                 sourceText: 'Source: The Science Of Affirmations: The Brain\'s Response To Positive Thinking - MentalHealth.com',
-                                url: 'https://www.mentalhealth.com/tools/science-of-affirmations', // Replace with actual gratitude URL
-                                iconWidth: 24,
-                                iconHeight: 25,
+                                url: 'https://www.mentalhealth.com/tools/science-of-affirmations',
+                                iconWidth: 22,
+                                iconHeight: 22,
                                 iconLeft: 16,
-                                iconTop: 11,
-                                titleLeft: 44,
+                                iconTop: 12,
+                                titleLeft: 42,
                                 titleTop: 20,
                                 titleFontSize: 13,
                                 descriptionLeft: 16,
@@ -514,7 +514,7 @@ class BeneathlittleliftsOneScreenState extends State<BeneathlittleliftsOneScreen
                                 iconPath: 'assets/images/soft_thanks_bll.svg',
                                 title: 'Soft Thanks',
                                 description: 'Keeping a gratitude log boosts mental well-being by fostering optimism, easing depression, and strengthening emotional resilience. Regularly noting small positives helps shift focus from stress to joy, training the mind to recognize and appreciate the good more often.',
-                                sourceText: 'Source: Giving thanks can make you happier – Harvard Health',
+                                sourceText: 'Source: Giving thanks can make you happier – Harvard Health',
                                 url: 'https://www.health.harvard.edu/healthbeat/giving-thanks-can-make-you-happier',
                                 iconWidth: 22,
                                 iconHeight: 23,
