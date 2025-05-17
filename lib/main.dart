@@ -26,6 +26,8 @@ import 'providers/user_provider.dart';
 import 'services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'presentation/pin_verification_screen/pin_verification_screen.dart';
+import 'providers/accessibility_provider.dart';
+import 'widgets/text_scaling_wrapper.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -98,6 +100,10 @@ Future<void> main() async {
             create: (_) => UserProvider(),
             lazy: false,
           ),
+          ChangeNotifierProvider(
+            create: (_) => AccessibilityProvider(),
+            lazy: false,
+          ),
         ],
         child: ScreenUtilInit(
           designSize: const Size(375, 812),
@@ -117,7 +123,23 @@ Future<void> main() async {
               locale: context.locale,
               builder: (context, child) {
                 SizeUtils.init(context);
-                return child!;
+                final isInverted = context.watch<AccessibilityProvider>().isInverted;
+                return TextScalingWrapper(
+                  child: ColorFiltered(
+                    colorFilter: isInverted
+                        ? const ColorFilter.matrix([
+                            -1, 0, 0, 0, 255,
+                            0, -1, 0, 0, 255,
+                            0, 0, -1, 0, 255,
+                            0, 0, 0, 1, 0,
+                          ])
+                        : const ColorFilter.mode(
+                            Colors.transparent,
+                            BlendMode.dst,
+                          ),
+                    child: child!,
+                  ),
+                );
               },
               initialRoute: isAuthenticated 
                 ? (shouldShowPinVerification ? AppRoutes.pinVerificationScreen : AppRoutes.homescreenScreen)
