@@ -8,6 +8,7 @@ import 'provider/porfile_acessibility_settings_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/app_bar.dart';
 
 class PorfileAcessibilitySettingsScreen extends StatefulWidget {
   const PorfileAcessibilitySettingsScreen({Key? key}) : super(key: key);
@@ -36,14 +37,14 @@ class PorfileAcessibilitySettingsScreenState
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
+      appBar: buildAppbar(context),
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFE6A4FF), Color(0xFFFFE17D), Color(0xFFF76E6A)],
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
           ),
         ),
         child: SafeArea(
@@ -52,7 +53,7 @@ class PorfileAcessibilitySettingsScreenState
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
                   // Top icon (Group.svg)
                   SvgPicture.asset(
                     'assets/images/Group.svg',
@@ -111,7 +112,7 @@ class PorfileAcessibilitySettingsScreenState
                         'assets/images/medium_my_account.svg',
                         width: MediaQuery.of(context).size.width - 32,
                         fit: BoxFit.fitWidth,
-                      ),
+                  ),
                       Positioned.fill(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -125,7 +126,7 @@ class PorfileAcessibilitySettingsScreenState
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                   fontFamily: 'Roboto',
-                                ),
+                  ),
                               ),
                             ),
                             Padding(
@@ -136,7 +137,7 @@ class PorfileAcessibilitySettingsScreenState
                                   context.read<PorfileAcessibilitySettingsProvider>().changeSwitchBox(value);
                                 },
                                 activeColor: CupertinoColors.systemGreen,
-                              ),
+                  ),
                             ),
                           ],
                         ),
