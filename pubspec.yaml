@@ -81,4 +81,6 @@ flutter:
     - assets/images/pronouns.svg
     - assets/images/spotify_link.svg
     - assets/images/spotify.svg
+    - assets/images/pin_verification_input.svg
+    - assets/images/pin_verification_button.svg
     - lib/localization/

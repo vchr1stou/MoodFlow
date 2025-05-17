@@ -8,6 +8,12 @@ import '../../widgets/custom_outlined_button.dart';
 import 'models/profile_change_pin_1st_step_model.dart';
 import 'provider/profile_change_pin_1st_step_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:moodflow/core/utils/size_utils.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileChangePin1stStepScreen extends StatefulWidget {
   const ProfileChangePin1stStepScreen({Key? key}) : super(key: key);
@@ -19,68 +25,205 @@ class ProfileChangePin1stStepScreen extends StatefulWidget {
   static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => ProfileChangePin1stStepProvider(),
-      child: ProfileChangePin1stStepScreen(),
+      child: const ProfileChangePin1stStepScreen(),
     );
   }
 }
 
 class ProfileChangePin1stStepScreenState
     extends State<ProfileChangePin1stStepScreen> {
+  String pin = '';
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
+    _pinController.addListener(() {
+      if (_pinController.text.length > 4) {
+        _pinController.text = _pinController.text.substring(0, 4);
+      }
+      setState(() {
+        pin = _pinController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _pinFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handlePinConfirmation() async {
+    if (pin.length != 4) return;
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.email != null) {
+      try {
+        // Verify the PIN matches before proceeding
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userProvider.email)
+            .get();
+        
+        if (userDoc.exists && userDoc.data()?['pin'] == pin) {
+          // PIN matches, navigate to set new PIN screen
+          Navigator.pushNamed(context, AppRoutes.profileSetNewPin1stStepScreen);
+        } else {
+          // PIN doesn't match
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Incorrect PIN. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() {
+            _pinController.clear();
+          });
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error verifying PIN: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.onPrimary,
-      body: SafeArea(
-        child: SizedBox(
-          width: double.maxFinite,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: buildAppbar(context),
+      body: Container(
+        width: double.maxFinite,
+        height: SizeUtils.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
           child: SingleChildScrollView(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.only(top: 20.h),
-              decoration:
-                  AppDecoration.forBackgroundpinkyellowbggradient.copyWith(
-                borderRadius: BorderRadiusStyle.roundedBorder32,
-              ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildAppbar(context),
-                  SizedBox(height: 6.h),
-                  CustomImageView(
-                    imagePath: ImageConstant.imgGroupOnprimary108x98,
-                    height: 108.h,
-                    width: 88.h,
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    "lbl_change_pin".tr(),
-                    style: theme.textTheme.headlineLarge,
-                  ),
-                  SizedBox(height: 4.h),
-                  SizedBox(
-                    width: 292.h,
-                    child: Text(
-                      "msg_you_have_to_confirm".tr(),
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
+                  SizedBox(height: 40),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: SvgPicture.asset(
+                      'assets/images/pin_person.svg',
+                      width: 86.08,
+                      height: 108,
                     ),
                   ),
-                  SizedBox(height: 22.h),
-                  _buildAlert(context),
-                  SizedBox(height: 22.h),
-                  CustomOutlinedButton(
-                    width: 182.h,
-                    text: "msg_confirm_previous".tr(),
-                    buttonStyle: CustomButtonStyles.none,
-                    decoration: CustomButtonStyles.outlineTL241Decoration,
+                  SizedBox(height: 3),
+                  Text(
+                    'Change PIN',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontFamily: 'Roboto',
+                    ),
                   ),
-                  SizedBox(height: 386.h),
+                  SizedBox(height: 3),
+                  Text(
+                    'You have to confirm your previous PIN',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                      fontFamily: 'Roboto',
+                    ),
+                  ),
+                  SizedBox(height: 23),
+                  GestureDetector(
+                    onTap: () {
+                      _pinFocusNode.requestFocus();
+                    },
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/images/pin_input.svg',
+                          width: 336,
+                          height: 66,
+                        ),
+                        Container(
+                          height: 66,
+                          padding: EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(4, (index) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: Text(
+                                  index < _pinController.text.length ? '•' : '_',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                        Opacity(
+                          opacity: 0,
+                          child: TextField(
+                            controller: _pinController,
+                            focusNode: _pinFocusNode,
+                            keyboardType: TextInputType.number,
+                            maxLength: 4,
+                            style: TextStyle(color: Colors.transparent),
+                            decoration: InputDecoration(
+                              counterText: '',
+                              border: InputBorder.none,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 23),
+                  GestureDetector(
+                    onTap: _handlePinConfirmation,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/images/set_pin_2.svg',
+                          width: 183,
+                          height: 48,
+                        ),
+                        Text(
+                          'Confirm PIN',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -90,8 +233,12 @@ class ProfileChangePin1stStepScreenState
     );
   }
 
-  /// Section Widget: Custom AppBar
-  PreferredSizeWidget _buildAppbar(BuildContext context) {
+  /// Handles back navigation
+  void onTapArrowLeft(BuildContext context) {
+    NavigatorService.goBackWithoutContext();
+  }
+
+  PreferredSizeWidget buildAppbar(BuildContext context) {
     return CustomAppBar(
       height: 30.h,
       leadingWidth: 46.h,
@@ -99,35 +246,9 @@ class ProfileChangePin1stStepScreenState
         imagePath: ImageConstant.imgArrowLeft,
         margin: EdgeInsets.only(left: 16.h),
         onTap: () {
-          onTapArrowleftone(context);
+          onTapArrowLeft(context);
         },
       ),
     );
-  }
-
-  /// Section Widget: Alert UI
-  Widget _buildAlert(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 32.h),
-      decoration: AppDecoration.windowsGlass.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder32,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: 6.h),
-          Text(
-            "lbl4".tr(),
-            style: theme.textTheme.displayMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Back navigation
-  void onTapArrowleftone(BuildContext context) {
-    NavigatorService.goBackWithoutContext();
   }
 }

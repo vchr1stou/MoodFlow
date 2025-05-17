@@ -66,6 +66,7 @@ import '../presentation/traveling_screen/traveling_screen.dart';
 import '../presentation/welcome_screen/welcome_screen.dart';
 import '../presentation/workout_screen/workout_screen.dart';
 import '../presentation/spotify_callback_screen/spotify_callback_screen.dart';
+import '../presentation/pin_verification_screen/pin_verification_screen.dart';
 
 class AppRoutes {
   static const String welcomeScreen = '/welcome_screen';
@@ -165,6 +166,7 @@ class AppRoutes {
   static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
   static const String spotifyCallbackScreen = '/spotify_callback_screen';
+  static const String pinVerificationScreen = '/pin_verification_screen';
 
   static Map<String, WidgetBuilder> get routes => {
         welcomeScreen: WelcomeScreen.builder,
@@ -236,6 +238,7 @@ class AppRoutes {
         appNavigationScreen: AppNavigationScreen.builder,
         initialRoute: WelcomeScreen.builder,
         spotifyCallbackScreen: (context) => const SpotifyCallbackScreen(),
+        pinVerificationScreen: PinVerificationScreen.builder,
       };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

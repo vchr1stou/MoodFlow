@@ -13,6 +13,7 @@ class UserProvider extends ChangeNotifier {
   String? pronouns;
   String? email;
   String? password;
+  bool? pinEnabled;
 
   // Used for Profile Picture
   String? profilePicUrl;
@@ -152,6 +153,11 @@ class UserProvider extends ChangeNotifier {
       pronouns = data['pronouns'];
       this.email = data['email'];
       profilePicUrl = data['profilePicUrl'];
+      pinEnabled = data['pinEnabled'] ?? false;
+      notifyListeners();
+      
+      // Check and set pinEnabled if it doesn't exist
+      await checkAndSetPinEnabled();
       
       // Add null checks for dailyCheckInTitles
       final checkInTitlesData = data['dailyCheckInTitles'];
@@ -577,5 +583,25 @@ class UserProvider extends ChangeNotifier {
     });
     await _scheduleNotifications();
     notifyListeners();
+  }
+
+  Future<void> checkAndSetPinEnabled() async {
+    if (email == null) return;
+    
+    try {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(email).get();
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        if (!data.containsKey('pinEnabled')) {
+          // If pinEnabled doesn't exist, set it to false
+          await FirebaseFirestore.instance.collection('users').doc(email).update({
+            'pinEnabled': false
+          });
+          debugPrint('Added pinEnabled attribute and set to false');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking/setting pinEnabled: $e');
+    }
   }
 }

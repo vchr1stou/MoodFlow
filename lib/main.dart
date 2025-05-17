@@ -24,6 +24,8 @@ import 'presentation/homescreen_screen/homescreen_screen.dart';
 import 'core/services/storage_service.dart';
 import 'providers/user_provider.dart';
 import 'services/notification_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'presentation/pin_verification_screen/pin_verification_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -58,6 +60,20 @@ Future<void> main() async {
     } catch (e) {
       // If auto-login fails, clear saved credentials
       await AuthPersistenceService.clearSavedCredentials();
+    }
+  }
+
+  // Check if PIN is enabled
+  bool shouldShowPinVerification = false;
+  if (isAuthenticated) {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(savedCredentials?['email'])
+          .get();
+      shouldShowPinVerification = userDoc.exists && userDoc.data()?['pinEnabled'] == true;
+    } catch (e) {
+      print('Error checking PIN status: $e');
     }
   }
 
@@ -103,10 +119,14 @@ Future<void> main() async {
                 SizeUtils.init(context);
                 return child!;
               },
-              initialRoute: isAuthenticated ? AppRoutes.homescreenScreen : AppRoutes.welcomeScreen,
+              initialRoute: isAuthenticated 
+                ? (shouldShowPinVerification ? AppRoutes.pinVerificationScreen : AppRoutes.homescreenScreen)
+                : AppRoutes.welcomeScreen,
               routes: AppRoutes.routes,
               onGenerateRoute: AppRoutes.onGenerateRoute,
-              home: isAuthenticated ? HomescreenScreen.builder(context) : WelcomeScreen.builder(context),
+              home: isAuthenticated 
+                ? (shouldShowPinVerification ? PinVerificationScreen.builder(context) : HomescreenScreen.builder(context))
+                : WelcomeScreen.builder(context),
             );
           },
           child: isAuthenticated ? const HomescreenScreen() : const WelcomeScreen(),
