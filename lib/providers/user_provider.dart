@@ -323,7 +323,7 @@ class UserProvider extends ChangeNotifier {
             'minute': time.minute,
           }).toList(),
           'dailyCheckInEnabled': dailyCheckInEnabled ?? List.generate(dailyCheckInTimes.length, (_) => true),
-          'dailyCheckInSectionEnabled': dailyCheckInSectionEnabled ?? true,
+          'dailyCheckInSectionEnabled': true,
           'dailyCheckInDescriptions': dailyCheckInDescriptions,
           // Quote Reminder
           'quoteReminderTime': quoteReminderTime != null
@@ -332,8 +332,8 @@ class UserProvider extends ChangeNotifier {
                   'minute': quoteReminderTime!.minute,
                 }
               : null,
-          'quoteReminderEnabled': quoteReminderEnabled ?? false,
-          'quoteReminderSectionEnabled': quoteReminderSectionEnabled ?? true,
+          'quoteReminderEnabled': true,
+          'quoteReminderSectionEnabled': true,
           // Streak Reminder
           'dailyStreakEnabled': dailyStreakEnabled ?? false,
           'dailyStreakTime': dailyStreakTime != null
@@ -343,7 +343,6 @@ class UserProvider extends ChangeNotifier {
                 }
               : null,
           'createdAt': FieldValue.serverTimestamp(),
-          'dailyCheckInSectionEnabled': dailyCheckInSectionEnabled,
           'dailyCheckInDescriptions': dailyCheckInDescriptions,
           'dailyCheckInTitles': _dailyCheckInTitles,
           'dailyCheckInMessages': _dailyCheckInMessages,
