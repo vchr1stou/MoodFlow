@@ -24,18 +24,18 @@ class BreathingmainScreen extends StatefulWidget {
 }
 
 class BreathingmainScreenState extends State<BreathingmainScreen> {
-  int duration = 1;
+  int duration = 10;
 
   void incrementDuration() {
     setState(() {
-      duration++;
+      duration += 10;
     });
   }
 
   void decrementDuration() {
     setState(() {
-      if (duration > 1) {
-        duration--;
+      if (duration > 10) {
+        duration -= 10;
       }
     });
   }
@@ -209,7 +209,7 @@ class BreathingmainScreenState extends State<BreathingmainScreen> {
                         ),
                         Center(
                           child: Text(
-                            '$duration min',
+                            '$duration sec',
                             style: GoogleFonts.roboto(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,

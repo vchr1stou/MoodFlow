@@ -754,7 +754,7 @@ class HomescreenScreenState extends State<HomescreenScreen> with AutomaticKeepAl
                           MaterialPageRoute(
                             builder: (context) => InhaleScreen.builder(context),
                             settings: RouteSettings(
-                              arguments: {'duration': 0.166}, // 10 seconds (10/60 minutes)
+                              arguments: {'duration': 1},
                             ),
                           ),
                         );
