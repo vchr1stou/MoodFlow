@@ -120,12 +120,12 @@ class SafetynetlittleliftsScreenState extends State<SafetynetlittleliftsScreen> 
                        provider.safetynetlittleliftsModelObj.safetynetFileCount == 1))
                     Positioned(
                       bottom: provider.safetynetlittleliftsModelObj.safetynetFileCount == 4 
-                          ? 195.h
+                          ? 145.h
                           : provider.safetynetlittleliftsModelObj.safetynetFileCount == 3
-                              ? 275.h
+                              ? 225.h
                               : provider.safetynetlittleliftsModelObj.safetynetFileCount == 2
-                                  ? 355.h
-                                  : 405.h,
+                                  ? 305.h
+                                  : 355.h,
                       left: 0,
                       right: 0,
                       child: Stack(
