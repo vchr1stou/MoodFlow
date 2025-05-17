@@ -35,7 +35,6 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await EasyLocalization.ensureInitialized();
   await StorageService.init();
-  await NotificationService().init();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -63,7 +62,12 @@ Future<void> main() async {
   }
 
   // Initialize notification service
-  await NotificationService().initialize();
+  try {
+    await NotificationService().initialize();
+    print('Notification service initialized successfully');
+  } catch (e) {
+    print('Error initializing notification service: $e');
+  }
 
   runApp(
     EasyLocalization(

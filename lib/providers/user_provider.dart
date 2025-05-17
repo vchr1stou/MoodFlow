@@ -329,14 +329,16 @@ class UserProvider extends ChangeNotifier {
           'quoteReminderEnabled': quoteReminderEnabled ?? false,
           'quoteReminderSectionEnabled': quoteReminderSectionEnabled ?? true,
           // Streak Reminder
+          'dailyStreakEnabled': dailyStreakEnabled ?? false,
           'dailyStreakTime': dailyStreakTime != null
               ? {
                   'hour': dailyStreakTime!.hour,
                   'minute': dailyStreakTime!.minute,
                 }
               : null,
-          'dailyStreakEnabled': dailyStreakEnabled ?? false,
           'createdAt': FieldValue.serverTimestamp(),
+          'dailyCheckInSectionEnabled': dailyCheckInSectionEnabled,
+          'dailyCheckInDescriptions': dailyCheckInDescriptions,
           'dailyCheckInTitles': _dailyCheckInTitles,
           'dailyCheckInMessages': _dailyCheckInMessages,
         });
