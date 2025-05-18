@@ -59,7 +59,7 @@ class GlowPainter extends CustomPainter {
     // Draw the main glow with conditional corner radius
     final rrect = RRect.fromRectAndRadius(
       rect.deflate(-0.2),
-      Radius.circular(isKeyboardOpen ? 0 : 47.33),
+      Radius.circular(isKeyboardOpen ? 0 : 0),
     );
     canvas.drawRRect(rrect, gradientPaint);
 

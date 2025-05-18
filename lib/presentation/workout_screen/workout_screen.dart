@@ -119,7 +119,7 @@ class GlowPainter extends CustomPainter {
 
     final rrect = RRect.fromRectAndRadius(
       rect.deflate(-0.2),
-      Radius.circular(isKeyboardOpen ? 0 : 47.33),
+      Radius.circular(isKeyboardOpen ? 0 : 0),
     );
     canvas.drawRRect(rrect, gradientPaint);
 

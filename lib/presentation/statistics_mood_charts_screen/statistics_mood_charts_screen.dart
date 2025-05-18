@@ -71,6 +71,15 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
   DateTime _focusedDay = DateTime.now();
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
   
+  // Add loading state for period changes
+  bool _isPeriodChanging = false;
+  
+  // Add debouncer for period changes
+  Timer? _periodChangeDebouncer;
+  
+  // Add cached data
+  Map<String, dynamic> _cachedData = {};
+  
   // Mood data
   Map<String, int> _moodCounts = {
     'Heavy': 0,
@@ -141,8 +150,34 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
     _loadMoodData();
   }
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _periodChangeDebouncer?.cancel();
+    super.dispose();
+  }
+
+  // Modify _loadMoodData to use caching
   Future<void> _loadMoodData() async {
-    print('DEBUG: Starting to load mood data');
+    // Check cache first
+    if (_cachedData.containsKey(_selectedPeriod)) {
+      setState(() {
+        _moodCounts = _cachedData[_selectedPeriod]['moodCounts'];
+        _weeklyMoodValues = _cachedData[_selectedPeriod]['weeklyMoodValues'];
+        _weeklyMoodAverages = _cachedData[_selectedPeriod]['weeklyMoodAverages'];
+        _monthlyMoodValues = _cachedData[_selectedPeriod]['monthlyMoodValues'];
+        _monthlyMoodAverages = _cachedData[_selectedPeriod]['monthlyMoodAverages'];
+        _allTimeMoodValues = _cachedData[_selectedPeriod]['allTimeMoodValues'];
+        _allTimeMoodAverages = _cachedData[_selectedPeriod]['allTimeMoodAverages'];
+        _allTimeDates = _cachedData[_selectedPeriod]['allTimeDates'];
+        _customMoodValues = _cachedData[_selectedPeriod]['customMoodValues'];
+        _customMoodAverages = _cachedData[_selectedPeriod]['customMoodAverages'];
+        _customDates = _cachedData[_selectedPeriod]['customDates'];
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _moodCounts = {
@@ -436,6 +471,21 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
         print('DEBUG: Selected period is $_selectedPeriod, skipping _analyzeMoodCorrelations');
       }
 
+      // Cache the results
+      _cachedData[_selectedPeriod] = {
+        'moodCounts': Map<String, int>.from(_moodCounts),
+        'weeklyMoodValues': List<List<int>>.from(_weeklyMoodValues),
+        'weeklyMoodAverages': List<double>.from(_weeklyMoodAverages),
+        'monthlyMoodValues': List<List<int>>.from(_monthlyMoodValues),
+        'monthlyMoodAverages': List<double>.from(_monthlyMoodAverages),
+        'allTimeMoodValues': List<List<int>>.from(_allTimeMoodValues),
+        'allTimeMoodAverages': List<double>.from(_allTimeMoodAverages),
+        'allTimeDates': List<DateTime>.from(_allTimeDates),
+        'customMoodValues': List<List<int>>.from(_customMoodValues),
+        'customMoodAverages': List<double>.from(_customMoodAverages),
+        'customDates': List<DateTime>.from(_customDates),
+      };
+
       setState(() {
         _isLoading = false;
       });
@@ -501,881 +551,6 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
         label: 'Bright',
       ),
     ];
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      body: Container(
-        width: double.maxFinite,
-        height: double.maxFinite,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 10, top: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/images/chevron.backward.svg',
-                                    width: 9,
-                                    height: 17,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Back',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white,
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Statistics',
-                          style: GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      height: ScreenUtil().setHeight(660),
-                      width: double.maxFinite,
-                      margin: EdgeInsets.only(left: ScreenUtil().setHeight(6)),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: double.maxFinite,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(height: 8),
-                                Expanded(
-                                  child: Stack(
-                                    alignment: Alignment.topCenter,
-                                    children: [
-                                      Center(
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            SvgPicture.asset(
-                                          'assets/images/statistics_box.svg',
-                                          width: 379,
-                                          height: 661,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 18,
-                                        left: 0,
-                                        right: 0,
-                                        child: Column(
-                                          children: [
-                                            _buildTabview(context),
-                                            SizedBox(height: 6),
-                                          ],
-                                        ),
-                                      ),
-                                      Positioned.fill(
-                                        top: 62,
-                                        child: PageView(
-                                          controller: _pageController,
-                                          onPageChanged: (index) {
-                                            setState(() {
-                                              _currentPage = index;
-                                            });
-                                          },
-                                          physics: NeverScrollableScrollPhysics(),
-                                          pageSnapping: true,
-                                          children: [
-                                            Container(
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                              child: Column(
-                                                children: [
-                                                  SizedBox(height: 64),
-                                                  if (_currentPage == 0) ...[
-                                                  Center(
-                                                    child: AnimatedDonutChart(
-                                                      segments: _getMoodSegments(),
-                                                      strokeWidth: 48,
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 20),
-                                                  if (_selectedPeriod == 'Past Week' || _selectedPeriod == 'Past Month' || 
-                                                      _selectedPeriod == 'All Time' || _selectedPeriod == 'Custom')
-                                                    Column(
-                                                      children: [
-                                                        Stack(
-                                                          alignment: Alignment.center,
-                                                          children: [
-                                                            SvgPicture.asset(
-                                                              'assets/images/graph_box.svg',
-                                                              width: 352,
-                                                              height: 218,
-                                                            ),
-                                                            Positioned(
-                                                              top: 38,
-                                                              child: SizedBox(
-                                                                width: 300,
-                                                                height: 200,
-                                                                child: Stack(
-                                                                  alignment: Alignment.center,
-                                                                  children: [
-                                                                    if (_selectedPeriod == 'Past Week' && _weeklyMoodValues.every((values) => values.isEmpty) ||
-                                                                        _selectedPeriod == 'Past Month' && _monthlyMoodValues.every((values) => values.isEmpty) ||
-                                                                        _selectedPeriod == 'All Time' && _allTimeMoodValues.every((values) => values.isEmpty) ||
-                                                                        _selectedPeriod == 'Custom' && _customMoodValues.every((values) => values.isEmpty))
-                                                                      Center(
-                                                                        child: Text(
-                                                                          'No data available',
-                                                                          style: GoogleFonts.roboto(
-                                                                            fontSize: 11,
-                                                                            fontWeight: FontWeight.bold,
-                                                                            color: Colors.white,
-                                                                          ),
-                                                                        ),
-                                                                      )
-                                                                    else
-                                                                      Padding(
-                                                                        padding: const EdgeInsets.only(bottom: 40.0),
-                                                                        child: LineChart(
-                                                                          LineChartData(
-                                                                            minY: 0,
-                                                                            maxY: 4,
-                                                                            titlesData: FlTitlesData(
-                                                                              leftTitles: AxisTitles(
-                                                                                sideTitles: SideTitles(
-                                                                                  showTitles: true,
-                                                                                  interval: 1,
-                                                                                  getTitlesWidget: (value, meta) {
-                                                                                    final moods = ['😔', '😕', '😐', '😃', '😊'];
-                                                                                    if (value % 1 == 0 && value >= 0 && value <= 4) {
-                                                                                      return Padding(
-                                                                                        padding: const EdgeInsets.only(bottom: 8.0),
-                                                                                        child: Text(moods[value.toInt()], style: TextStyle(color: Colors.white, fontSize: 18)),
-                                                                                      );
-                                                                                    }
-                                                                                    return Container();
-                                                                                  },
-                                                                                  reservedSize: 32,
-                                                                                ),
-                                                                              ),
-                                                                              bottomTitles: AxisTitles(
-                                                                                sideTitles: SideTitles(
-                                                                                  showTitles: true,
-                                                                                  interval: _selectedPeriod == 'Past Week' ? 1 : 
-                                                                                           _selectedPeriod == 'Past Month' ? 5 : 
-                                                                                           _selectedPeriod == 'Custom' ? 
-                                                                                             (_customPeriod == 'days' ? 1 :
-                                                                                              _customPeriod == 'weeks' ? 1 :
-                                                                                              _customPeriod == 'months' ? 1 : 1) :
-                                                                                           _allTimePeriod == 'months' ? 1 : 1,
-                                                                                  reservedSize: 30,
-                                                                                  getTitlesWidget: (value, meta) {
-                                                                                    if (_selectedPeriod == 'Past Week' && value >= 0 && value < 7) {
-                                                                                      return Padding(
-                                                                                        padding: const EdgeInsets.only(top: 8.0),
-                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
-                                                                                      );
-                                                                                    } else if (_selectedPeriod == 'Past Month' && value >= 0 && value < 30) {
-                                                                                      return Padding(
-                                                                                        padding: const EdgeInsets.only(top: 8.0),
-                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
-                                                                                      );
-                                                                                    } else if (_selectedPeriod == 'All Time' && value >= 0 && value < _allTimeDates.length) {
-                                                                                      return Padding(
-                                                                                        padding: const EdgeInsets.only(top: 8.0),
-                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
-                                                                                      );
-                                                                                    } else if (_selectedPeriod == 'Custom' && value >= 0 && value < _customDates.length) {
-                                                                                      return Padding(
-                                                                                        padding: const EdgeInsets.only(top: 8.0),
-                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
-                                                                                      );
-                                                                                    }
-                                                                                    return Container();
-                                                                                  },
-                                                                                ),
-                                                                              ),
-                                                                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                                                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                                                            ),
-                                                                            gridData: FlGridData(
-                                                                              show: true,
-                                                                              horizontalInterval: 1,
-                                                                              verticalInterval: _selectedPeriod == 'Past Week' ? 1 : 
-                                                                                               _selectedPeriod == 'Past Month' ? 5 : 
-                                                                                               _selectedPeriod == 'Custom' ? 
-                                                                                                 (_customPeriod == 'days' ? 1 :
-                                                                                                  _customPeriod == 'weeks' ? 1 :
-                                                                                                  _customPeriod == 'months' ? 1 : 1) :
-                                                                                               _allTimePeriod == 'months' ? 1 : 1,
-                                                                              getDrawingHorizontalLine: (value) => FlLine(
-                                                                                color: Colors.white24,
-                                                                                strokeWidth: 1,
-                                                                                dashArray: [5, 5],
-                                                                              ),
-                                                                              getDrawingVerticalLine: (value) => FlLine(
-                                                                                color: Colors.white24,
-                                                                                strokeWidth: 1,
-                                                                                dashArray: [5, 5],
-                                                                              ),
-                                                                            ),
-                                                                            borderData: FlBorderData(show: false),
-                                                                            lineBarsData: [
-                                                                              LineChartBarData(
-                                                                                spots: [
-                                                                                  for (int i = 0; i < (_selectedPeriod == 'Past Week' ? 7 : 
-                                                                                                     _selectedPeriod == 'Past Month' ? 30 : 
-                                                                                                     _selectedPeriod == 'Custom' ? _customDates.length :
-                                                                                                     _allTimeDates.length); i++)
-                                                                                    if (!(_selectedPeriod == 'Past Week' ? _weeklyMoodAverages[i] : 
-                                                                                          _selectedPeriod == 'Past Month' ? _monthlyMoodAverages[i] : 
-                                                                                          _selectedPeriod == 'Custom' ? _customMoodAverages[i] :
-                                                                                          _allTimeMoodAverages[i]).isNaN)
-                                                                                      FlSpot(i.toDouble(), _selectedPeriod == 'Past Week' ? _weeklyMoodAverages[i] : 
-                                                                                                          _selectedPeriod == 'Past Month' ? _monthlyMoodAverages[i] : 
-                                                                                                          _selectedPeriod == 'Custom' ? _customMoodAverages[i] :
-                                                                                                          _allTimeMoodAverages[i])
-                                                                                ],
-                                                                                isCurved: true,
-                                                                                color: Colors.amberAccent,
-                                                                                barWidth: 4,
-                                                                                dotData: FlDotData(show: true),
-                                                                                belowBarData: BarAreaData(show: false),
-                                                                              ),
-                                                                            ],
-                                                                            lineTouchData: LineTouchData(
-                                                                              enabled: false,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        SizedBox(height: 11),
-                                                        GestureDetector(
-                                                          onTap: _exportChartsToPDF,
-                                                          child: Stack(
-                                                            alignment: Alignment.center,
-                                                            children: [
-                                                              SvgPicture.asset(
-                                                                'assets/images/export_charts.svg',
-                                                                width: 141,
-                                                                height: 36,
-                                                              ),
-                                                              Positioned(
-                                                                top: 7,
-                                                                child: Text(
-                                                                  'Export Charts',
-                                                                  style: GoogleFonts.roboto(
-                                                                    fontSize: 12,
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: Colors.white,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                  SizedBox(height: 18),
-                                                  Expanded(
-                                                    child: StatisticsmoodTabPage.builder(context),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Container(
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                              child: StatisticsMoodDriversPage.builder(context),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              // Period Picker positioned 6 pixels down from picker_mood_charts_selected
-              Positioned(
-                top: 178, // moved further down
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Column(
-                    children: [
-                      _buildPeriodPicker(context),
-                      if (_currentPage == 1) ...[
-                        SizedBox(height: 6),
-                        Container(
-                          height: 41,
-                          margin: EdgeInsets.only(top: 2),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/understand_whats.svg',
-                                width: 352,
-                                height: 41,
-                              ),
-                              Positioned(
-                                top: 8,
-                                child: Text(
-                                  "Understand what's shaping your mood",
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        _buildImproveMoodOverlay(),
-                        SizedBox(height: 10),
-                        _buildNegativeMoodOverlay(),
-                        SizedBox(height: 10),
-                        _buildCorrelationOverlay(),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabview(BuildContext context) {
-    return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SvgPicture.asset(
-            _currentPage == 0 
-                ? 'assets/images/picker_mood_charts_selected.svg'
-                : 'assets/images/picker_mood_drivers_selected.svg',
-            width: 330,
-            height: 44,
-          ),
-          Positioned(
-            left: 30.5,
-            top: 11,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _currentPage = 0;
-                });
-              },
-              child: Text(
-                "Mood Charts",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: _currentPage == 0 ? Colors.white : Colors.white.withOpacity(0.85),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 193,
-            top: 11,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _currentPage = 1;
-                });
-              },
-              child: Container(
-                width: 120,
-                height: 24,
-                child: Text(
-                  "Mood Drivers",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: _currentPage == 1 ? Colors.white : Colors.white.withOpacity(0.85),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodPicker(BuildContext context) {
-    return Container(
-      width: 330,
-      height: 44,
-      constraints: BoxConstraints(
-        maxWidth: 330,
-        maxHeight: 44,
-      ),
-      alignment: Alignment.center,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          print('DEBUG: Period picker container tapped');
-          _showPeriodPicker(context);
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Background SVG
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                print('DEBUG: SVG background tapped');
-                _showPeriodPicker(context);
-              },
-              child: SvgPicture.asset(
-                'assets/images/statistics_period.svg',
-                width: 330,
-                height: 44,
-                fit: BoxFit.contain,
-              ),
-            ),
-            // Text on top
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                print('DEBUG: Period text tapped');
-                _showPeriodPicker(context);
-              },
-              child: Text(
-                _selectedPeriod,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showCustomDatePicker(BuildContext context) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: 600,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          top: MediaQuery.of(context).size.height * 0.08,
-        ),
-        decoration: BoxDecoration(
-          color: Color(0xFFBCBCBC).withOpacity(0.04),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 44,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  margin: EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          'Done',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        onPressed: () {
-                          if (_rangeStart != null && _rangeEnd != null) {
-                            setState(() {
-                              _selectedPeriod =
-                                  '${DateFormat('dd/MM/yyyy').format(_rangeStart!)} - ${DateFormat('dd/MM/yyyy').format(_rangeEnd!)}';
-                            });
-                            // Reload data with new date range
-                            _loadMoodData();
-                          }
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: 12),
-                        Text(
-                          'From',
-                          style: TextStyle(
-                            color: const Color(0xFFFFFFFF),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 8),
-                        SizedBox(
-                          height: 180,
-                          child: CupertinoDatePicker(
-                            initialDateTime: _rangeStart ?? DateTime.now(),
-                            mode: CupertinoDatePickerMode.date,
-                            onDateTimeChanged: (DateTime newDateTime) {
-                              setState(() {
-                                _rangeStart = newDateTime;
-                                if (_rangeEnd != null && _rangeEnd!.isBefore(_rangeStart!)) {
-                                  _rangeEnd = _rangeStart;
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'To',
-                          style: TextStyle(
-                            color: const Color(0xFFFFFFFF),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 8),
-                        SizedBox(
-                          height: 180,
-                          child: CupertinoDatePicker(
-                            initialDateTime: _rangeEnd ?? DateTime.now(),
-                            mode: CupertinoDatePickerMode.date,
-                            onDateTimeChanged: (DateTime newDateTime) {
-                              setState(() {
-                                _rangeEnd = newDateTime;
-                                if (_rangeStart != null && _rangeEnd!.isBefore(_rangeStart!)) {
-                                  _rangeStart = _rangeEnd;
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showPeriodPicker(BuildContext context) {
-    print('DEBUG: _showPeriodPicker called');
-    print('DEBUG: Current context: ${context.toString()}');
-    
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        print('DEBUG: Building CupertinoModalPopup');
-        return Container(
-          height: 500,
-          padding: const EdgeInsets.only(top: 6.0),
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: MediaQuery.of(context).size.height * 0.6,
-          ),
-          decoration: BoxDecoration(
-            color: Color(0xFFBCBCBC).withOpacity(0.04),
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    height: 44,
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          child: Text(
-                            'Done',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: () {
-                            print('DEBUG: Done button pressed');
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 200,
-                    child: CupertinoTheme(
-                      data: CupertinoThemeData(
-                        textTheme: CupertinoTextThemeData(
-                          pickerTextStyle: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      child: CupertinoPicker(
-                        itemExtent: 40,
-                        scrollController: FixedExtentScrollController(),
-                        looping: false,
-                        useMagnifier: true,
-                        magnification: 1.2,
-                        squeeze: 1.2,
-                        backgroundColor: Colors.transparent,
-                        selectionOverlay: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: BorderSide(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1,
-                              ),
-                              bottom: BorderSide(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                        onSelectedItemChanged: (int index) {
-                          print('DEBUG: Picker item changed to index: $index');
-                          setState(() {
-                            switch (index) {
-                              case 0:
-                                _selectedPeriod = 'Past Week';
-                                break;
-                              case 1:
-                                _selectedPeriod = 'Past Month';
-                                break;
-                              case 2:
-                                _selectedPeriod = 'All Time';
-                                break;
-                              case 3:
-                                _selectedPeriod = 'Custom';
-                                Navigator.of(context).pop();
-                                _showCustomDatePicker(context);
-                                break;
-                            }
-                          });
-                          print('DEBUG: Selected period updated to: $_selectedPeriod');
-                          // Reload data when period changes
-                          _loadMoodData();
-                          // Also trigger correlation analysis
-                          _analyzeMoodCorrelations();
-                        },
-                        children: [
-                          Center(
-                            child: Text(
-                              'Past Week',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: Text(
-                              'Past Month',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: Text(
-                              'All Time',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: Text(
-                              'Custom',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  String _getDayLabel(int index) {
-    if (_selectedPeriod == 'Past Week') {
-      final date = _weekDates[index];
-      final today = DateTime.now();
-      final yesterday = today.subtract(Duration(days: 1));
-      
-      if (date.year == today.year && date.month == today.month && date.day == today.day) {
-        return 'Tdy';
-      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
-        return 'Yst';
-      } else {
-        return DateFormat('EEE').format(date);
-      }
-    } else if (_selectedPeriod == 'Past Month') {
-      final date = _monthDates[index];
-      final today = DateTime.now();
-      final yesterday = today.subtract(Duration(days: 1));
-      
-      if (date.year == today.year && date.month == today.month && date.day == today.day) {
-        return 'Tdy';
-      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
-        return 'Yst';
-      } else {
-        return DateFormat('d').format(date);
-      }
-    } else if (_selectedPeriod == 'All Time') {
-      if (_allTimeDates.isEmpty) return '';
-      final date = _allTimeDates[index];
-      if (_allTimePeriod == 'months') {
-        return DateFormat('MMM').format(date);
-      } else {
-        return DateFormat('yyyy').format(date);
-      }
-    } else if (_selectedPeriod == 'Custom') {
-      if (_customDates.isEmpty) return '';
-      final date = _customDates[index];
-      final today = DateTime.now();
-      final yesterday = today.subtract(Duration(days: 1));
-      
-      if (date.year == today.year && date.month == today.month && date.day == today.day) {
-        return 'Tdy';
-      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
-        return 'Yst';
-      } else {
-        switch (_customPeriod) {
-          case 'days':
-            return DateFormat('d').format(date);
-          case 'weeks':
-            return 'W${DateFormat('w').format(date)}';
-          case 'months':
-            return DateFormat('MMM').format(date);
-          case 'years':
-            return DateFormat('yyyy').format(date);
-          default:
-            return DateFormat('d').format(date);
-        }
-      }
-    }
-    return '';
   }
 
   Future<void> _exportChartsToPDF() async {
@@ -2591,5 +1766,896 @@ class StatisticsMoodChartsScreenState extends State<StatisticsMoodChartsScreen>
         ),
       ],
     );
+  }
+
+  // Modify the build method to show loading state
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: double.maxFinite,
+        height: double.maxFinite,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 10, top: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/chevron.backward.svg',
+                                    width: 9,
+                                    height: 17,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Back',
+                                    style: GoogleFonts.roboto(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Statistics',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: ScreenUtil().setHeight(660),
+                      width: double.maxFinite,
+                      margin: EdgeInsets.only(left: ScreenUtil().setHeight(6)),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: double.maxFinite,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(height: 8),
+                                Expanded(
+                                  child: Stack(
+                                    alignment: Alignment.topCenter,
+                                    children: [
+                                      Center(
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            SvgPicture.asset(
+                                          'assets/images/statistics_box.svg',
+                                          width: 379,
+                                          height: 661,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 18,
+                                        left: 0,
+                                        right: 0,
+                                        child: Column(
+                                          children: [
+                                            _buildTabview(context),
+                                            SizedBox(height: 6),
+                                          ],
+                                        ),
+                                      ),
+                                      Positioned.fill(
+                                        top: 62,
+                                        child: PageView(
+                                          controller: _pageController,
+                                          onPageChanged: (index) {
+                                            setState(() {
+                                              _currentPage = index;
+                                            });
+                                          },
+                                          physics: NeverScrollableScrollPhysics(),
+                                          pageSnapping: true,
+                                          children: [
+                                            Container(
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              child: Column(
+                                                children: [
+                                                  SizedBox(height: 64),
+                                                  if (_currentPage == 0) ...[
+                                                  Center(
+                                                    child: AnimatedDonutChart(
+                                                      segments: _getMoodSegments(),
+                                                      strokeWidth: 48,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 20),
+                                                  if (_selectedPeriod == 'Past Week' || _selectedPeriod == 'Past Month' || 
+                                                      _selectedPeriod == 'All Time' || _selectedPeriod == 'Custom')
+                                                    Column(
+                                                      children: [
+                                                        Stack(
+                                                          alignment: Alignment.center,
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              'assets/images/graph_box.svg',
+                                                              width: 352,
+                                                              height: 218,
+                                                            ),
+                                                            Positioned(
+                                                              top: 38,
+                                                              child: SizedBox(
+                                                                width: 300,
+                                                                height: 200,
+                                                                child: Stack(
+                                                                  alignment: Alignment.center,
+                                                                  children: [
+                                                                    if (_selectedPeriod == 'Past Week' && _weeklyMoodValues.every((values) => values.isEmpty) ||
+                                                                        _selectedPeriod == 'Past Month' && _monthlyMoodValues.every((values) => values.isEmpty) ||
+                                                                        _selectedPeriod == 'All Time' && _allTimeMoodValues.every((values) => values.isEmpty) ||
+                                                                        _selectedPeriod == 'Custom' && _customMoodValues.every((values) => values.isEmpty))
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'No data available',
+                                                                          style: GoogleFonts.roboto(
+                                                                            fontSize: 11,
+                                                                            fontWeight: FontWeight.bold,
+                                                                            color: Colors.white,
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    else
+                                                                      Padding(
+                                                                        padding: const EdgeInsets.only(bottom: 40.0),
+                                                                        child: LineChart(
+                                                                          LineChartData(
+                                                                            minY: 0,
+                                                                            maxY: 4,
+                                                                            titlesData: FlTitlesData(
+                                                                              leftTitles: AxisTitles(
+                                                                                sideTitles: SideTitles(
+                                                                                  showTitles: true,
+                                                                                  interval: 1,
+                                                                                  getTitlesWidget: (value, meta) {
+                                                                                    final moods = ['😔', '😕', '😐', '😃', '😊'];
+                                                                                    if (value % 1 == 0 && value >= 0 && value <= 4) {
+                                                                                      return Padding(
+                                                                                        padding: const EdgeInsets.only(bottom: 8.0),
+                                                                                        child: Text(moods[value.toInt()], style: TextStyle(color: Colors.white, fontSize: 18)),
+                                                                                      );
+                                                                                    }
+                                                                                    return Container();
+                                                                                  },
+                                                                                  reservedSize: 32,
+                                                                                ),
+                                                                              ),
+                                                                              bottomTitles: AxisTitles(
+                                                                                sideTitles: SideTitles(
+                                                                                  showTitles: true,
+                                                                                  interval: _selectedPeriod == 'Past Week' ? 1 : 
+                                                                                           _selectedPeriod == 'Past Month' ? 5 : 
+                                                                                           _selectedPeriod == 'Custom' ? 
+                                                                                             (_customPeriod == 'days' ? 1 :
+                                                                                              _customPeriod == 'weeks' ? 1 :
+                                                                                              _customPeriod == 'months' ? 1 : 1) :
+                                                                                           _allTimePeriod == 'months' ? 1 : 1,
+                                                                                  reservedSize: 30,
+                                                                                  getTitlesWidget: (value, meta) {
+                                                                                    if (_selectedPeriod == 'Past Week' && value >= 0 && value < 7) {
+                                                                                      return Padding(
+                                                                                        padding: const EdgeInsets.only(top: 8.0),
+                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                      );
+                                                                                    } else if (_selectedPeriod == 'Past Month' && value >= 0 && value < 30) {
+                                                                                      return Padding(
+                                                                                        padding: const EdgeInsets.only(top: 8.0),
+                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                      );
+                                                                                    } else if (_selectedPeriod == 'All Time' && value >= 0 && value < _allTimeDates.length) {
+                                                                                      return Padding(
+                                                                                        padding: const EdgeInsets.only(top: 8.0),
+                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                      );
+                                                                                    } else if (_selectedPeriod == 'Custom' && value >= 0 && value < _customDates.length) {
+                                                                                      return Padding(
+                                                                                        padding: const EdgeInsets.only(top: 8.0),
+                                                                                        child: Text(_getDayLabel(value.toInt()), style: TextStyle(color: Colors.white, fontSize: 14)),
+                                                                                      );
+                                                                                    }
+                                                                                    return Container();
+                                                                                  },
+                                                                                ),
+                                                                              ),
+                                                                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                                                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                                                            ),
+                                                                            gridData: FlGridData(
+                                                                              show: true,
+                                                                              horizontalInterval: 1,
+                                                                              verticalInterval: _selectedPeriod == 'Past Week' ? 1 : 
+                                                                                               _selectedPeriod == 'Past Month' ? 5 : 
+                                                                                               _selectedPeriod == 'Custom' ? 
+                                                                                                 (_customPeriod == 'days' ? 1 :
+                                                                                                  _customPeriod == 'weeks' ? 1 :
+                                                                                                  _customPeriod == 'months' ? 1 : 1) :
+                                                                                               _allTimePeriod == 'months' ? 1 : 1,
+                                                                              getDrawingHorizontalLine: (value) => FlLine(
+                                                                                color: Colors.white24,
+                                                                                strokeWidth: 1,
+                                                                                dashArray: [5, 5],
+                                                                              ),
+                                                                              getDrawingVerticalLine: (value) => FlLine(
+                                                                                color: Colors.white24,
+                                                                                strokeWidth: 1,
+                                                                                dashArray: [5, 5],
+                                                                              ),
+                                                                            ),
+                                                                            borderData: FlBorderData(show: false),
+                                                                            lineBarsData: [
+                                                                              LineChartBarData(
+                                                                                spots: [
+                                                                                  for (int i = 0; i < (_selectedPeriod == 'Past Week' ? 7 : 
+                                                                                                     _selectedPeriod == 'Past Month' ? 30 : 
+                                                                                                     _selectedPeriod == 'Custom' ? _customDates.length :
+                                                                                                     _allTimeDates.length); i++)
+                                                                                    if (!(_selectedPeriod == 'Past Week' ? _weeklyMoodAverages[i] : 
+                                                                                          _selectedPeriod == 'Past Month' ? _monthlyMoodAverages[i] : 
+                                                                                          _selectedPeriod == 'Custom' ? _customMoodAverages[i] :
+                                                                                          _allTimeMoodAverages[i]).isNaN)
+                                                                                      FlSpot(i.toDouble(), _selectedPeriod == 'Past Week' ? _weeklyMoodAverages[i] : 
+                                                                                                          _selectedPeriod == 'Past Month' ? _monthlyMoodAverages[i] : 
+                                                                                                          _selectedPeriod == 'Custom' ? _customMoodAverages[i] :
+                                                                                                          _allTimeMoodAverages[i])
+                                                                                ],
+                                                                                isCurved: true,
+                                                                                color: Colors.amberAccent,
+                                                                                barWidth: 4,
+                                                                                dotData: FlDotData(show: true),
+                                                                                belowBarData: BarAreaData(show: false),
+                                                                              ),
+                                                                            ],
+                                                                            lineTouchData: LineTouchData(
+                                                                              enabled: false,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(height: 11),
+                                                        GestureDetector(
+                                                          onTap: _exportChartsToPDF,
+                                                          child: Stack(
+                                                            alignment: Alignment.center,
+                                                            children: [
+                                                              SvgPicture.asset(
+                                                                'assets/images/export_charts.svg',
+                                                                width: 141,
+                                                                height: 36,
+                                                              ),
+                                                              Positioned(
+                                                                top: 7,
+                                                                child: Text(
+                                                                  'Export Charts',
+                                                                  style: GoogleFonts.roboto(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: Colors.white,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                  SizedBox(height: 18),
+                                                  Expanded(
+                                                    child: StatisticsmoodTabPage.builder(context),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              child: StatisticsMoodDriversPage.builder(context),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              // Period Picker positioned 6 pixels down from picker_mood_charts_selected
+              Positioned(
+                top: 178, // moved further down
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Column(
+                    children: [
+                      _buildPeriodPicker(context),
+                      if (_currentPage == 1) ...[
+                        SizedBox(height: 6),
+                        Container(
+                          height: 41,
+                          margin: EdgeInsets.only(top: 2),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/understand_whats.svg',
+                                width: 352,
+                                height: 41,
+                              ),
+                              Positioned(
+                                top: 8,
+                                child: Text(
+                                  "Understand what's shaping your mood",
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        _buildImproveMoodOverlay(),
+                        SizedBox(height: 10),
+                        _buildNegativeMoodOverlay(),
+                        SizedBox(height: 10),
+                        _buildCorrelationOverlay(),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              // Add loading overlay
+              if (_isPeriodChanging)
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: Center(
+                    child: CupertinoActivityIndicator(
+                      color: Colors.white,
+                      radius: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabview(BuildContext context) {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SvgPicture.asset(
+            _currentPage == 0 
+                ? 'assets/images/picker_mood_charts_selected.svg'
+                : 'assets/images/picker_mood_drivers_selected.svg',
+            width: 330,
+            height: 44,
+          ),
+          Positioned(
+            left: 30.5,
+            top: 11,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentPage = 0;
+                });
+              },
+              child: Text(
+                "Mood Charts",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: _currentPage == 0 ? Colors.white : Colors.white.withOpacity(0.85),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 193,
+            top: 11,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentPage = 1;
+                });
+              },
+              child: Container(
+                width: 120,
+                height: 24,
+                child: Text(
+                  "Mood Drivers",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: _currentPage == 1 ? Colors.white : Colors.white.withOpacity(0.85),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodPicker(BuildContext context) {
+    return Container(
+      width: 330,
+      height: 44,
+      constraints: BoxConstraints(
+        maxWidth: 330,
+        maxHeight: 44,
+      ),
+      alignment: Alignment.center,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          print('DEBUG: Period picker container tapped');
+          _showPeriodPicker(context);
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Background SVG
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                print('DEBUG: SVG background tapped');
+                _showPeriodPicker(context);
+              },
+              child: SvgPicture.asset(
+                'assets/images/statistics_period.svg',
+                width: 330,
+                height: 44,
+                fit: BoxFit.contain,
+              ),
+            ),
+            // Text on top
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                print('DEBUG: Period text tapped');
+                _showPeriodPicker(context);
+              },
+              child: Text(
+                _selectedPeriod,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCustomDatePicker(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 600,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: MediaQuery.of(context).size.height * 0.08,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xFFBCBCBC).withOpacity(0.04),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 44,
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  margin: EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (_rangeStart != null && _rangeEnd != null) {
+                            setState(() {
+                              _selectedPeriod =
+                                  '${DateFormat('dd/MM/yyyy').format(_rangeStart!)} - ${DateFormat('dd/MM/yyyy').format(_rangeEnd!)}';
+                            });
+                            // Reload data with new date range
+                            _loadMoodData();
+                          }
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: 12),
+                        Text(
+                          'From',
+                          style: TextStyle(
+                            color: const Color(0xFFFFFFFF),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 8),
+                        SizedBox(
+                          height: 180,
+                          child: CupertinoDatePicker(
+                            initialDateTime: _rangeStart ?? DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            onDateTimeChanged: (DateTime newDateTime) {
+                              setState(() {
+                                _rangeStart = newDateTime;
+                                if (_rangeEnd != null && _rangeEnd!.isBefore(_rangeStart!)) {
+                                  _rangeEnd = _rangeStart;
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'To',
+                          style: TextStyle(
+                            color: const Color(0xFFFFFFFF),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 8),
+                        SizedBox(
+                          height: 180,
+                          child: CupertinoDatePicker(
+                            initialDateTime: _rangeEnd ?? DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            onDateTimeChanged: (DateTime newDateTime) {
+                              setState(() {
+                                _rangeEnd = newDateTime;
+                                if (_rangeStart != null && _rangeEnd!.isBefore(_rangeStart!)) {
+                                  _rangeStart = _rangeEnd;
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Modify _showPeriodPicker to use debouncing
+  void _showPeriodPicker(BuildContext context) {
+    print('DEBUG: _showPeriodPicker called');
+    
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 500,
+          padding: const EdgeInsets.only(top: 6.0),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: MediaQuery.of(context).size.height * 0.6,
+          ),
+          decoration: BoxDecoration(
+            color: Color(0xFFBCBCBC).withOpacity(0.04),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 44,
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Text(
+                            'Done',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: 200,
+                    child: CupertinoTheme(
+                      data: CupertinoThemeData(
+                        textTheme: CupertinoTextThemeData(
+                          pickerTextStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      child: CupertinoPicker(
+                        itemExtent: 40,
+                        scrollController: FixedExtentScrollController(),
+                        looping: false,
+                        useMagnifier: true,
+                        magnification: 1.2,
+                        squeeze: 1.2,
+                        backgroundColor: Colors.transparent,
+                        selectionOverlay: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                              bottom: BorderSide(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                        onSelectedItemChanged: (int index) {
+                          // Cancel any existing debouncer
+                          _periodChangeDebouncer?.cancel();
+                          
+                          // Set loading state
+                          setState(() {
+                            _isPeriodChanging = true;
+                          });
+                          
+                          // Create new debouncer
+                          _periodChangeDebouncer = Timer(Duration(milliseconds: 300), () {
+                            setState(() {
+                              switch (index) {
+                                case 0:
+                                  _selectedPeriod = 'Past Week';
+                                  break;
+                                case 1:
+                                  _selectedPeriod = 'Past Month';
+                                  break;
+                                case 2:
+                                  _selectedPeriod = 'All Time';
+                                  break;
+                                case 3:
+                                  _selectedPeriod = 'Custom';
+                                  Navigator.of(context).pop();
+                                  _showCustomDatePicker(context);
+                                  return;
+                              }
+                            });
+                            
+                            // Load data and reset loading state
+                            _loadMoodData().then((_) {
+                              setState(() {
+                                _isPeriodChanging = false;
+                              });
+                            });
+                          });
+                        },
+                        children: [
+                          Center(
+                            child: Text(
+                              'Past Week',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              'Past Month',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              'All Time',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              'Custom',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getDayLabel(int index) {
+    if (_selectedPeriod == 'Past Week') {
+      final date = _weekDates[index];
+      final today = DateTime.now();
+      final yesterday = today.subtract(Duration(days: 1));
+      
+      if (date.year == today.year && date.month == today.month && date.day == today.day) {
+        return 'Tdy';
+      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+        return 'Yst';
+      } else {
+        return DateFormat('EEE').format(date);
+      }
+    } else if (_selectedPeriod == 'Past Month') {
+      final date = _monthDates[index];
+      final today = DateTime.now();
+      final yesterday = today.subtract(Duration(days: 1));
+      
+      if (date.year == today.year && date.month == today.month && date.day == today.day) {
+        return 'Tdy';
+      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+        return 'Yst';
+      } else {
+        return DateFormat('d').format(date);
+      }
+    } else if (_selectedPeriod == 'All Time') {
+      if (_allTimeDates.isEmpty) return '';
+      final date = _allTimeDates[index];
+      if (_allTimePeriod == 'months') {
+        return DateFormat('MMM').format(date);
+      } else {
+        return DateFormat('yyyy').format(date);
+      }
+    } else if (_selectedPeriod == 'Custom') {
+      if (_customDates.isEmpty) return '';
+      final date = _customDates[index];
+      final today = DateTime.now();
+      final yesterday = today.subtract(Duration(days: 1));
+      
+      if (date.year == today.year && date.month == today.month && date.day == today.day) {
+        return 'Tdy';
+      } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+        return 'Yst';
+      } else {
+        switch (_customPeriod) {
+          case 'days':
+            return DateFormat('d').format(date);
+          case 'weeks':
+            return 'W${DateFormat('w').format(date)}';
+          case 'months':
+            return DateFormat('MMM').format(date);
+          case 'years':
+            return DateFormat('yyyy').format(date);
+          default:
+            return DateFormat('d').format(date);
+        }
+      }
+    }
+    return '';
   }
 }

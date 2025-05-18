@@ -59,9 +59,9 @@ class _UnlockSliderState extends State<UnlockSlider> with SingleTickerProviderSt
       case 'neutral':
         return 'Neutral 😐';
       case 'light':
-        return 'Light 😊';
+        return 'Light 😃';
       case 'bright':
-        return 'Bright 😄';
+        return 'Bright 😊';
       default:
         return 'Neutral 😐';
     }

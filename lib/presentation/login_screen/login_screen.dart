@@ -402,6 +402,9 @@ class LoginScreenState extends State<LoginScreen> {
           final rememberMe = context.read<LoginProvider>().keepmesignedin;
 
           try {
+            // Clear any existing user data first
+            await Provider.of<UserProvider>(context, listen: false).signOut();
+            
             // Attempt to sign in using AuthService
             final user = await _authService.signInWithEmailAndPassword(
               email,
@@ -416,7 +419,9 @@ class LoginScreenState extends State<LoginScreen> {
                 await AuthPersistenceService.clearSavedCredentials();
               }
               
+              // Fetch new user data
               await Provider.of<UserProvider>(context, listen: false).fetchUserData(email);
+              
               // Navigate to home screen on success
               Navigator.pushReplacementNamed(context, AppRoutes.homescreenScreen);
             } else if (context.mounted) {

@@ -254,15 +254,20 @@ class AiScreenState extends State<AiScreen> with SingleTickerProviderStateMixin 
   }
 
   Future<void> _loadUserName() async {
-    final userData = await _userService.getCurrentUserData();
-    if (userData != null) {
-      setState(() {
-        _userName = userData['name'] as String? ?? 'User';
-      });
-    } else {
-      setState(() {
-        _userName = 'User';
-      });
+    try {
+      final userData = await _userService.getCurrentUserData();
+      if (mounted) {
+        setState(() {
+          _userName = userData?['name'] as String? ?? 'User';
+        });
+      }
+    } catch (e) {
+      print('Error loading user name: $e');
+      if (mounted) {
+        setState(() {
+          _userName = 'User';
+        });
+      }
     }
   }
 

@@ -50,7 +50,7 @@ class InhaleScreenState extends State<InhaleScreen> with SingleTickerProviderSta
   @override
   void initState() {
     super.initState();
-    _remainingTime = widget.duration * 60;
+    _remainingTime = widget.duration;
     
     _controller = AnimationController(
       duration: const Duration(seconds: 4),
