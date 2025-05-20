@@ -22,9 +22,6 @@
         android:label="MoodFlow"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw"/>
         <service
             android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
             android:exported="false">

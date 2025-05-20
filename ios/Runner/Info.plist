@@ -108,8 +108,6 @@
 	<string>MoodFlow needs access to location to show your current position on the map and help you log your mood at specific places.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
-	<key>GMSApiKey</key>
-	<string>AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

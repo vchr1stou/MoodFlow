@@ -25,8 +25,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../little_lifts_screen/little_lifts_screen.dart';
-
-const String youtubeApiKey = 'AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw';
+import '../../services/remote_config_service.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -364,75 +363,72 @@ class MeditationScreenState extends State<MeditationScreen> with SingleTickerPro
   String? _currentMeditationRecommendation;
   bool _isSaved = false;
   Map<String, Map<String, String>> _meditationInfoCache = {};
+  final RemoteConfigService _remoteConfig = RemoteConfigService();
 
-  Future<String?> fetchMeditationVideo({
-    required String query,
-    int maxDurationMinutes = 20,
-  }) async {
-    print('🌐 Making YouTube API request for: $query');
-    final url = Uri.parse(
-      'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${Uri.encodeComponent(query)}&key=$youtubeApiKey',
+  Future<List<Map<String, dynamic>>> _searchVideos(String query) async {
+    final response = await http.get(
+      Uri.parse('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${Uri.encodeComponent(query)}&key=${_remoteConfig.getYoutubeApiKey()}'),
     );
 
-    try {
-      final response = await http.get(url);
-      if (response.statusCode != 200) {
-        final errorData = jsonDecode(response.body);
-        if (response.statusCode == 403 && 
-            errorData['error']?['status'] == 'PERMISSION_DENIED' &&
-            errorData['error']?['details']?[0]?['reason'] == 'SERVICE_DISABLED') {
-          print('⚠️ YouTube API is not enabled. Please enable it in the Google Cloud Console.');
-          print('🔗 Visit: https://console.developers.google.com/apis/api/youtube.googleapis.com/overview?project=544663069826');
-          return null;
-        }
-        print('❌ YouTube API error: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        return null;
+    if (response.statusCode != 200) {
+      final errorData = jsonDecode(response.body);
+      if (response.statusCode == 403 && 
+          errorData['error']?['status'] == 'PERMISSION_DENIED' &&
+          errorData['error']?['details']?[0]?['reason'] == 'SERVICE_DISABLED') {
+        print('⚠️ YouTube API is not enabled. Please enable it in the Google Cloud Console.');
+        print('🔗 Visit: https://console.developers.google.com/apis/api/youtube.googleapis.com/overview?project=544663069826');
+        return [];
       }
-
-      final data = jsonDecode(response.body);
-      final items = data['items'] as List<dynamic>;
-      print('📊 Found ${items.length} videos');
-
-      for (final item in items) {
-        final videoId = item['id']['videoId'];
-        print('🔎 Checking video: $videoId');
-        
-        final durationUrl = Uri.parse(
-          'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=$youtubeApiKey',
-        );
-        final durationResponse = await http.get(durationUrl);
-        if (durationResponse.statusCode != 200) {
-          print('❌ Duration API error for video $videoId: ${durationResponse.statusCode}');
-          continue;
-        }
-
-        final durationData = jsonDecode(durationResponse.body);
-        final details = durationData['items'] as List<dynamic>;
-        if (details.isEmpty) {
-          print('❌ No duration details for video $videoId');
-          continue;
-        }
-
-        final isoDuration = details[0]['contentDetails']['duration'];
-        final durationMinutes = _parseIsoDurationToMinutes(isoDuration);
-        print('⏱️ Video duration: $durationMinutes minutes');
-
-        if (durationMinutes <= maxDurationMinutes) {
-          final videoUrl = 'https://www.youtube.com/watch?v=$videoId';
-          print('✅ Found suitable video: $videoUrl');
-          return videoUrl;
-        } else {
-          print('⏰ Video too long: $durationMinutes minutes');
-        }
-      }
-
-      print('❌ No suitable videos found within duration limit');
-      return null;
-    } catch (e) {
-      print('❌ Error fetching YouTube video: $e');
-      return null;
+      print('❌ YouTube API error: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      return [];
     }
+
+    final data = jsonDecode(response.body);
+    final items = data['items'] as List<dynamic>;
+    print('📊 Found ${items.length} videos');
+
+    final videos = <Map<String, dynamic>>[];
+
+    for (final item in items) {
+      final videoId = item['id']['videoId'];
+      print('🔎 Checking video: $videoId');
+      
+      final durationUrl = Uri.parse(
+        'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=${_remoteConfig.getYoutubeApiKey()}',
+      );
+      final durationResponse = await http.get(durationUrl);
+      if (durationResponse.statusCode != 200) {
+        print('❌ Duration API error for video $videoId: ${durationResponse.statusCode}');
+        continue;
+      }
+
+      final durationData = jsonDecode(durationResponse.body);
+      final details = durationData['items'] as List<dynamic>;
+      if (details.isEmpty) {
+        print('❌ No duration details for video $videoId');
+        continue;
+      }
+
+      final isoDuration = details[0]['contentDetails']['duration'];
+      final durationMinutes = _parseIsoDurationToMinutes(isoDuration);
+      print('⏱️ Video duration: $durationMinutes minutes');
+
+      if (durationMinutes <= 20) {
+        final videoUrl = 'https://www.youtube.com/watch?v=$videoId';
+        print('✅ Found suitable video: $videoUrl');
+        videos.add({
+          'id': videoId,
+          'url': videoUrl,
+          'duration': durationMinutes.toString(),
+        });
+      } else {
+        print('⏰ Video too long: $durationMinutes minutes');
+      }
+    }
+
+    print('📊 Found ${videos.length} suitable videos');
+    return videos;
   }
 
   int _parseIsoDurationToMinutes(String isoDuration) {
@@ -485,34 +481,44 @@ class MeditationScreenState extends State<MeditationScreen> with SingleTickerPro
     // Search for a relevant meditation video
     final searchQuery = '$title guided meditation';
     print('🔍 Searching YouTube for: $searchQuery');
-    final videoUrl = await fetchMeditationVideo(query: searchQuery);
+    final videos = await _searchVideos(searchQuery);
     
-    if (videoUrl != null) {
-      print('🎥 Found YouTube video: $videoUrl');
-      final thumbnailUrl = getYouTubeThumbnail(videoUrl);
-      print('🖼️ Thumbnail URL: $thumbnailUrl');
+    if (videos.isNotEmpty) {
+      print('🎥 Found YouTube videos');
+      final video = videos[0];
+      final videoUrl = video['url'];
+      final durationMinutes = int.parse(video['duration']);
+      print('⏱️ Video duration: $durationMinutes minutes');
 
-      // Check if thumbnail is accessible
-      if (thumbnailUrl != null) {
-        try {
-          final response = await http.head(Uri.parse(thumbnailUrl));
-          if (response.statusCode != 200) {
-            print('❌ Thumbnail not accessible, requesting new recommendation');
+      if (durationMinutes <= 20) {
+        print('✅ Found suitable video: $videoUrl');
+        final thumbnailUrl = getYouTubeThumbnail(videoUrl);
+        print('🖼️ Thumbnail URL: $thumbnailUrl');
+
+        // Check if thumbnail is accessible
+        if (thumbnailUrl != null) {
+          try {
+            final response = await http.head(Uri.parse(thumbnailUrl));
+            if (response.statusCode != 200) {
+              print('❌ Thumbnail not accessible, requesting new recommendation');
+              // Request new recommendation from the provider
+              final provider = Provider.of<MeditationProvider>(context, listen: false);
+              await provider.sendMessage('Please suggest a different meditation');
+              return {};
+            }
+          } catch (e) {
+            print('❌ Error checking thumbnail: $e');
             // Request new recommendation from the provider
             final provider = Provider.of<MeditationProvider>(context, listen: false);
             await provider.sendMessage('Please suggest a different meditation');
             return {};
           }
-        } catch (e) {
-          print('❌ Error checking thumbnail: $e');
-          // Request new recommendation from the provider
-          final provider = Provider.of<MeditationProvider>(context, listen: false);
-          await provider.sendMessage('Please suggest a different meditation');
-          return {};
         }
+      } else {
+        print('⏰ Video too long: $durationMinutes minutes');
       }
     } else {
-      print('❌ No suitable YouTube video found');
+      print('❌ No suitable YouTube videos found');
     }
     
     String? imageUrl = videoUrl != null ? getYouTubeThumbnail(videoUrl) : null;

@@ -28,26 +28,7 @@ import '../little_lifts_screen/little_lifts_screen.dart';
 import 'provider/traveling_provider.dart';
 import 'package:image/image.dart' as img;
 import 'dart:typed_data';
-
-const String unsplashApiKey = 'eyfC5QB1_xUKVD3T4v1fBbFtxFrs514GA1WXTUsFHvg';
-
-Future<String?> getUnsplashImage(String query) async {
-  try {
-    final response = await http.get(
-      Uri.parse('https://api.unsplash.com/search/photos?query=$query&orientation=landscape&per_page=1&client_id=$unsplashApiKey'),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['results'] != null && data['results'].isNotEmpty) {
-        return data['results'][0]['urls']['regular'];
-      }
-    }
-  } catch (e) {
-    print('Error fetching Unsplash image: $e');
-  }
-  return null;
-}
+import '../../services/remote_config_service.dart';
 
 class GlowPainter extends CustomPainter {
   final double animation;
@@ -219,6 +200,7 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
   bool _showChat = false;
   String? _currentTravelRecommendation;
   bool _isSaved = false;
+  final RemoteConfigService _remoteConfig = RemoteConfigService();
 
   // Helper to extract all travel information from AI response
   Map<String, String> extractTravelInfo(String response) {
@@ -528,7 +510,7 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                           builder: (context) {
                                             final info = extractTravelInfo(_currentTravelRecommendation!);
                                             return FutureBuilder<String?>(
-                                              future: getUnsplashImage(info['title'] ?? ''),
+                                              future: _getRandomImage(info['title'] ?? ''),
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                                   return Container(
@@ -750,7 +732,7 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
                                               await _removeTravelFromFirestore(info);
                                             } else {
                                               // If now saved, save it
-                                              final imageUrl = await getUnsplashImage(info['title'] ?? '');
+                                              final imageUrl = await _getRandomImage(info['title'] ?? '');
                                               print('🖼️ Image URL: $imageUrl');
                                               await _saveTravelToFirestore(info, imageUrl ?? '');
                                             }
@@ -1207,6 +1189,20 @@ class _TravelingScreenState extends State<TravelingScreen> with SingleTickerProv
     } catch (e) {
       print('❌ Error removing travel: $e');
     }
+  }
+
+  Future<String?> _getRandomImage(String query) async {
+    final response = await http.get(
+      Uri.parse('https://api.unsplash.com/search/photos?query=$query&orientation=landscape&per_page=1&client_id=${_remoteConfig.getUnsplashApiKey()}'),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['results'] != null && data['results'].isNotEmpty) {
+        return data['results'][0]['urls']['regular'];
+      }
+    }
+    return null;
   }
 }
 

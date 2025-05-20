@@ -1,5 +1,10 @@
+import '../services/remote_config_service.dart';
+
 class ApiConfig {
-  static const String geminiApiKey = 'AIzaSyDEJ-TeTsk73dHZ9-IJFdPv2QSpmwEjCiI';
-  static const String googleApiKey = 'AIzaSyDZcRuk8N_f5lXL9EFvEyDzMP3QJYpuov4';
-  static const String searchEngineId = '017576662512468239146:omuauf_lfve'; // Google Custom Search Engine ID
+  static final RemoteConfigService _remoteConfig = RemoteConfigService();
+
+  static String get geminiApiKey => _remoteConfig.getGeminiApiKey();
+  static String get googleApiKey => _remoteConfig.getGoogleApiKey();
+  static String get searchEngineId => _remoteConfig.getSearchEngineId();
+  static String get googleMapsApiKey => _remoteConfig.getGoogleMapsApiKey();
 } 

@@ -5,9 +5,10 @@ import 'dart:convert';
 import '../config/spotify_config.dart';
 import 'package:flutter/material.dart';
 import 'package:uni_links/uni_links.dart';
+import 'remote_config_service.dart';
 
 class SpotifyService {
-  static const String clientId = '826c83b9cc66470b98e91492884bab68';
+  final RemoteConfigService _remoteConfig = RemoteConfigService();
   static const String redirectUri = 'moodflow://spotify-callback';
   static const String scope = 'user-read-email user-read-private';
 
@@ -15,7 +16,7 @@ class SpotifyService {
     debugPrint('=== Starting Spotify login ===');
     
     final authUrl = Uri.https('accounts.spotify.com', '/authorize', {
-      'client_id': clientId,
+      'client_id': _remoteConfig.getSpotifyClientId(),
       'response_type': 'code',
       'redirect_uri': redirectUri,
       'scope': scope,

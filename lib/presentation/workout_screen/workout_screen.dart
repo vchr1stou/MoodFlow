@@ -16,8 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/user_service.dart';
-
-const String youtubeApiKey = 'AIzaSyABz9tCdUz29okHDMNQYEMX-LuvNUtjZZw';
+import '../../services/remote_config_service.dart';
 
 class GlowEffect extends StatefulWidget {
   final bool isKeyboardOpen;
@@ -171,6 +170,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   String? _currentWorkoutRecommendation;
   bool _isSaved = false;
   Map<String, Map<String, String>> _workoutInfoCache = {};
+  final RemoteConfigService _remoteConfig = RemoteConfigService();
 
   /// Extracts the YouTube video ID from a full URL and returns the thumbnail URL.
   String? getYouTubeThumbnail(String videoUrl) {
@@ -198,7 +198,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
   }) async {
     print('🌐 Making YouTube API request for: $query');
     final url = Uri.parse(
-      'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${Uri.encodeComponent(query)}&key=$youtubeApiKey',
+      'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${Uri.encodeComponent(query)}&key=${_remoteConfig.getYoutubeApiKey()}',
     );
 
     try {
@@ -207,7 +207,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
         final errorData = jsonDecode(response.body);
         if (response.statusCode == 403 && 
             errorData['error']?['status'] == 'PERMISSION_DENIED' &&
-            errorData['error']?['details']?[0]?['reason'] == 'SERVICE_DISABLED') {
+            errorData['error']?[0]?['details']?[0]?['reason'] == 'SERVICE_DISABLED') {
           print('⚠️ YouTube API is not enabled. Please enable it in the Google Cloud Console.');
           print('🔗 Visit: https://console.developers.google.com/apis/api/youtube.googleapis.com/overview?project=544663069826');
           return null;
@@ -226,7 +226,7 @@ class WorkoutScreenState extends State<WorkoutScreen> with SingleTickerProviderS
         print('🔎 Checking video: $videoId');
         
         final durationUrl = Uri.parse(
-          'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=$youtubeApiKey',
+          'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=${_remoteConfig.getYoutubeApiKey()}',
         );
         final durationResponse = await http.get(durationUrl);
         if (durationResponse.statusCode != 200) {
