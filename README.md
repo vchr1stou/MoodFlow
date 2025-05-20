@@ -1,6 +1,7 @@
 # MoodFlow
 
 **Let your feelings flow—we’ve got you covered!** 🌈
+![img_image](https://github.com/user-attachments/assets/e9a89000-3a98-469b-995c-700a24434267)
 
 **MoodFlow** is a powerful and intuitive mental health companion app designed to help you log, understand, and uplift your mood. Whether you're journaling your thoughts, checking your emotional trends, or simply seeking some comfort, MoodFlow is here for you—with the help of **Gemini**, your empathetic AI buddy.
 
